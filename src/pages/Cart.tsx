@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Minus, Plus, X, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
+import showerFilter from '@/assets/shower-filter.jpg';
+import kitchenFilter from '@/assets/kitchen-filter.jpg';
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([
@@ -13,16 +15,30 @@ const Cart = () => {
       name: '프리미엄 샤워 필터 SF-100',
       price: 89000,
       quantity: 2,
-      image: '/placeholder.svg'
+      image: showerFilter
     },
     {
       id: 2,
       name: '주방용 직수 정수기 KF-200',
       price: 195000,
       quantity: 1,
-      image: '/placeholder.svg'
+      image: kitchenFilter
     }
   ]);
+
+  const updateQuantity = (id: number, change: number) => {
+    setCartItems(items => 
+      items.map(item => 
+        item.id === id 
+          ? { ...item, quantity: Math.max(1, item.quantity + change) }
+          : item
+      )
+    );
+  };
+
+  const removeItem = (id: number) => {
+    setCartItems(items => items.filter(item => item.id !== id));
+  };
 
   const shippingFee = 3000;
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -49,15 +65,27 @@ const Cart = () => {
                       <p className="text-primary font-bold">{item.price.toLocaleString()}원</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => updateQuantity(item.id, -1)}
+                      >
                         <Minus className="w-4 h-4" />
                       </Button>
-                      <Input value={item.quantity} className="w-16 text-center" />
-                      <Button variant="outline" size="sm">
+                      <Input value={item.quantity} className="w-16 text-center" readOnly />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => updateQuantity(item.id, 1)}
+                      >
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => removeItem(item.id)}
+                    >
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
