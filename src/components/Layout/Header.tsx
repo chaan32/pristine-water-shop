@@ -75,14 +75,17 @@ const Header = () => {
                 </>
               ) : (
                 <>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setIsLoggedIn(true)}
-                  >
-                    로그인
-                  </Button>
-                  <Button variant="ghost" size="sm">회원가입</Button>
+                  <Link to="/login">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                    >
+                      로그인
+                    </Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button variant="ghost" size="sm">회원가입</Button>
+                  </Link>
                 </>
               )}
             </div>
@@ -229,21 +232,24 @@ const Header = () => {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => setIsLoggedIn(true)}
-                    >
-                      로그인
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start"
-                    >
-                      회원가입
-                    </Button>
+                    <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="w-full justify-start"
+                      >
+                        로그인
+                      </Button>
+                    </Link>
+                    <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="w-full justify-start"
+                      >
+                        회원가입
+                      </Button>
+                    </Link>
                   </div>
                 )}
               </div>
