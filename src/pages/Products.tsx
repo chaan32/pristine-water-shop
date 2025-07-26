@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowRight, Star, Droplets, Shield, Zap, Filter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Products = () => {
   const categories = [
@@ -171,10 +172,12 @@ const Products = () => {
               </span>
             </div>
 
-            <Button className="w-full water-drop">
-              자세히 보기
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <Link to={`/product/${product.id}`}>
+              <Button className="w-full water-drop">
+                자세히 보기
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       ))}

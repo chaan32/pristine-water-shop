@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Star, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const FeaturedProducts = () => {
   const featuredProducts = [
@@ -131,10 +132,12 @@ const FeaturedProducts = () => {
               </CardContent>
 
               <CardFooter className="p-6 pt-0">
-                <Button className="w-full water-drop">
-                  자세히 보기
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <Link to={`/product/${product.id}`}>
+                  <Button className="w-full water-drop">
+                    자세히 보기
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
           ))}
@@ -142,10 +145,12 @@ const FeaturedProducts = () => {
 
         {/* CTA */}
         <div className="text-center">
-          <Button variant="outline" size="lg" className="water-drop">
-            전체 제품 보기
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          <Link to="/shop">
+            <Button variant="outline" size="lg" className="water-drop">
+              전체 제품 보기
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
