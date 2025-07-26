@@ -14,9 +14,11 @@ import {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userType, setUserType] = useState<'individual' | 'corporate'>('individual');
-  const [userName] = useState('홍길동');
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userType'));
+  const [userType, setUserType] = useState<'individual' | 'corporate' | 'admin'>(
+    (localStorage.getItem('userType') as 'individual' | 'corporate' | 'admin') || 'individual'
+  );
+  const [userName] = useState(localStorage.getItem('userName') || '홍길동');
   const [cartCount] = useState(3);
   const location = useLocation();
 
@@ -63,12 +65,18 @@ const Header = () => {
               {isLoggedIn ? (
                 <>
                   <span className="text-primary font-medium">
-                    {userName}님 ({userType === 'individual' ? '개인' : 'OO기업'})
+                    {userType === 'admin' ? `관리자 ${userName}님` : 
+                     `${userName}님 (${userType === 'individual' ? '개인' : 'OO기업'})`}
                   </span>
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => setIsLoggedIn(false)}
+                    onClick={() => {
+                      localStorage.removeItem('userType');
+                      localStorage.removeItem('userName');
+                      setIsLoggedIn(false);
+                      window.location.href = '/';
+                    }}
                   >
                     로그아웃
                   </Button>
@@ -140,12 +148,14 @@ const Header = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-3">
-            {/* My Page */}
+            {/* My Page / Admin Panel */}
             {isLoggedIn && (
-              <Button variant="ghost" size="sm" className="hidden md:flex">
-                <User className="w-4 h-4 mr-1" />
-                마이페이지
-              </Button>
+              <Link to={userType === 'admin' ? '/admin' : '/mypage'}>
+                <Button variant="ghost" size="sm" className="hidden md:flex">
+                  <User className="w-4 h-4 mr-1" />
+                  {userType === 'admin' ? '관리자 패널' : '마이페이지'}
+                </Button>
+              </Link>
             )}
 
             {/* Cart */}
@@ -214,20 +224,29 @@ const Header = () => {
                 {isLoggedIn ? (
                   <div className="space-y-2">
                     <p className="text-primary font-medium">
-                      {userName}님 ({userType === 'individual' ? '개인' : 'OO기업'})
+                      {userType === 'admin' ? `관리자 ${userName}님` : 
+                       `${userName}님 (${userType === 'individual' ? '개인' : 'OO기업'})`}
                     </p>
+                    <Link to={userType === 'admin' ? '/admin' : '/mypage'} onClick={() => setIsMenuOpen(false)}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="w-full justify-start"
+                      >
+                        {userType === 'admin' ? '관리자 패널' : '마이페이지'}
+                      </Button>
+                    </Link>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       className="w-full justify-start"
-                    >
-                      마이페이지
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start"
-                      onClick={() => setIsLoggedIn(false)}
+                      onClick={() => {
+                        localStorage.removeItem('userType');
+                        localStorage.removeItem('userName');
+                        setIsLoggedIn(false);
+                        setIsMenuOpen(false);
+                        window.location.href = '/';
+                      }}
                     >
                       로그아웃
                     </Button>

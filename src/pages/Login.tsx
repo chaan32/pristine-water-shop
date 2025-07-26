@@ -5,9 +5,33 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { LogIn, User, Lock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [loginData, setLoginData] = useState({
+    username: '',
+    password: ''
+  });
+
+  const handleLogin = () => {
+    // 임시 로그인 로직 - 실제로는 백엔드 API와 연동
+    if (loginData.username === 'admin' && loginData.password === 'admin') {
+      // 관리자 로그인
+      localStorage.setItem('userType', 'admin');
+      localStorage.setItem('userName', '김관리자');
+      navigate('/admin');
+    } else if (loginData.username && loginData.password) {
+      // 일반 사용자 로그인
+      localStorage.setItem('userType', 'individual');
+      localStorage.setItem('userName', '홍길동');
+      navigate('/mypage');
+    } else {
+      alert('아이디 또는 비밀번호가 올바르지 않습니다.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -23,11 +47,23 @@ const Login = () => {
               <div className="space-y-4">
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input placeholder="아이디" className="pl-10" />
+                  <Input 
+                    placeholder="아이디 (관리자: admin)" 
+                    className="pl-10"
+                    value={loginData.username}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, username: e.target.value }))}
+                  />
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input type="password" placeholder="비밀번호" className="pl-10" />
+                  <Input 
+                    type="password" 
+                    placeholder="비밀번호 (관리자: admin)" 
+                    className="pl-10"
+                    value={loginData.password}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                  />
                 </div>
               </div>
 
@@ -39,7 +75,7 @@ const Login = () => {
                 <Button variant="link" className="text-sm">비밀번호 찾기</Button>
               </div>
 
-              <Button className="w-full water-drop" size="lg">
+              <Button onClick={handleLogin} className="w-full water-drop" size="lg">
                 <LogIn className="w-4 h-4 mr-2" />
                 로그인
               </Button>
