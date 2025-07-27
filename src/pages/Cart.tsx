@@ -112,9 +112,15 @@ const Cart = () => {
                     <span className="text-primary">{finalPrice.toLocaleString()}원</span>
                   </div>
                 </div>
-                <Button className="w-full water-drop">
+                <Button 
+                  className="w-full water-drop"
+                  onClick={() => {
+                    // 실제 구현에서는 결제 페이지로 이동하거나 결제 API 호출
+                    alert(`총 ${finalPrice.toLocaleString()}원 결제를 진행합니다.\n\n주문 상품:\n${cartItems.map(item => `• ${item.name} x${item.quantity}개 (${(item.price * item.quantity).toLocaleString()}원)`).join('\n')}\n\n배송비: ${shippingFee.toLocaleString()}원\n총 결제금액: ${finalPrice.toLocaleString()}원`);
+                  }}
+                >
                   <ShoppingCart className="w-4 h-4 mr-2" />
-                  주문하기
+                  주문하기 ({finalPrice.toLocaleString()}원)
                 </Button>
               </CardContent>
             </Card>
