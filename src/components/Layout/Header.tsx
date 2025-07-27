@@ -26,12 +26,23 @@ const Header = () => {
     { 
       title: '회사소개', 
       path: '/about',
-      submenu: ['브랜드 철학', '회사 연혁', '유통 정보', '오시는 길']
+      submenu: [
+        { name: '브랜드 철학', path: '/about#philosophy' },
+        { name: '회사 연혁', path: '/about#history' },
+        { name: '유통 정보', path: '/about#distribution' },
+        { name: '오시는 길', path: '/about#location' }
+      ]
     },
     { 
       title: '제품소개', 
       path: '/products',
-      submenu: ['샤워 필터', '주방 정수 필터', '산업용 필터', 'Best 제품', 'New 제품']
+      submenu: [
+        { name: '샤워 필터', path: '/products#shower' },
+        { name: '주방 정수 필터', path: '/products#kitchen' },
+        { name: '산업용 필터', path: '/products#industrial' },
+        { name: 'Best 제품', path: '/products#best' },
+        { name: 'New 제품', path: '/products#new' }
+      ]
     },
     { 
       title: '쇼핑몰', 
@@ -41,7 +52,12 @@ const Header = () => {
     { 
       title: '고객센터', 
       path: '/support',
-      submenu: ['공지사항', '보도자료', '1:1 문의', 'FAQ']
+      submenu: [
+        { name: '공지사항', path: '/support#notice' },
+        { name: '보도자료', path: '/support#press' },
+        { name: '1:1 문의', path: '/support#inquiry' },
+        { name: 'FAQ', path: '/support#faq' }
+      ]
     }
   ];
 
@@ -133,10 +149,10 @@ const Header = () => {
                       {item.submenu.map((subItem, index) => (
                         <Link
                           key={index}
-                          to={`${item.path}/${subItem.toLowerCase().replace(/\s+/g, '-')}`}
+                          to={subItem.path}
                           className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary transition-smooth"
                         >
-                          {subItem}
+                          {subItem.name}
                         </Link>
                       ))}
                     </div>
@@ -207,11 +223,11 @@ const Header = () => {
                       {item.submenu.map((subItem, index) => (
                         <Link
                           key={index}
-                          to={`${item.path}/${subItem.toLowerCase().replace(/\s+/g, '-')}`}
+                          to={subItem.path}
                           className="block text-sm text-muted-foreground hover:text-primary transition-smooth"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          {subItem}
+                          {subItem.name}
                         </Link>
                       ))}
                     </div>
