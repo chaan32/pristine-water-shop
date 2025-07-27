@@ -81,15 +81,28 @@ const Order = () => {
   };
 
   const openPostcode = () => {
-    new (window as any).daum.Postcode({
-      oncomplete: function(data: any) {
-        setOrderInfo({
-          ...orderInfo,
-          zipCode: data.zonecode,
-          address: data.address
-        });
-      }
-    }).open();
+    console.log('우편번호 찾기 버튼 클릭됨');
+    if (!(window as any).daum) {
+      console.error('Daum Postcode API가 로드되지 않았습니다.');
+      alert('우편번호 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    
+    try {
+      new (window as any).daum.Postcode({
+        oncomplete: function(data: any) {
+          console.log('우편번호 검색 완료:', data);
+          setOrderInfo({
+            ...orderInfo,
+            zipCode: data.zonecode,
+            address: data.address
+          });
+        }
+      }).open();
+    } catch (error) {
+      console.error('우편번호 검색 오류:', error);
+      alert('우편번호 검색 중 오류가 발생했습니다.');
+    }
   };
 
   const handleOrder = () => {
@@ -149,10 +162,16 @@ const Order = () => {
                     <label htmlFor="receiver-name" className="text-sm font-medium mb-2 block">받는 분 이름 *</label>
                     <Input 
                       id="receiver-name"
+                      name="receiver-name"
                       placeholder="이름을 입력하세요"
                       value={orderInfo.name}
-                      onChange={(e) => setOrderInfo({...orderInfo, name: e.target.value})}
+                      onChange={(e) => {
+                        console.log('이름 입력:', e.target.value);
+                        setOrderInfo({...orderInfo, name: e.target.value});
+                      }}
+                      onFocus={() => console.log('이름 필드 포커스됨')}
                       tabIndex={1}
+                      autoComplete="name"
                     />
                   </div>
                   <div>
