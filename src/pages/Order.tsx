@@ -67,6 +67,8 @@ const Order = () => {
   const finalTotal = Math.max(0, totalAfterCoupon - pointUsage);
 
   const fillOrdererInfo = () => {
+    console.log('주문자와 동일 버튼 클릭됨');
+    console.log('userInfo:', userInfo);
     setOrderInfo({
       name: userInfo.name,
       phone: userInfo.phone,
