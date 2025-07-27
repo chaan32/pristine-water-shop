@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User, Package, Heart, Settings, Truck } from 'lucide-react';
+import RefundExchangeForm from '@/components/Support/RefundExchangeForm';
 
 const MyPage = () => {
   const orders = [
@@ -69,9 +70,14 @@ const MyPage = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold">{order.total.toLocaleString()}원</p>
-                        <Button variant="outline" size="sm" className="mt-2">
-                          상세보기
-                        </Button>
+                        <div className="flex gap-2 mt-2">
+                          <Button variant="outline" size="sm">
+                            상세보기
+                          </Button>
+                          {order.status === '배송완료' && (
+                            <RefundExchangeForm order={order} />
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
