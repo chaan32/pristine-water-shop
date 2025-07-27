@@ -261,7 +261,7 @@ const Order = () => {
                         <Checkbox 
                           id={coupon.id}
                           checked={selectedCoupon === coupon.id}
-                          onCheckedChange={() => setSelectedCoupon(coupon.id)}
+                          onCheckedChange={() => setSelectedCoupon(selectedCoupon === coupon.id ? '' : coupon.id)}
                           disabled={subtotal < coupon.minOrder}
                         />
                         <label htmlFor={coupon.id} className="text-sm flex items-center gap-2">
