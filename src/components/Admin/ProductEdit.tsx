@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Table,
   TableBody,
@@ -11,10 +14,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Search } from 'lucide-react';
+import { Edit, Trash2, Search, Save, Upload } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    category: '',
+    price: '',
+    stock: '',
+    status: '',
+    description: ''
+  });
+  const { toast } = useToast();
   
   const products = [
     { 
@@ -24,7 +39,8 @@ const ProductEdit = () => {
       price: 89000, 
       stock: 50, 
       status: '판매중',
-      createdAt: '2024-01-15'
+      createdAt: '2024-01-15',
+      description: '고품질 샤워 정수 필터입니다.'
     },
     { 
       id: 2, 
@@ -33,7 +49,8 @@ const ProductEdit = () => {
       price: 120000, 
       stock: 30, 
       status: '판매중',
-      createdAt: '2024-01-10'
+      createdAt: '2024-01-10',
+      description: '주방용 직수형 정수 필터입니다.'
     },
     { 
       id: 3, 
@@ -42,7 +59,8 @@ const ProductEdit = () => {
       price: 350000, 
       stock: 0, 
       status: '품절',
-      createdAt: '2024-01-05'
+      createdAt: '2024-01-05',
+      description: '산업용 대용량 정수 필터입니다.'
     },
     { 
       id: 4, 
@@ -51,7 +69,8 @@ const ProductEdit = () => {
       price: 45000, 
       stock: 100, 
       status: '판매중',
-      createdAt: '2024-01-01'
+      createdAt: '2024-01-01',
+      description: '휴대용 소형 정수 필터입니다.'
     }
   ];
 
@@ -60,14 +79,38 @@ const ProductEdit = () => {
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleEdit = (id: number) => {
-    console.log('상품 수정:', id);
-    // 실제 수정 로직 구현
+  const handleEdit = (product: any) => {
+    setSelectedProduct(product);
+    setEditForm({
+      name: product.name,
+      category: product.category,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      status: product.status,
+      description: product.description
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    toast({
+      title: "상품 수정 완료",
+      description: `${editForm.name} 상품이 수정되었습니다.`,
+    });
+    setIsEditOpen(false);
+    setSelectedProduct(null);
   };
 
   const handleDelete = (id: number) => {
-    console.log('상품 삭제:', id);
-    // 실제 삭제 로직 구현
+    toast({
+      title: "상품 삭제",
+      description: "상품이 삭제되었습니다.",
+      variant: "destructive"
+    });
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -127,7 +170,7 @@ const ProductEdit = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEdit(product.id)}
+                        onClick={() => handleEdit(product)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -147,6 +190,149 @@ const ProductEdit = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* 상품 수정 다이얼로그 */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>상품 수정</DialogTitle>
+          </DialogHeader>
+
+          {selectedProduct && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 상품 정보 수정 폼 */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-name">제품명</Label>
+                    <Input
+                      id="edit-name"
+                      value={editForm.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      placeholder="제품명을 입력하세요"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-category">카테고리</Label>
+                    <Input
+                      id="edit-category"
+                      value={editForm.category}
+                      onChange={(e) => handleInputChange('category', e.target.value)}
+                      placeholder="카테고리"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-price">가격 (원)</Label>
+                      <Input
+                        id="edit-price"
+                        type="number"
+                        value={editForm.price}
+                        onChange={(e) => handleInputChange('price', e.target.value)}
+                        placeholder="가격"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-stock">재고 수량</Label>
+                      <Input
+                        id="edit-stock"
+                        type="number"
+                        value={editForm.stock}
+                        onChange={(e) => handleInputChange('stock', e.target.value)}
+                        placeholder="재고"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-status">판매 상태</Label>
+                    <select 
+                      id="edit-status"
+                      value={editForm.status}
+                      onChange={(e) => handleInputChange('status', e.target.value)}
+                      className="w-full p-2 border border-border rounded-md bg-background"
+                    >
+                      <option value="판매중">판매중</option>
+                      <option value="품절">품절</option>
+                      <option value="판매중단">판매중단</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-description">상품 설명</Label>
+                    <Textarea
+                      id="edit-description"
+                      value={editForm.description}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      placeholder="상품 설명을 입력하세요"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+
+                {/* 이미지 업로드 */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>상품 이미지</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                      <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        새 이미지를 업로드하거나 드래그하세요
+                      </p>
+                      <Button variant="outline" size="sm">
+                        파일 선택
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* 현재 상품 정보 미리보기 */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">현재 상품 정보</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div>
+                        <span className="font-medium">상품 ID:</span>
+                        <span className="ml-2">{selectedProduct.id}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">등록일:</span>
+                        <span className="ml-2">{selectedProduct.createdAt}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">현재 상태:</span>
+                        <Badge className="ml-2" variant={selectedProduct.status === '판매중' ? 'default' : 'secondary'}>
+                          {selectedProduct.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* 저장 버튼 */}
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsEditOpen(false)}
+                  className="flex-1"
+                >
+                  취소
+                </Button>
+                <Button 
+                  onClick={handleSaveEdit}
+                  className="flex-1"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  저장
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
