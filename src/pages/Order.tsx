@@ -80,6 +80,18 @@ const Order = () => {
     });
   };
 
+  const openPostcode = () => {
+    new (window as any).daum.Postcode({
+      oncomplete: function(data: any) {
+        setOrderInfo({
+          ...orderInfo,
+          zipCode: data.zonecode,
+          address: data.address
+        });
+      }
+    }).open();
+  };
+
   const handleOrder = () => {
     if (!orderInfo.name || !orderInfo.phone || !orderInfo.address) {
       alert('필수 정보를 모두 입력해주세요.');
@@ -169,8 +181,9 @@ const Order = () => {
                         placeholder="00000"
                         value={orderInfo.zipCode}
                         onChange={(e) => setOrderInfo({...orderInfo, zipCode: e.target.value})}
+                        readOnly
                       />
-                      <Button variant="outline">찾기</Button>
+                      <Button variant="outline" onClick={openPostcode}>찾기</Button>
                     </div>
                   </div>
                 </div>
@@ -181,6 +194,7 @@ const Order = () => {
                     placeholder="주소를 입력하세요"
                     value={orderInfo.address}
                     onChange={(e) => setOrderInfo({...orderInfo, address: e.target.value})}
+                    readOnly
                   />
                 </div>
 

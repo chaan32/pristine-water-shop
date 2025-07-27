@@ -131,13 +131,13 @@ const Header = () => {
                   <div className="absolute top-full left-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-smooth">
                     <div className="py-2">
                       {item.submenu.map((subItem, index) => (
-                        <a
+                        <Link
                           key={index}
-                          href="#"
+                          to={`${item.path}/${subItem.toLowerCase().replace(/\s+/g, '-')}`}
                           className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary transition-smooth"
                         >
                           {subItem}
-                        </a>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -205,14 +205,14 @@ const Header = () => {
                   {item.submenu.length > 0 && (
                     <div className="ml-4 mt-2 space-y-2">
                       {item.submenu.map((subItem, index) => (
-                        <a
+                        <Link
                           key={index}
-                          href="#"
+                          to={`${item.path}/${subItem.toLowerCase().replace(/\s+/g, '-')}`}
                           className="block text-sm text-muted-foreground hover:text-primary transition-smooth"
                           onClick={() => setIsMenuOpen(false)}
                         >
                           {subItem}
-                        </a>
+                        </Link>
                       ))}
                     </div>
                   )}
