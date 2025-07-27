@@ -146,73 +146,85 @@ const Order = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">받는 분 이름 *</label>
+                    <label htmlFor="receiver-name" className="text-sm font-medium mb-2 block">받는 분 이름 *</label>
                     <Input 
+                      id="receiver-name"
                       placeholder="이름을 입력하세요"
                       value={orderInfo.name}
                       onChange={(e) => setOrderInfo({...orderInfo, name: e.target.value})}
+                      tabIndex={1}
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">연락처 *</label>
+                    <label htmlFor="receiver-phone" className="text-sm font-medium mb-2 block">연락처 *</label>
                     <Input 
+                      id="receiver-phone"
                       placeholder="010-0000-0000"
                       value={orderInfo.phone}
                       onChange={(e) => setOrderInfo({...orderInfo, phone: e.target.value})}
+                      tabIndex={2}
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">이메일</label>
+                  <label htmlFor="receiver-email" className="text-sm font-medium mb-2 block">이메일</label>
                   <Input 
+                    id="receiver-email"
                     type="email"
                     placeholder="example@email.com"
                     value={orderInfo.email}
                     onChange={(e) => setOrderInfo({...orderInfo, email: e.target.value})}
+                    tabIndex={3}
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">우편번호</label>
+                    <label htmlFor="zipcode" className="text-sm font-medium mb-2 block">우편번호</label>
                     <div className="flex gap-2">
                       <Input 
+                        id="zipcode"
                         placeholder="00000"
                         value={orderInfo.zipCode}
                         onChange={(e) => setOrderInfo({...orderInfo, zipCode: e.target.value})}
-                        readOnly
+                        tabIndex={4}
                       />
-                      <Button variant="outline" onClick={openPostcode}>찾기</Button>
+                      <Button variant="outline" onClick={openPostcode} tabIndex={5}>찾기</Button>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">주소 *</label>
+                  <label htmlFor="address" className="text-sm font-medium mb-2 block">주소 *</label>
                   <Input 
+                    id="address"
                     placeholder="주소를 입력하세요"
                     value={orderInfo.address}
                     onChange={(e) => setOrderInfo({...orderInfo, address: e.target.value})}
-                    readOnly
+                    tabIndex={6}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">상세주소</label>
+                  <label htmlFor="detail-address" className="text-sm font-medium mb-2 block">상세주소</label>
                   <Input 
+                    id="detail-address"
                     placeholder="상세주소를 입력하세요"
                     value={orderInfo.detailAddress}
                     onChange={(e) => setOrderInfo({...orderInfo, detailAddress: e.target.value})}
+                    tabIndex={7}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">배송 메모</label>
+                  <label htmlFor="delivery-memo" className="text-sm font-medium mb-2 block">배송 메모</label>
                   <Textarea 
+                    id="delivery-memo"
                     placeholder="배송 시 요청사항을 입력하세요"
                     value={orderInfo.memo}
                     onChange={(e) => setOrderInfo({...orderInfo, memo: e.target.value})}
+                    tabIndex={8}
                   />
                 </div>
               </CardContent>
