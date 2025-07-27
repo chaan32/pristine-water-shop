@@ -170,6 +170,7 @@ const Order = () => {
                         setOrderInfo({...orderInfo, name: e.target.value});
                       }}
                       onFocus={() => console.log('이름 필드 포커스됨')}
+                      onMouseEnter={(e) => (e.target as HTMLInputElement).focus()}
                       tabIndex={1}
                       autoComplete="name"
                     />
@@ -181,6 +182,7 @@ const Order = () => {
                       placeholder="010-0000-0000"
                       value={orderInfo.phone}
                       onChange={(e) => setOrderInfo({...orderInfo, phone: e.target.value})}
+                      onMouseEnter={(e) => (e.target as HTMLInputElement).focus()}
                       tabIndex={2}
                     />
                   </div>
@@ -194,6 +196,7 @@ const Order = () => {
                     placeholder="example@email.com"
                     value={orderInfo.email}
                     onChange={(e) => setOrderInfo({...orderInfo, email: e.target.value})}
+                    onMouseEnter={(e) => (e.target as HTMLInputElement).focus()}
                     tabIndex={3}
                   />
                 </div>
@@ -207,6 +210,7 @@ const Order = () => {
                         placeholder="00000"
                         value={orderInfo.zipCode}
                         onChange={(e) => setOrderInfo({...orderInfo, zipCode: e.target.value})}
+                        onMouseEnter={(e) => (e.target as HTMLInputElement).focus()}
                         tabIndex={4}
                       />
                       <Button variant="outline" onClick={openPostcode} tabIndex={5}>찾기</Button>
@@ -221,6 +225,7 @@ const Order = () => {
                     placeholder="주소를 입력하세요"
                     value={orderInfo.address}
                     onChange={(e) => setOrderInfo({...orderInfo, address: e.target.value})}
+                    onMouseEnter={(e) => (e.target as HTMLInputElement).focus()}
                     tabIndex={6}
                   />
                 </div>
@@ -232,6 +237,7 @@ const Order = () => {
                     placeholder="상세주소를 입력하세요"
                     value={orderInfo.detailAddress}
                     onChange={(e) => setOrderInfo({...orderInfo, detailAddress: e.target.value})}
+                    onMouseEnter={(e) => (e.target as HTMLInputElement).focus()}
                     tabIndex={7}
                   />
                 </div>
@@ -243,6 +249,7 @@ const Order = () => {
                     placeholder="배송 시 요청사항을 입력하세요"
                     value={orderInfo.memo}
                     onChange={(e) => setOrderInfo({...orderInfo, memo: e.target.value})}
+                    onMouseEnter={(e) => (e.target as HTMLTextAreaElement).focus()}
                     tabIndex={8}
                   />
                 </div>
@@ -278,6 +285,7 @@ const Order = () => {
                         const value = Math.min(parseInt(e.target.value) || 0, userPoints, totalAfterCoupon);
                         setPointUsage(value);
                       }}
+                      onMouseEnter={(e) => (e.target as HTMLInputElement).focus()}
                       max={Math.min(userPoints, totalAfterCoupon)}
                     />
                     <Button 
