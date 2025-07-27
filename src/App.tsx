@@ -9,7 +9,9 @@ import Products from "./pages/Products";
 import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import Support from "./pages/Support";
+import NoticeDetail from "./pages/NoticeDetail";
 import Cart from "./pages/Cart";
+import Order from "./pages/Order";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import MyPage from "./pages/MyPage";
@@ -31,7 +33,9 @@ const App = () => (
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/notice/:id" element={<NoticeDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/order" element={<Order />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/mypage" element={<MyPage />} />

@@ -223,6 +223,29 @@ const ProductDetail = () => {
                   <ShoppingCart className="w-5 h-5 mr-2" />
                   장바구니
                 </Button>
+                <Button 
+                  variant="default" 
+                  size="lg" 
+                  className="flex-1 water-drop"
+                  onClick={() => {
+                    // 바로구매 - Order 페이지로 이동
+                    const directPurchaseItem = {
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      quantity: quantity,
+                      image: product.images[0]
+                    };
+                    window.location.href = '/order';
+                    // 실제로는 React Router의 navigate 사용:
+                    // navigate('/order', { state: { items: [directPurchaseItem], isDirectPurchase: true } });
+                  }}
+                >
+                  바로구매
+                </Button>
+              </div>
+              
+              <div className="flex gap-3">
                 <Button variant="outline" size="lg" className="water-drop">
                   <Heart className="w-5 h-5" />
                 </Button>

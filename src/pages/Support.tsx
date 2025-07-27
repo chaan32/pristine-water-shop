@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -130,7 +131,7 @@ const Support = () => {
           <TabsContent value="notice" className="mt-8">
             <div className="space-y-4">
               {notices.map((notice) => (
-                <Card key={notice.id} className="water-drop">
+                <Card key={notice.id} className="water-drop hover:shadow-lg transition-smooth">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -138,12 +139,15 @@ const Support = () => {
                           {notice.pinned && (
                             <Pin className="w-4 h-4 text-primary" />
                           )}
-                          <h3 className="text-lg font-semibold">{notice.title}</h3>
+                          <Link to={`/notice/${notice.id}`}>
+                            <h3 className="text-lg font-semibold hover:text-primary transition-colors cursor-pointer">
+                              {notice.title}
+                            </h3>
+                          </Link>
                           {notice.pinned && (
                             <Badge variant="destructive">중요</Badge>
                           )}
                         </div>
-                        <p className="text-muted-foreground mb-2">{notice.content}</p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Bell className="w-4 h-4" />
                           <span>{notice.date}</span>
