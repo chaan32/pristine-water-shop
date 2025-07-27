@@ -28,6 +28,16 @@ const Order = () => {
   const [pointUsage, setPointUsage] = useState(0);
   const [selectedCoupon, setSelectedCoupon] = useState('');
   
+  // 주문자 정보 (실제로는 로그인된 사용자 정보에서 가져올 것)
+  const userInfo = {
+    name: '홍길동',
+    phone: '010-1234-5678',
+    email: 'hong@example.com',
+    address: '서울특별시 강남구 테헤란로 123',
+    detailAddress: '456호',
+    zipCode: '06234'
+  };
+
   // 사용자 정보 (실제로는 로그인된 사용자 정보에서 가져올 것)
   const userPoints = 15000;
   const userCoupons = [
@@ -55,6 +65,18 @@ const Order = () => {
   const totalBeforeDiscounts = subtotal + shippingFee;
   const totalAfterCoupon = totalBeforeDiscounts - couponDiscount;
   const finalTotal = Math.max(0, totalAfterCoupon - pointUsage);
+
+  const fillOrdererInfo = () => {
+    setOrderInfo({
+      name: userInfo.name,
+      phone: userInfo.phone,
+      email: userInfo.email,
+      address: userInfo.address,
+      detailAddress: userInfo.detailAddress,
+      zipCode: userInfo.zipCode,
+      memo: orderInfo.memo // 배송 메모는 유지
+    });
+  };
 
   const handleOrder = () => {
     if (!orderInfo.name || !orderInfo.phone || !orderInfo.address) {
@@ -93,10 +115,19 @@ const Order = () => {
             {/* 배송지 정보 */}
             <Card className="water-drop">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
-                  배송지 정보
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    배송지 정보
+                  </CardTitle>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={fillOrdererInfo}
+                  >
+                    주문자와 동일
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
