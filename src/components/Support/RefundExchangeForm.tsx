@@ -27,9 +27,6 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
   const [requestType, setRequestType] = useState<'refund' | 'exchange'>('refund');
   const [reason, setReason] = useState('');
   const [detailReason, setDetailReason] = useState('');
-  const [accountBank, setAccountBank] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [accountHolder, setAccountHolder] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const { toast } = useToast();
 
@@ -42,10 +39,6 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
     '기타'
   ];
 
-  const banks = [
-    'KB국민은행', '신한은행', '우리은행', '하나은행', 
-    'NH농협은행', 'IBK기업은행', '카카오뱅크', '토스뱅크'
-  ];
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -66,14 +59,6 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
       return;
     }
 
-    if (requestType === 'refund' && (!accountBank || !accountNumber || !accountHolder)) {
-      toast({
-        title: "입력 오류", 
-        description: "환불 계좌 정보를 모두 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     toast({
       title: "신청 완료",
@@ -84,9 +69,6 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
     // Reset form
     setReason('');
     setDetailReason('');
-    setAccountBank('');
-    setAccountNumber('');
-    setAccountHolder('');
     setUploadedFiles([]);
   };
 
@@ -186,48 +168,6 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
             />
           </div>
 
-          {/* 환불 계좌 정보 (환불 신청 시에만 표시) */}
-          {requestType === 'refund' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">환불 계좌 정보</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="bank">은행</Label>
-                  <select 
-                    id="bank"
-                    className="w-full mt-1 p-2 border rounded-md"
-                    value={accountBank}
-                    onChange={(e) => setAccountBank(e.target.value)}
-                  >
-                    <option value="">은행을 선택하세요</option>
-                    {banks.map(bank => (
-                      <option key={bank} value={bank}>{bank}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="account-number">계좌번호</Label>
-                  <Input
-                    id="account-number"
-                    placeholder="'-' 없이 숫자만 입력"
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, ''))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="account-holder">예금주명</Label>
-                  <Input
-                    id="account-holder"
-                    placeholder="예금주명을 입력하세요"
-                    value={accountHolder}
-                    onChange={(e) => setAccountHolder(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* 첨부파일 */}
           <div className="space-y-4">

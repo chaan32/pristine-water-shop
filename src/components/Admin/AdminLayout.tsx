@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   LogOut,
-  Droplets
+  Droplets,
+  RotateCcw
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -30,7 +31,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { title: '매출 그래프', path: '/admin/sales', icon: BarChart3 },
     { title: '회원 리스트', path: '/admin/members', icon: Users },
     { title: '법인 등록 요청', path: '/admin/corporate-requests', icon: Building2 },
-    { title: '1:1 문의 답변', path: '/admin/inquiries', icon: MessageSquare }
+    { title: '1:1 문의 답변', path: '/admin/inquiries', icon: MessageSquare },
+    { title: '환불/교환 관리', path: '/admin/refund-exchange', icon: RotateCcw }
   ];
 
   const isActivePath = (path: string) => {

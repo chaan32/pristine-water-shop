@@ -7,6 +7,7 @@ import SalesChart from '@/components/Admin/SalesChart';
 import MemberList from '@/components/Admin/MemberList';
 import CorporateRequests from '@/components/Admin/CorporateRequests';
 import InquiryManagement from '@/components/Admin/InquiryManagement';
+import RefundExchangeManagement from '@/components/Admin/RefundExchangeManagement';
 
 const Admin = () => {
   // 임시로 관리자 로그인 상태 체크 - 나중에 실제 인증 로직으로 대체
@@ -26,6 +27,7 @@ const Admin = () => {
         <Route path="/members" element={<MemberList />} />
         <Route path="/corporate-requests" element={<CorporateRequests />} />
         <Route path="/inquiries" element={<InquiryManagement />} />
+        <Route path="/refund-exchange" element={<RefundExchangeManagement />} />
       </Routes>
     </AdminLayout>
   );
