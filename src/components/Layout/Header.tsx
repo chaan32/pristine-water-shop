@@ -26,23 +26,12 @@ const Header = () => {
     { 
       title: '회사소개', 
       path: '/about',
-      submenu: [
-        { name: '브랜드 철학', path: '/about#philosophy' },
-        { name: '회사 연혁', path: '/about#history' },
-        { name: '유통 정보', path: '/about#distribution' },
-        { name: '오시는 길', path: '/about#location' }
-      ]
+      submenu: ['브랜드 철학', '회사 연혁', '유통 정보', '오시는 길']
     },
     { 
       title: '제품소개', 
       path: '/products',
-      submenu: [
-        { name: '샤워 필터', path: '/products#shower' },
-        { name: '주방 정수 필터', path: '/products#kitchen' },
-        { name: '산업용 필터', path: '/products#industrial' },
-        { name: 'Best 제품', path: '/products#best' },
-        { name: 'New 제품', path: '/products#new' }
-      ]
+      submenu: ['샤워 필터', '주방 정수 필터', '산업용 필터', 'Best 제품', 'New 제품']
     },
     { 
       title: '쇼핑몰', 
@@ -52,12 +41,7 @@ const Header = () => {
     { 
       title: '고객센터', 
       path: '/support',
-      submenu: [
-        { name: '공지사항', path: '/support#notice' },
-        { name: '보도자료', path: '/support#press' },
-        { name: '1:1 문의', path: '/support#inquiry' },
-        { name: 'FAQ', path: '/support#faq' }
-      ]
+      submenu: ['공지사항', '보도자료', '1:1 문의', 'FAQ']
     }
   ];
 
@@ -146,14 +130,13 @@ const Header = () => {
                 {item.submenu.length > 0 && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-smooth">
                     <div className="py-2">
-                      {item.submenu.map((subItem, index) => (
-                        <Link
+                       {item.submenu.map((subItem, index) => (
+                        <div
                           key={index}
-                          to={subItem.path}
-                          className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary transition-smooth"
+                          className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary transition-smooth cursor-pointer"
                         >
-                          {subItem.name}
-                        </Link>
+                          {subItem}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -221,14 +204,13 @@ const Header = () => {
                   {item.submenu.length > 0 && (
                     <div className="ml-4 mt-2 space-y-2">
                       {item.submenu.map((subItem, index) => (
-                        <Link
+                        <div
                           key={index}
-                          to={subItem.path}
-                          className="block text-sm text-muted-foreground hover:text-primary transition-smooth"
+                          className="block text-sm text-muted-foreground hover:text-primary transition-smooth cursor-pointer"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          {subItem.name}
-                        </Link>
+                          {subItem}
+                        </div>
                       ))}
                     </div>
                   )}
