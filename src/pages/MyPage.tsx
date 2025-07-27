@@ -74,9 +74,7 @@ const MyPage = () => {
                           <Button variant="outline" size="sm">
                             상세보기
                           </Button>
-                          {order.status === '배송완료' && (
-                            <RefundExchangeForm order={order} />
-                          )}
+                          <RefundExchangeForm order={order} />
                         </div>
                       </div>
                     </div>
