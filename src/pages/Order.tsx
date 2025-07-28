@@ -46,8 +46,9 @@ const Order = () => {
     { id: 'free-shipping', name: '무료배송 쿠폰', discount: 3000, minOrder: 0 }
   ];
 
-  const shippingFee = 3000;
+  const baseShippingFee = 3000;
   const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+  const shippingFee = subtotal > 0 ? baseShippingFee : 0;
   
   // 쿠폰 할인 계산
   const selectedCouponInfo = userCoupons.find(c => c.id === selectedCoupon);

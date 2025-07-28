@@ -42,7 +42,7 @@ const Cart = () => {
 
   const shippingFee = 3000;
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const finalPrice = totalPrice + shippingFee;
+  const finalPrice = totalPrice + (cartItems.length > 0 ? shippingFee : 0);
 
   return (
     <div className="min-h-screen bg-background">

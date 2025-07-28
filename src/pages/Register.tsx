@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,9 +6,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { UserPlus, Building, User } from 'lucide-react';
+import { UserPlus, Building, User, Check, X } from 'lucide-react';
 
 const Register = () => {
+  const [individualForm, setIndividualForm] = useState({
+    password: '',
+    confirmPassword: '',
+    termsAccepted: false,
+    privacyAccepted: false
+  });
+
+  const [corporateForm, setCorporateForm] = useState({
+    password: '',
+    confirmPassword: '',
+    termsAccepted: false,
+    privacyAccepted: false
+  });
+
+  const isIndividualPasswordMatch = individualForm.password && individualForm.confirmPassword && individualForm.password === individualForm.confirmPassword;
+  const isIndividualPasswordMismatch = individualForm.password && individualForm.confirmPassword && individualForm.password !== individualForm.confirmPassword;
+  const isIndividualFormValid = isIndividualPasswordMatch && individualForm.termsAccepted && individualForm.privacyAccepted;
+
+  const isCorporatePasswordMatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password === corporateForm.confirmPassword;
+  const isCorporatePasswordMismatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password !== corporateForm.confirmPassword;
+  const isCorporateFormValid = isCorporatePasswordMatch && corporateForm.termsAccepted && corporateForm.privacyAccepted;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -41,9 +64,36 @@ const Register = () => {
                     <Input placeholder="이름" />
                     <Input placeholder="아이디" />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input type="password" placeholder="비밀번호" />
-                    <Input type="password" placeholder="비밀번호 확인" />
+                  <div className="space-y-4">
+                    <Input 
+                      type="password" 
+                      placeholder="비밀번호"
+                      value={individualForm.password}
+                      onChange={(e) => setIndividualForm(prev => ({ ...prev, password: e.target.value }))}
+                    />
+                    <div className="space-y-2">
+                      <Input 
+                        type="password" 
+                        placeholder="비밀번호 확인"
+                        value={individualForm.confirmPassword}
+                        onChange={(e) => setIndividualForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      />
+                      {individualForm.confirmPassword && (
+                        <div className="flex items-center gap-2 text-sm">
+                          {isIndividualPasswordMatch ? (
+                            <>
+                              <Check className="w-4 h-4 text-green-600" />
+                              <span className="text-green-600">비밀번호가 일치합니다.</span>
+                            </>
+                          ) : isIndividualPasswordMismatch ? (
+                            <>
+                              <X className="w-4 h-4 text-red-600" />
+                              <span className="text-red-600">비밀번호가 일치하지 않습니다.</span>
+                            </>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <Input type="email" placeholder="이메일" />
                   <div className="flex gap-2">
@@ -54,11 +104,19 @@ const Register = () => {
                   
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="terms1" />
+                      <Checkbox 
+                        id="terms1" 
+                        checked={individualForm.termsAccepted}
+                        onCheckedChange={(checked) => setIndividualForm(prev => ({ ...prev, termsAccepted: !!checked }))}
+                      />
                       <label htmlFor="terms1" className="text-sm">이용약관에 동의합니다 (필수)</label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="privacy1" />
+                      <Checkbox 
+                        id="privacy1" 
+                        checked={individualForm.privacyAccepted}
+                        onCheckedChange={(checked) => setIndividualForm(prev => ({ ...prev, privacyAccepted: !!checked }))}
+                      />
                       <label htmlFor="privacy1" className="text-sm">개인정보 처리방침에 동의합니다 (필수)</label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -67,7 +125,11 @@ const Register = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full water-drop" size="lg">
+                  <Button 
+                    className="w-full water-drop" 
+                    size="lg"
+                    disabled={!isIndividualFormValid}
+                  >
                     <UserPlus className="w-4 h-4 mr-2" />
                     개인회원 가입
                   </Button>
@@ -89,11 +151,38 @@ const Register = () => {
                     <Input placeholder="대표자명" />
                     <Input placeholder="담당자명" />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input placeholder="아이디" />
-                    <Input type="password" placeholder="비밀번호" />
+                  <Input placeholder="아이디" />
+                  <div className="space-y-4">
+                    <Input 
+                      type="password" 
+                      placeholder="비밀번호"
+                      value={corporateForm.password}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, password: e.target.value }))}
+                    />
+                    <div className="space-y-2">
+                      <Input 
+                        type="password" 
+                        placeholder="비밀번호 확인"
+                        value={corporateForm.confirmPassword}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      />
+                      {corporateForm.confirmPassword && (
+                        <div className="flex items-center gap-2 text-sm">
+                          {isCorporatePasswordMatch ? (
+                            <>
+                              <Check className="w-4 h-4 text-green-600" />
+                              <span className="text-green-600">비밀번호가 일치합니다.</span>
+                            </>
+                          ) : isCorporatePasswordMismatch ? (
+                            <>
+                              <X className="w-4 h-4 text-red-600" />
+                              <span className="text-red-600">비밀번호가 일치하지 않습니다.</span>
+                            </>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <Input type="password" placeholder="비밀번호 확인" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input type="email" placeholder="이메일" />
                     <Input placeholder="회사 전화번호" />
@@ -111,16 +200,28 @@ const Register = () => {
                   
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="terms2" />
+                      <Checkbox 
+                        id="terms2" 
+                        checked={corporateForm.termsAccepted}
+                        onCheckedChange={(checked) => setCorporateForm(prev => ({ ...prev, termsAccepted: !!checked }))}
+                      />
                       <label htmlFor="terms2" className="text-sm">이용약관에 동의합니다 (필수)</label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Checkbox id="privacy2" />
+                      <Checkbox 
+                        id="privacy2" 
+                        checked={corporateForm.privacyAccepted}
+                        onCheckedChange={(checked) => setCorporateForm(prev => ({ ...prev, privacyAccepted: !!checked }))}
+                      />
                       <label htmlFor="privacy2" className="text-sm">개인정보 처리방침에 동의합니다 (필수)</label>
                     </div>
                   </div>
 
-                  <Button className="w-full water-drop" size="lg">
+                  <Button 
+                    className="w-full water-drop" 
+                    size="lg"
+                    disabled={!isCorporateFormValid}
+                  >
                     <Building className="w-4 h-4 mr-2" />
                     법인회원 가입 신청
                   </Button>
