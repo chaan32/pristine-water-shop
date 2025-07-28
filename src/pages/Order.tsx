@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -299,21 +300,16 @@ const Order = () => {
                 {/* 쿠폰 선택 */}
                 <div>
                   <label className="text-sm font-medium mb-3 block">쿠폰 선택</label>
-                  <div className="space-y-2">
+                  <RadioGroup value={selectedCoupon} onValueChange={setSelectedCoupon}>
                     <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="no-coupon"
-                        checked={selectedCoupon === ''}
-                        onCheckedChange={() => setSelectedCoupon('')}
-                      />
+                      <RadioGroupItem value="" id="no-coupon" />
                       <label htmlFor="no-coupon" className="text-sm">쿠폰 사용 안함</label>
                     </div>
                     {userCoupons.map((coupon) => (
                       <div key={coupon.id} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <RadioGroupItem 
+                          value={coupon.id}
                           id={coupon.id}
-                          checked={selectedCoupon === coupon.id}
-                          onCheckedChange={() => setSelectedCoupon(selectedCoupon === coupon.id ? '' : coupon.id)}
                           disabled={subtotal < coupon.minOrder}
                         />
                         <label htmlFor={coupon.id} className="text-sm flex items-center gap-2">
@@ -326,7 +322,7 @@ const Order = () => {
                         </label>
                       </div>
                     ))}
-                  </div>
+                  </RadioGroup>
                 </div>
               </CardContent>
             </Card>
