@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -300,29 +300,30 @@ const Order = () => {
                 {/* 쿠폰 선택 */}
                 <div>
                   <label className="text-sm font-medium mb-3 block">쿠폰 선택</label>
-                  <RadioGroup value={selectedCoupon} onValueChange={setSelectedCoupon}>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="" id="no-coupon" />
-                      <label htmlFor="no-coupon" className="text-sm">쿠폰 사용 안함</label>
-                    </div>
-                    {userCoupons.map((coupon) => (
-                      <div key={coupon.id} className="flex items-center space-x-2">
-                        <RadioGroupItem 
+                  <Select value={selectedCoupon} onValueChange={setSelectedCoupon}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="쿠폰을 선택하세요" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">쿠폰 사용 안함</SelectItem>
+                      {userCoupons.map((coupon) => (
+                        <SelectItem 
+                          key={coupon.id}
                           value={coupon.id}
-                          id={coupon.id}
                           disabled={subtotal < coupon.minOrder}
-                        />
-                        <label htmlFor={coupon.id} className="text-sm flex items-center gap-2">
-                          {coupon.name}
-                          {subtotal < coupon.minOrder && (
-                            <Badge variant="secondary" className="text-xs">
-                              {coupon.minOrder.toLocaleString()}원 이상 구매 시
-                            </Badge>
-                          )}
-                        </label>
-                      </div>
-                    ))}
-                  </RadioGroup>
+                        >
+                          <div className="flex items-center gap-2">
+                            {coupon.name}
+                            {subtotal < coupon.minOrder && (
+                              <Badge variant="secondary" className="text-xs">
+                                {coupon.minOrder.toLocaleString()}원 이상
+                              </Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
