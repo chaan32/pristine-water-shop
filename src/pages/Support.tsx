@@ -121,9 +121,8 @@ const Support = () => {
         </div>
 
         <Tabs defaultValue="notice" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="notice">공지사항</TabsTrigger>
-            <TabsTrigger value="news">보도자료</TabsTrigger>
             <TabsTrigger value="inquiry">1:1 문의</TabsTrigger>
             <TabsTrigger value="faq">FAQ</TabsTrigger>
           </TabsList>
@@ -160,30 +159,6 @@ const Support = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="news" className="mt-8">
-            <div className="space-y-4">
-              {news.map((article) => (
-                <Card key={article.id} className="water-drop hover:shadow-lg transition-smooth cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-2 hover:text-primary transition-colors">
-                          {article.title}
-                        </h3>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            <span>{article.source}</span>
-                          </div>
-                          <span>{article.date}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
 
           <TabsContent value="inquiry" className="mt-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -214,10 +189,11 @@ const Support = () => {
                   <div>
                     <label className="text-sm font-medium mb-2 block">문의 유형</label>
                     <select className="w-full p-2 border border-input rounded-md">
+                      <option>환불</option>
+                      <option>교환</option>
+                      <option>일반문의</option>
                       <option>제품 문의</option>
                       <option>주문/배송 문의</option>
-                      <option>교환/환불 문의</option>
-                      <option>기타 문의</option>
                     </select>
                   </div>
 

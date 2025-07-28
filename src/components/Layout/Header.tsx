@@ -24,14 +24,9 @@ const Header = () => {
 
   const mainMenuItems = [
     { 
-      title: '회사소개', 
-      path: '/about',
-      submenu: ['브랜드 철학', '회사 연혁', '유통 정보', '오시는 길']
-    },
-    { 
       title: '제품소개', 
       path: '/products',
-      submenu: ['샤워 필터', '주방 정수 필터', '산업용 필터', 'Best 제품', 'New 제품']
+      submenu: ['샤워 필터', '주방 정수 필터', '산업용 필터']
     },
     { 
       title: '쇼핑몰', 
@@ -41,7 +36,7 @@ const Header = () => {
     { 
       title: '고객센터', 
       path: '/support',
-      submenu: ['공지사항', '보도자료', '1:1 문의', 'FAQ']
+      submenu: ['공지사항', '1:1 문의', 'FAQ']
     }
   ];
 

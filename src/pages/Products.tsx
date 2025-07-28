@@ -192,67 +192,98 @@ const Products = () => {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4">제품소개</h1>
           <p className="text-lg text-muted-foreground">
-            다양한 용도에 맞는 AquaPure의 정수 필터 제품을 만나보세요
+            AquaPure의 정수 필터 제품 정보를 자세히 알아보세요
           </p>
         </div>
 
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="all">전체</TabsTrigger>
-            <TabsTrigger value="shower">샤워 필터</TabsTrigger>
-            <TabsTrigger value="kitchen">주방 정수 필터</TabsTrigger>
-            <TabsTrigger value="industrial">산업용 필터</TabsTrigger>
-            <TabsTrigger value="best">Best 제품</TabsTrigger>
-            <TabsTrigger value="new">New 제품</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="mt-8">
-            <div className="space-y-12">
-              {categories.map((category) => (
-                <section key={category.id}>
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                      <category.icon className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-foreground">{category.name}</h2>
-                      <p className="text-muted-foreground">{category.description}</p>
-                    </div>
-                  </div>
-                  {renderProductGrid(category.products)}
-                </section>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="shower" className="mt-8">
-            {renderProductGrid(categories.find(cat => cat.id === 'shower')?.products || [])}
-          </TabsContent>
-
-          <TabsContent value="kitchen" className="mt-8">
-            {renderProductGrid(categories.find(cat => cat.id === 'kitchen')?.products || [])}
-          </TabsContent>
-
-          <TabsContent value="industrial" className="mt-8">
-            {renderProductGrid(categories.find(cat => cat.id === 'industrial')?.products || [])}
-          </TabsContent>
-
-          <TabsContent value="best" className="mt-8">
-            {bestProducts.length > 0 ? renderProductGrid(bestProducts) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">현재 베스트 제품이 없습니다.</p>
+        <div className="space-y-12">
+          {categories.map((category) => (
+            <section key={category.id}>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+                  <category.icon className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-bold text-foreground">{category.name}</h2>
+                  <p className="text-lg text-muted-foreground">{category.description}</p>
+                </div>
               </div>
-            )}
-          </TabsContent>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {category.products.map((product) => (
+                  <Card key={product.id} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
+                    <CardHeader className="p-0 relative">
+                      {product.badge && (
+                        <Badge 
+                          className={`absolute top-4 left-4 z-10 ${
+                            product.badge === 'BEST' 
+                              ? 'bg-destructive text-destructive-foreground' 
+                              : product.badge === 'NEW'
+                              ? 'bg-accent text-accent-foreground'
+                              : 'bg-primary text-primary-foreground'
+                          }`}
+                        >
+                          {product.badge}
+                        </Badge>
+                      )}
 
-          <TabsContent value="new" className="mt-8">
-            {newProducts.length > 0 ? renderProductGrid(newProducts) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">현재 신제품이 없습니다.</p>
+                      <div className="aspect-square bg-secondary overflow-hidden">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
+                        />
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-medium">{product.rating}</span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          ({product.reviews}개 리뷰)
+                        </span>
+                      </div>
+
+                      <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-smooth">
+                        {product.name}
+                      </h3>
+
+                      <ul className="space-y-2 mb-4">
+                        {product.features.map((feature, index) => (
+                          <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="flex items-center gap-2 mb-4">
+                        {product.originalPrice && (
+                          <span className="text-sm text-muted-foreground line-through">
+                            {product.originalPrice.toLocaleString()}원
+                          </span>
+                        )}
+                        <span className="text-2xl font-bold text-primary">
+                          {product.price.toLocaleString()}원
+                        </span>
+                      </div>
+
+                      <Link to={`/product/${product.id}`}>
+                        <Button className="w-full water-drop">
+                          제품 정보 보기
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            )}
-          </TabsContent>
-        </Tabs>
+            </section>
+          ))}
+        </div>
       </main>
 
       <Footer />

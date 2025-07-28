@@ -127,7 +127,16 @@ const Shop = () => {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
+    let matchesCategory = true;
+    
+    if (filterCategory === 'best') {
+      matchesCategory = product.badge === 'BEST';
+    } else if (filterCategory === 'new') {
+      matchesCategory = product.badge === 'NEW';
+    } else if (filterCategory !== 'all') {
+      matchesCategory = product.category === filterCategory;
+    }
+    
     return matchesSearch && matchesCategory;
   });
 
@@ -176,6 +185,8 @@ const Shop = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="best">Best</SelectItem>
+              <SelectItem value="new">New</SelectItem>
               <SelectItem value="shower">샤워 필터</SelectItem>
               <SelectItem value="kitchen">주방 정수기</SelectItem>
               <SelectItem value="industrial">산업용 필터</SelectItem>
@@ -228,14 +239,6 @@ const Shop = () => {
                   </Badge>
                 )}
 
-                {/* Wishlist Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-4 right-4 z-10 w-8 h-8 p-0 bg-background/80 hover:bg-background"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
 
                 {/* Product Image */}
                 <div className="aspect-square bg-secondary overflow-hidden">
