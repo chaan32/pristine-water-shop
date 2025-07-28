@@ -24,6 +24,7 @@ const HeadquartersDashboard = () => {
       products: ['프리미엄 샤워 필터 SF-100'],
       quantity: 5,
       total: 460000,
+      paymentStatus: '결제완료',
       status: '배송완료'
     },
     {
@@ -33,6 +34,7 @@ const HeadquartersDashboard = () => {
       products: ['주방용 직수 정수기 KF-200'],
       quantity: 3,
       total: 594000,
+      paymentStatus: '결제완료',
       status: '배송중'
     },
     {
@@ -42,6 +44,7 @@ const HeadquartersDashboard = () => {
       products: ['산업용 대용량 필터 IF-1000'],
       quantity: 2,
       total: 900000,
+      paymentStatus: '결제대기',
       status: '배송완료'
     }
   ];
@@ -119,7 +122,8 @@ const HeadquartersDashboard = () => {
                 <TableHead>상품명</TableHead>
                 <TableHead>수량</TableHead>
                 <TableHead>금액</TableHead>
-                <TableHead>상태</TableHead>
+                <TableHead>결제상태</TableHead>
+                <TableHead>배송상태</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -130,6 +134,11 @@ const HeadquartersDashboard = () => {
                   <TableCell>{purchase.products.join(', ')}</TableCell>
                   <TableCell>{purchase.quantity}개</TableCell>
                   <TableCell className="font-semibold">{purchase.total.toLocaleString()}원</TableCell>
+                  <TableCell>
+                    <Badge variant={purchase.paymentStatus === '결제완료' ? 'default' : 'destructive'}>
+                      {purchase.paymentStatus}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={purchase.status === '배송완료' ? 'default' : 'secondary'}>
                       {purchase.status}
