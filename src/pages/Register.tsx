@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
-import { UserPlus, Building, User, Check, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { UserPlus, Building, User, Check, X, Upload } from 'lucide-react';
 
 const Register = () => {
   const [individualForm, setIndividualForm] = useState({
@@ -20,7 +22,9 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     termsAccepted: false,
-    privacyAccepted: false
+    privacyAccepted: false,
+    businessType: '',
+    businessRegistration: null as File | null
   });
 
   const isIndividualPasswordMatch = individualForm.password && individualForm.confirmPassword && individualForm.password === individualForm.confirmPassword;
@@ -29,7 +33,19 @@ const Register = () => {
 
   const isCorporatePasswordMatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password === corporateForm.confirmPassword;
   const isCorporatePasswordMismatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password !== corporateForm.confirmPassword;
-  const isCorporateFormValid = isCorporatePasswordMatch && corporateForm.termsAccepted && corporateForm.privacyAccepted;
+  const isCorporateFormValid = isCorporatePasswordMatch && corporateForm.termsAccepted && corporateForm.privacyAccepted && corporateForm.businessType && corporateForm.businessRegistration;
+
+  const handleBusinessRegistrationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // 이미지 파일만 허용
+      if (file.type.startsWith('image/')) {
+        setCorporateForm(prev => ({ ...prev, businessRegistration: file }));
+      } else {
+        alert('이미지 파일만 업로드 가능합니다. (JPG, PNG, HEIC 등)');
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,6 +167,25 @@ const Register = () => {
                     <Input placeholder="대표자명" />
                     <Input placeholder="담당자명" />
                   </div>
+                  
+                  {/* 법인 업종 선택 */}
+                  <div className="space-y-2">
+                    <Label htmlFor="businessType">법인 업종 (필수)</Label>
+                    <Select onValueChange={(value) => setCorporateForm(prev => ({ ...prev, businessType: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="업종을 선택해주세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bakery">베이커리 법인</SelectItem>
+                        <SelectItem value="cafe">카페 법인</SelectItem>
+                        <SelectItem value="franchise">프랜차이즈 법인</SelectItem>
+                        <SelectItem value="restaurant">레스토랑 법인</SelectItem>
+                        <SelectItem value="hotel">호텔/펜션 법인</SelectItem>
+                        <SelectItem value="other">기타</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <Input placeholder="아이디" />
                   <div className="space-y-4">
                     <Input 
@@ -188,6 +223,45 @@ const Register = () => {
                     <Input placeholder="회사 전화번호" />
                   </div>
                   <Input placeholder="회사 주소" />
+                  
+                  {/* 사업자등록증 업로드 */}
+                  <div className="space-y-2">
+                    <Label htmlFor="businessRegistration">사업자등록증 업로드 (필수)</Label>
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors">
+                      <input
+                        id="businessRegistration"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBusinessRegistrationUpload}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="businessRegistration"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <Upload className="w-8 h-8 text-muted-foreground" />
+                        <div className="text-sm">
+                          {corporateForm.businessRegistration ? (
+                            <div className="space-y-1">
+                              <p className="text-green-600 font-medium">
+                                ✓ {corporateForm.businessRegistration.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                다른 파일을 선택하려면 클릭하세요
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              <p className="font-medium">사업자등록증을 업로드하세요</p>
+                              <p className="text-xs text-muted-foreground">
+                                JPG, PNG, HEIC 등 이미지 파일만 가능
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                   
                   <div className="bg-secondary/50 p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-2">

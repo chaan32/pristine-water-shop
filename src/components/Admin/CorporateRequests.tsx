@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { 
   Table,
   TableBody,
@@ -10,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { CheckCircle, XCircle, Eye, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Clock, Crown } from 'lucide-react';
 
 const CorporateRequests = () => {
   const [requests, setRequests] = useState([
@@ -21,9 +24,11 @@ const CorporateRequests = () => {
       email: 'def@pension.com',
       phone: '033-123-4567',
       businessNumber: '456-78-91234',
+      businessType: 'hotel',
       requestDate: '2024-07-20',
       status: 'pending',
-      documents: ['사업자등록증', '통장사본']
+      documents: ['사업자등록증', '통장사본'],
+      isHeadquarters: false
     },
     {
       id: 2,
@@ -32,9 +37,11 @@ const CorporateRequests = () => {
       email: 'ghi@cafe.com',
       phone: '02-987-6543',
       businessNumber: '789-12-34567',
+      businessType: 'cafe',
       requestDate: '2024-07-18',
       status: 'pending',
-      documents: ['사업자등록증']
+      documents: ['사업자등록증'],
+      isHeadquarters: false
     },
     {
       id: 3,
@@ -43,17 +50,35 @@ const CorporateRequests = () => {
       email: 'jkl@resort.com',
       phone: '064-555-7777',
       businessNumber: '321-65-98765',
+      businessType: 'hotel',
       requestDate: '2024-07-15',
       status: 'approved',
-      documents: ['사업자등록증', '통장사본', '신분증']
+      documents: ['사업자등록증', '통장사본', '신분증'],
+      isHeadquarters: true
     }
   ]);
 
-  const handleApprove = (id: number) => {
-    setRequests(requests.map(req => 
-      req.id === id ? { ...req, status: 'approved' } : req
-    ));
-    console.log('승인:', id);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [isHeadquartersChecked, setIsHeadquartersChecked] = useState(false);
+
+  const handleApprovalClick = (request: any) => {
+    setSelectedRequest(request);
+    setIsHeadquartersChecked(request.isHeadquarters || false);
+    setShowApprovalDialog(true);
+  };
+
+  const handleApprove = () => {
+    if (selectedRequest) {
+      setRequests(requests.map(req => 
+        req.id === selectedRequest.id 
+          ? { ...req, status: 'approved', isHeadquarters: isHeadquartersChecked } 
+          : req
+      ));
+      setShowApprovalDialog(false);
+      setSelectedRequest(null);
+      console.log('승인:', selectedRequest.id, '본사 지위:', isHeadquartersChecked);
+    }
   };
 
   const handleReject = (id: number) => {
@@ -65,6 +90,18 @@ const CorporateRequests = () => {
 
   const handleViewDetail = (id: number) => {
     console.log('상세 조회:', id);
+  };
+
+  const getBusinessTypeText = (type: string) => {
+    const types: { [key: string]: string } = {
+      bakery: '베이커리',
+      cafe: '카페',
+      franchise: '프랜차이즈',
+      restaurant: '레스토랑',
+      hotel: '호텔/펜션',
+      other: '기타'
+    };
+    return types[type] || type;
   };
 
   const getStatusBadge = (status: string) => {
@@ -112,6 +149,7 @@ const CorporateRequests = () => {
                 <TableHead>담당자</TableHead>
                 <TableHead>연락처</TableHead>
                 <TableHead>사업자번호</TableHead>
+                <TableHead>업종</TableHead>
                 <TableHead>요청일</TableHead>
                 <TableHead>제출 서류</TableHead>
                 <TableHead>상태</TableHead>
@@ -121,7 +159,16 @@ const CorporateRequests = () => {
             <TableBody>
               {requests.map((request) => (
                 <TableRow key={request.id}>
-                  <TableCell className="font-medium">{request.companyName}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {request.companyName}
+                      {request.isHeadquarters && request.status === 'approved' && (
+                        <div title="본사 회원">
+                          <Crown className="w-4 h-4 text-yellow-500" />
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div>
                       <div>{request.contactName}</div>
@@ -130,6 +177,11 @@ const CorporateRequests = () => {
                   </TableCell>
                   <TableCell>{request.phone}</TableCell>
                   <TableCell className="font-mono text-sm">{request.businessNumber}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {getBusinessTypeText(request.businessType)}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">{request.requestDate}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
@@ -157,7 +209,7 @@ const CorporateRequests = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleApprove(request.id)}
+                            onClick={() => handleApprovalClick(request)}
                             className="text-green-600 hover:text-green-700"
                           >
                             <CheckCircle className="w-4 h-4" />
@@ -218,6 +270,53 @@ const CorporateRequests = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* 승인 확인 다이얼로그 */}
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>법인 회원 승인</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedRequest && (
+              <div className="space-y-2">
+                <p><strong>회사명:</strong> {selectedRequest.companyName}</p>
+                <p><strong>담당자:</strong> {selectedRequest.contactName}</p>
+                <p><strong>업종:</strong> {getBusinessTypeText(selectedRequest.businessType)}</p>
+              </div>
+            )}
+            
+            <div className="flex items-center space-x-2 p-4 border rounded-lg">
+              <Checkbox 
+                id="headquarters" 
+                checked={isHeadquartersChecked}
+                onCheckedChange={(checked) => setIsHeadquartersChecked(!!checked)}
+              />
+              <div className="space-y-1">
+                <Label 
+                  htmlFor="headquarters" 
+                  className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                >
+                  <Crown className="w-4 h-4 text-yellow-500" />
+                  본사 지위 부여
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  본사 회원은 지점 회원들의 구매 내역을 조회할 수 있습니다.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
+                취소
+              </Button>
+              <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
+                승인
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { 
   Table,
   TableBody,
@@ -12,11 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Eye, User, Building } from 'lucide-react';
+import { Search, Eye, User, Building, Crown } from 'lucide-react';
 
 const MemberList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('individual');
+  const [showHeadquartersOnly, setShowHeadquartersOnly] = useState(false);
 
   const individualMembers = [
     {
@@ -59,6 +62,8 @@ const MemberList = () => {
       email: 'contact@abchotel.com',
       phone: '02-1234-5678',
       businessNumber: '123-45-67890',
+      businessType: 'hotel',
+      memberType: 'headquarters',
       joinDate: '2024-01-20',
       orderCount: 25,
       totalAmount: 5600000,
@@ -71,9 +76,40 @@ const MemberList = () => {
       email: 'manager@xyz.com',
       phone: '02-9876-5432',
       businessNumber: '987-65-43210',
+      businessType: 'restaurant',
+      memberType: 'branch',
       joinDate: '2024-02-15',
       orderCount: 18,
       totalAmount: 3200000,
+      status: '정상'
+    },
+    {
+      id: 3,
+      companyName: 'DEF 카페 본사',
+      contactName: '김본부장',
+      email: 'head@defcafe.com',
+      phone: '02-1111-2222',
+      businessNumber: '111-22-33444',
+      businessType: 'cafe',
+      memberType: 'headquarters',
+      joinDate: '2024-03-01',
+      orderCount: 45,
+      totalAmount: 8900000,
+      status: '정상'
+    },
+    {
+      id: 4,
+      companyName: 'DEF 카페 강남점',
+      contactName: '박점장',
+      email: 'gangnam@defcafe.com',
+      phone: '02-3333-4444',
+      businessNumber: '111-22-33444',
+      businessType: 'cafe',
+      memberType: 'branch',
+      parentCompany: 'DEF 카페 본사',
+      joinDate: '2024-03-10',
+      orderCount: 12,
+      totalAmount: 890000,
       status: '정상'
     }
   ];
@@ -83,11 +119,31 @@ const MemberList = () => {
     member.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredCorporate = corporateMembers.filter(member =>
-    member.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCorporate = corporateMembers.filter(member => {
+    const matchesSearch = member.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesFilter = showHeadquartersOnly ? member.memberType === 'headquarters' : true;
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  const getBusinessTypeText = (type: string) => {
+    const types: { [key: string]: string } = {
+      bakery: '베이커리',
+      cafe: '카페',
+      franchise: '프랜차이즈',
+      restaurant: '레스토랑',
+      hotel: '호텔/펜션',
+      other: '기타'
+    };
+    return types[type] || type;
+  };
+
+  const getMemberTypeText = (type: string) => {
+    return type === 'headquarters' ? '본사' : '지점';
+  };
 
   const handleViewDetail = (id: number, type: 'individual' | 'corporate') => {
     console.log('회원 상세 조회:', { id, type });
@@ -179,6 +235,23 @@ const MemberList = () => {
             </TabsContent>
 
             <TabsContent value="corporate" className="mt-6">
+              <div className="mb-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="headquarters-filter" 
+                    checked={showHeadquartersOnly}
+                    onCheckedChange={(checked) => setShowHeadquartersOnly(!!checked)}
+                  />
+                  <Label 
+                    htmlFor="headquarters-filter" 
+                    className="text-sm cursor-pointer flex items-center gap-2"
+                  >
+                    <Crown className="w-4 h-4 text-yellow-500" />
+                    본사 회원만 보기
+                  </Label>
+                </div>
+              </div>
+              
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -187,6 +260,7 @@ const MemberList = () => {
                     <TableHead>이메일</TableHead>
                     <TableHead>연락처</TableHead>
                     <TableHead>사업자번호</TableHead>
+                    <TableHead>업종/구분</TableHead>
                     <TableHead>가입일</TableHead>
                     <TableHead>주문 수</TableHead>
                     <TableHead>총 구매금액</TableHead>
@@ -197,11 +271,35 @@ const MemberList = () => {
                 <TableBody>
                   {filteredCorporate.map((member) => (
                     <TableRow key={member.id}>
-                      <TableCell className="font-medium">{member.companyName}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {member.companyName}
+                           {member.memberType === 'headquarters' && (
+                             <div title="본사 회원">
+                               <Crown className="w-4 h-4 text-yellow-500" />
+                             </div>
+                           )}
+                        </div>
+                        {member.parentCompany && (
+                          <div className="text-xs text-muted-foreground">
+                            소속: {member.parentCompany}
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell>{member.contactName}</TableCell>
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.phone}</TableCell>
                       <TableCell className="text-muted-foreground">{member.businessNumber}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <Badge variant="outline" className="text-xs">
+                            {getBusinessTypeText(member.businessType)}
+                          </Badge>
+                          <div className="text-xs text-muted-foreground">
+                            {getMemberTypeText(member.memberType)}
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
                       <TableCell>{member.orderCount}회</TableCell>
                       <TableCell>₩{member.totalAmount.toLocaleString()}</TableCell>
