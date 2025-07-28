@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Minus, Plus, X, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import showerFilter from '@/assets/shower-filter.jpg';
 import kitchenFilter from '@/assets/kitchen-filter.jpg';
 
 const Cart = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
@@ -115,10 +117,7 @@ const Cart = () => {
                 <Button 
                   className="w-full water-drop"
                   onClick={() => {
-                    // Order 페이지로 이동하면서 장바구니 데이터 전달
-                    window.location.href = '/order';
-                    // 실제로는 React Router의 navigate 사용:
-                    // navigate('/order', { state: { items: cartItems, isDirectPurchase: false } });
+                    navigate('/order', { state: { items: cartItems, isDirectPurchase: false } });
                   }}
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
