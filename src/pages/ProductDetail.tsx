@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Minus, Plus, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Star, Minus, Plus, ShoppingCart, Share2, Truck, Shield, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -223,32 +224,60 @@ const ProductDetail = () => {
                   <ShoppingCart className="w-5 h-5 mr-2" />
                   장바구니
                 </Button>
-                <Button 
-                  variant="default" 
-                  size="lg" 
-                  className="flex-1 water-drop"
-                  onClick={() => {
-                    // 바로구매 - Order 페이지로 이동
-                    const directPurchaseItem = {
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      quantity: quantity,
-                      image: product.images[0]
-                    };
-                    window.location.href = '/order';
-                    // 실제로는 React Router의 navigate 사용:
-                    // navigate('/order', { state: { items: [directPurchaseItem], isDirectPurchase: true } });
-                  }}
-                >
-                  바로구매
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="default" 
+                      size="lg" 
+                      className="flex-1 water-drop"
+                    >
+                      바로구매
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>바로구매 확인</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        정말 주문하시겠습니까?
+                        <div className="mt-4 p-4 bg-secondary rounded-lg space-y-2">
+                          <div className="flex justify-between">
+                            <span>상품:</span>
+                            <span className="font-medium">{product.name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>수량:</span>
+                            <span>{quantity}개</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>총 금액:</span>
+                            <span className="font-bold text-primary">{totalPrice.toLocaleString()}원</span>
+                          </div>
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>취소</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => {
+                        // 바로구매 - Order 페이지로 이동
+                        const directPurchaseItem = {
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          quantity: quantity,
+                          image: product.images[0]
+                        };
+                        window.location.href = '/order';
+                        // 실제로는 React Router의 navigate 사용:
+                        // navigate('/order', { state: { items: [directPurchaseItem], isDirectPurchase: true } });
+                      }}>
+                        주문하기
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
               
               <div className="flex gap-3">
-                <Button variant="outline" size="lg" className="water-drop">
-                  <Heart className="w-5 h-5" />
-                </Button>
                 <Button variant="outline" size="lg" className="water-drop">
                   <Share2 className="w-5 h-5" />
                 </Button>

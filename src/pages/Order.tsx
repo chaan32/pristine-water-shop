@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 
 const Order = () => {
@@ -404,13 +405,40 @@ const Order = () => {
                   </div>
                 </div>
 
-                <Button 
-                  className="w-full water-drop"
-                  onClick={handleOrder}
-                  disabled={finalTotal <= 0}
-                >
-                  {finalTotal.toLocaleString()}원 결제하기
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      className="w-full water-drop"
+                      disabled={finalTotal <= 0}
+                    >
+                      {finalTotal.toLocaleString()}원 결제하기
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>주문 확인</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        정말 주문하시겠습니까?
+                        <div className="mt-4 p-4 bg-secondary rounded-lg space-y-2">
+                          <div className="flex justify-between">
+                            <span>최종 결제금액:</span>
+                            <span className="font-bold text-primary">{finalTotal.toLocaleString()}원</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>배송지:</span>
+                            <span>{orderInfo.address || '배송지를 입력해주세요'}</span>
+                          </div>
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>취소</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleOrder}>
+                        주문하기
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </CardContent>
             </Card>
           </div>
