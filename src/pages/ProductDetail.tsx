@@ -144,7 +144,7 @@ const ProductDetail = () => {
               )}
               <h1 className="text-3xl font-bold text-foreground mb-4">{product.name}</h1>
               
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-4 mb-6">
                 <div className="flex items-center gap-2">
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
@@ -163,194 +163,162 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <p className="text-muted-foreground mb-6">{product.description}</p>
-            </div>
-
-            {/* Price */}
-            <div className="border-t border-b py-6">
-              <div className="flex items-center gap-4 mb-2">
-                {product.originalPrice && (
-                  <span className="text-lg text-muted-foreground line-through">
-                    {product.originalPrice.toLocaleString()}원
-                  </span>
-                )}
-                <span className="text-3xl font-bold text-primary">
-                  {product.price.toLocaleString()}원
-                </span>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                배송비: {product.shippingFee.toLocaleString()}원
-              </div>
-            </div>
-
-            {/* Quantity and Actions */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <span className="font-medium">수량:</span>
-                <div className="flex items-center border rounded-md">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleQuantityChange(quantity - 1)}
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </Button>
-                  <Input
-                    value={quantity}
-                    onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                    className="w-16 text-center border-0"
-                    min="1"
-                    max="10"
-                    type="number"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={quantity >= 10}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="text-lg font-semibold">
-                총 결제금액: <span className="text-primary">{totalPrice.toLocaleString()}원</span>
-              </div>
-
-              <div className="flex gap-3">
-                <Button className="flex-1 water-drop" size="lg">
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  장바구니
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="default" 
-                      size="lg" 
-                      className="flex-1 water-drop"
-                    >
-                      바로구매
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>바로구매 확인</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        정말 주문하시겠습니까?
-                        <div className="mt-4 p-4 bg-secondary rounded-lg space-y-2">
-                          <div className="flex justify-between">
-                            <span>상품:</span>
-                            <span className="font-medium">{product.name}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>수량:</span>
-                            <span>{quantity}개</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>총 금액:</span>
-                            <span className="font-bold text-primary">{totalPrice.toLocaleString()}원</span>
-                          </div>
-                        </div>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>취소</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => {
-                        // 바로구매 - Order 페이지로 이동
-                        const directPurchaseItem = {
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          quantity: quantity,
-                          image: product.images[0]
-                        };
-                        window.location.href = '/order';
-                        // 실제로는 React Router의 navigate 사용:
-                        // navigate('/order', { state: { items: [directPurchaseItem], isDirectPurchase: true } });
-                      }}>
-                        주문하기
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-              
-              <div className="flex gap-3">
-                <Button variant="outline" size="lg" className="water-drop">
-                  <Share2 className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Shipping Info */}
-            <div className="bg-secondary/50 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <Truck className="w-5 h-5 text-primary" />
-                <div>
-                  <div className="font-medium">무료배송</div>
-                  <div className="text-sm text-muted-foreground">3만원 이상 구매시 (제주/도서산간 제외)</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Shield className="w-5 h-5 text-primary" />
-                <div>
-                  <div className="font-medium">품질보증</div>
-                  <div className="text-sm text-muted-foreground">정품 인증 및 1년 품질보증</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <RotateCcw className="w-5 h-5 text-primary" />
-                <div>
-                  <div className="font-medium">교환/반품</div>
-                  <div className="text-sm text-muted-foreground">7일 이내 무료 교환/반품</div>
-                </div>
-              </div>
+              <p className="text-lg text-muted-foreground leading-relaxed">{product.description}</p>
             </div>
           </div>
         </div>
 
-        {/* Product Details Tabs */}
-        <Tabs defaultValue="details" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="details">상세정보</TabsTrigger>
+        {/* Detailed Product Information */}
+        <div className="space-y-12 mb-16">
+          <Card className="water-drop">
+            <CardHeader>
+              <CardTitle className="text-2xl">제품 상세정보</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <div>
+                <h3 className="text-xl font-semibold mb-6">제품 개요</h3>
+                <div className="prose max-w-none text-muted-foreground">
+                  <p className="text-lg leading-relaxed mb-4">
+                    프리미엄 샤워 필터 SF-100은 최신 다층 필터링 기술을 적용하여 개발된 고성능 샤워용 정수 필터입니다. 
+                    일반 수돗물에 포함된 염소, 중금속, 세균 등의 유해물질을 효과적으로 제거하여 깨끗하고 건강한 샤워 환경을 제공합니다.
+                  </p>
+                  <p className="text-lg leading-relaxed mb-4">
+                    특허받은 5단계 필터링 시스템을 통해 물의 순도를 높이면서도 필수 미네랄은 보존하여, 
+                    피부와 모발 건강에 도움을 주는 최적의 샤워 워터를 만들어냅니다.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-6">핵심 기술</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-secondary/30 rounded-lg p-6">
+                    <h4 className="font-semibold text-lg mb-3 text-primary">5단계 필터링 시스템</h4>
+                    <p className="text-muted-foreground">
+                      PP 필터, 활성탄 필터, KDF 필터, 세라믹볼, 비타민C 필터가 순차적으로 작동하여 
+                      최대 99.9%의 염소 제거 효과를 달성합니다.
+                    </p>
+                  </div>
+                  <div className="bg-secondary/30 rounded-lg p-6">
+                    <h4 className="font-semibold text-lg mb-3 text-primary">중금속 차단 기술</h4>
+                    <p className="text-muted-foreground">
+                      특수 KDF 필터를 통해 납, 수은, 카드뮴 등의 중금속을 효과적으로 제거하여 
+                      안전한 샤워 환경을 조성합니다.
+                    </p>
+                  </div>
+                  <div className="bg-secondary/30 rounded-lg p-6">
+                    <h4 className="font-semibold text-lg mb-3 text-primary">미네랄 보존 기술</h4>
+                    <p className="text-muted-foreground">
+                      유해물질은 제거하면서도 칼슘, 마그네슘 등 피부에 유익한 미네랄은 
+                      그대로 보존하는 선택적 필터링을 구현했습니다.
+                    </p>
+                  </div>
+                  <div className="bg-secondary/30 rounded-lg p-6">
+                    <h4 className="font-semibold text-lg mb-3 text-primary">비타민C 인퓨전</h4>
+                    <p className="text-muted-foreground">
+                      천연 비타민C가 용해되어 피부에 영양을 공급하고 염소로 인한 
+                      자극과 건조를 완화시켜줍니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-6">주요 특징 및 효과</h3>
+                <div className="space-y-4">
+                  {product.features.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-4 p-4 bg-secondary/20 rounded-lg">
+                      <div className="w-3 h-3 bg-primary rounded-full mt-2 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium text-lg">{feature}</span>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {index === 0 && "염소 냄새와 자극을 완전히 제거하여 쾌적한 샤워 환경을 제공합니다."}
+                          {index === 1 && "납, 수은, 카드뮴 등 유해 중금속을 효과적으로 차단합니다."}
+                          {index === 2 && "한 번 설치로 최대 6개월까지 지속적인 필터링 효과를 유지합니다."}
+                          {index === 3 && "공구 없이 누구나 쉽게 설치하고 교체할 수 있도록 설계되었습니다."}
+                          {index === 4 && "국제적으로 인정받은 NSF 인증을 획득하여 안전성이 검증되었습니다."}
+                          {index === 5 && "재활용 가능한 친환경 소재를 사용하여 환경 보호에 기여합니다."}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-xl font-semibold mb-6">제품 사양</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex justify-between items-center border-b border-secondary pb-3">
+                      <span className="font-medium text-lg">{key}</span>
+                      <span className="text-muted-foreground text-lg">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-6">설치 및 사용법</h3>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl font-bold text-primary">1</span>
+                      </div>
+                      <h4 className="font-semibold mb-2">기존 샤워헤드 분리</h4>
+                      <p className="text-sm text-muted-foreground">기존 샤워헤드를 시계 반대 방향으로 돌려 분리합니다.</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl font-bold text-primary">2</span>
+                      </div>
+                      <h4 className="font-semibold mb-2">필터 연결</h4>
+                      <p className="text-sm text-muted-foreground">샤워 필터를 샤워 호스에 시계 방향으로 돌려 연결합니다.</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl font-bold text-primary">3</span>
+                      </div>
+                      <h4 className="font-semibold mb-2">샤워헤드 재연결</h4>
+                      <p className="text-sm text-muted-foreground">샤워헤드를 필터에 연결하고 물이 새지 않는지 확인합니다.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-6">관리 및 유지보수</h3>
+                <div className="bg-secondary/20 rounded-lg p-6">
+                  <ul className="space-y-3">
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+                      <span>필터 교체 주기: 6개월 또는 약 15,000L 사용 시</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+                      <span>외관 청소: 중성세제로 월 1회 청소 권장</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+                      <span>보관 방법: 직사광선을 피하고 서늘한 곳에 보관</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+                      <span>교체 알림: 물의 맛이나 냄새 변화 시 즉시 교체</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Reviews and Q&A */}
+        <Tabs defaultValue="reviews" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="reviews">구매후기 ({reviews.length})</TabsTrigger>
             <TabsTrigger value="qna">Q&A ({qnas.length})</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="details" className="mt-8">
-            <Card className="water-drop">
-              <CardHeader>
-                <CardTitle>제품 상세정보</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">주요 특징</h3>
-                  <ul className="space-y-2">
-                    {product.features.map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-primary rounded-full" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">제품 사양</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(product.specifications).map(([key, value]) => (
-                      <div key={key} className="flex justify-between border-b pb-2">
-                        <span className="font-medium">{key}</span>
-                        <span className="text-muted-foreground">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="reviews" className="mt-8">
             <div className="space-y-6">
