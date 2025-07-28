@@ -22,6 +22,21 @@ const Login = () => {
       localStorage.setItem('userType', 'admin');
       localStorage.setItem('userName', '김관리자');
       navigate('/admin');
+    } else if (loginData.username === 'headquarters' && loginData.password === 'headquarters') {
+      // 본사 회원 로그인
+      localStorage.setItem('userType', 'headquarters');
+      localStorage.setItem('userName', 'ABC카페 본사');
+      localStorage.setItem('companyName', 'ABC카페');
+      localStorage.setItem('isHeadquarters', 'true');
+      navigate('/mypage');
+    } else if (loginData.username === 'branch' && loginData.password === 'branch') {
+      // 지점 회원 로그인
+      localStorage.setItem('userType', 'branch');
+      localStorage.setItem('userName', 'ABC카페 강남점');
+      localStorage.setItem('companyName', 'ABC카페');
+      localStorage.setItem('parentCompany', 'ABC카페 본사');
+      localStorage.setItem('isHeadquarters', 'false');
+      navigate('/mypage');
     } else if (loginData.username && loginData.password) {
       // 일반 사용자 로그인
       localStorage.setItem('userType', 'individual');
@@ -47,8 +62,8 @@ const Login = () => {
               <div className="space-y-4">
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input 
-                    placeholder="아이디 (관리자: admin)" 
+                   <Input 
+                    placeholder="아이디 (관리자: admin, 본사: headquarters, 지점: branch)" 
                     className="pl-10"
                     value={loginData.username}
                     onChange={(e) => setLoginData(prev => ({ ...prev, username: e.target.value }))}
@@ -56,9 +71,9 @@ const Login = () => {
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input 
+                   <Input 
                     type="password" 
-                    placeholder="비밀번호 (관리자: admin)" 
+                    placeholder="비밀번호 (관리자: admin, 본사: headquarters, 지점: branch)" 
                     className="pl-10"
                     value={loginData.password}
                     onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
