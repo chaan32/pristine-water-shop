@@ -300,12 +300,12 @@ const Order = () => {
                 {/* 쿠폰 선택 */}
                 <div>
                   <label className="text-sm font-medium mb-3 block">쿠폰 선택</label>
-                  <Select value={selectedCoupon} onValueChange={setSelectedCoupon}>
+                  <Select value={selectedCoupon || "none"} onValueChange={(value) => setSelectedCoupon(value === "none" ? "" : value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="쿠폰을 선택하세요" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">쿠폰 사용 안함</SelectItem>
+                      <SelectItem value="none">쿠폰 사용 안함</SelectItem>
                       {userCoupons.map((coupon) => (
                         <SelectItem 
                           key={coupon.id}
