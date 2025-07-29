@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,9 +9,27 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Bell, FileText, MessageCircle, HelpCircle, Send, Pin } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Bell, FileText, MessageCircle, HelpCircle, Send, Pin, Upload, X } from 'lucide-react';
 
 const Support = () => {
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    
+    if (attachedFiles.length + imageFiles.length > 5) {
+      alert('최대 5장까지 첨부할 수 있습니다.');
+      return;
+    }
+    
+    setAttachedFiles(prev => [...prev, ...imageFiles].slice(0, 5));
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
   const notices = [
     {
       id: 1,
@@ -188,13 +207,18 @@ const Support = () => {
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">문의 유형</label>
-                    <select className="w-full p-2 border border-input rounded-md">
-                      <option>환불</option>
-                      <option>교환</option>
-                      <option>일반문의</option>
-                      <option>제품 문의</option>
-                      <option>주문/배송 문의</option>
-                    </select>
+                    <Select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="문의 유형을 선택하세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="refund">환불</SelectItem>
+                        <SelectItem value="exchange">교환</SelectItem>
+                        <SelectItem value="general">일반문의</SelectItem>
+                        <SelectItem value="product">제품 문의</SelectItem>
+                        <SelectItem value="order">주문/배송 문의</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div>
@@ -208,6 +232,58 @@ const Support = () => {
                       placeholder="문의 내용을 상세히 입력해주세요"
                       rows={6}
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">첨부파일 (최대 5장)</label>
+                    <div className="space-y-3">
+                      <div className="border-2 border-dashed border-input rounded-lg p-4 text-center">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground mb-2">
+                          이미지를 드래그하거나 클릭하여 업로드
+                        </p>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                          id="file-upload"
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => document.getElementById('file-upload')?.click()}
+                        >
+                          파일 선택
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          JPG, PNG, GIF 형식 (최대 5장)
+                        </p>
+                      </div>
+                      
+                      {attachedFiles.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium">첨부된 파일 ({attachedFiles.length}/5)</p>
+                          <div className="space-y-2">
+                            {attachedFiles.map((file, index) => (
+                              <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                                <span className="text-sm truncate flex-1">{file.name}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeFile(index)}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <Button className="w-full water-drop">
