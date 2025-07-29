@@ -503,12 +503,16 @@ const Products = () => {
             </p>
           </div>
 
-          <Link to={`/product/${product.id}`}>
-            <Button className="w-full">
-              상세 정보 보기
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
+          <div className="mt-6 pt-4 border-t">
+            <p className="text-sm text-muted-foreground mb-4">
+              더 자세한 기술 사양, 설치 방법, 유지보수 정보를 확인하세요.
+            </p>
+            <Link to={`/product/${product.id}`}>
+              <Button className="w-full">
+                상세정보 보기 <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     );

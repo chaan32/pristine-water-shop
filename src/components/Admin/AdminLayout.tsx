@@ -28,6 +28,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const menuItems = [
     { title: '상품 등록', path: '/admin/products', icon: Package },
     { title: '상품 수정', path: '/admin/products/edit', icon: Edit3 },
+    { title: '상품 컨텐츠 관리', path: '/admin/products/content', icon: Edit3 },
     { title: '매출 그래프', path: '/admin/sales', icon: BarChart3 },
     { title: '회원 리스트', path: '/admin/members', icon: Users },
     { title: '법인 등록 요청', path: '/admin/corporate-requests', icon: Building2 },

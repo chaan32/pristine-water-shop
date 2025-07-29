@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from '@/components/Admin/AdminLayout';
 import ProductManagement from '@/components/Admin/ProductManagement';
 import ProductEdit from '@/components/Admin/ProductEdit';
+import ProductContentManagement from '@/components/Admin/ProductContentManagement';
 import SalesChart from '@/components/Admin/SalesChart';
 import MemberList from '@/components/Admin/MemberList';
 import CorporateRequests from '@/components/Admin/CorporateRequests';
@@ -23,6 +24,7 @@ const Admin = () => {
         <Route path="/" element={<Navigate to="/admin/products" replace />} />
         <Route path="/products" element={<ProductManagement />} />
         <Route path="/products/edit/:id?" element={<ProductEdit />} />
+        <Route path="/products/content" element={<ProductContentManagement />} />
         <Route path="/sales" element={<SalesChart />} />
         <Route path="/members" element={<MemberList />} />
         <Route path="/corporate-requests" element={<CorporateRequests />} />
