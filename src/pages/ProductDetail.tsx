@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Star, Minus, Plus, ShoppingCart, Share2, Truck, Shield, RotateCcw } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, Share2, Truck, Shield, RotateCcw, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -162,6 +162,28 @@ const ProductDetail = () => {
                   <span className="text-muted-foreground">({product.reviews}개 리뷰)</span>
                 </div>
               </div>
+
+              {/* 가격 정보 */}
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-sm text-muted-foreground line-through">120,000원</span>
+                <span className="text-3xl font-bold text-primary">89,000원</span>
+                <Badge variant="destructive">26% 할인</Badge>
+              </div>
+
+              {/* 구매 버튼 */}
+              <div className="flex gap-3 mb-6">
+                <Button className="flex-1" size="lg">
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  장바구니 담기
+                </Button>
+                <Button variant="outline" size="lg">
+                  <Heart className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <Button variant="outline" className="w-full" size="lg">
+                바로 구매
+              </Button>
 
               <p className="text-lg text-muted-foreground leading-relaxed">{product.description}</p>
             </div>
