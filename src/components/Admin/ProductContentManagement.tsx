@@ -7,10 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Save, Eye, Plus, Trash2, Image } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Upload, Save, Eye, Plus, Trash2, Image, Star, Shield } from 'lucide-react';
 
 const ProductContentManagement = () => {
   const [selectedProduct, setSelectedProduct] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
   const [contentData, setContentData] = useState({
     title: '',
     subtitle: '',
@@ -78,14 +80,34 @@ const ProductContentManagement = () => {
     }));
   };
 
+  const handleImageUpload = (field: string, file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      handleInputChange(field, result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleGalleryImageUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setContentData(prev => ({
+        ...prev,
+        gallery: [...prev.gallery, result]
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSave = () => {
     console.log('저장된 상품 컨텐츠:', { product: selectedProduct, content: contentData });
     alert('상품 상세 컨텐츠가 저장되었습니다.');
   };
 
   const handlePreview = () => {
-    console.log('미리보기:', { product: selectedProduct, content: contentData });
-    alert('미리보기 기능은 개발 중입니다.');
+    setShowPreview(true);
   };
 
   return (
@@ -96,10 +118,137 @@ const ProductContentManagement = () => {
           <p className="text-muted-foreground mt-2">제품의 상세 정보와 썸네일을 작성하고 관리합니다.</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={handlePreview}>
-            <Eye className="w-4 h-4 mr-2" />
-            미리보기
-          </Button>
+          <Dialog open={showPreview} onOpenChange={setShowPreview}>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={handlePreview}>
+                <Eye className="w-4 h-4 mr-2" />
+                미리보기
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>제품 상세 정보 미리보기</DialogTitle>
+                <DialogDescription>
+                  작성한 내용이 실제 제품 페이지에서 어떻게 보일지 확인하세요.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                {/* 히어로 섹션 */}
+                {contentData.heroImage && (
+                  <div className="w-full h-64 bg-cover bg-center rounded-lg" 
+                       style={{ backgroundImage: `url(${contentData.heroImage})` }}>
+                    <div className="h-full bg-black bg-opacity-40 rounded-lg flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <h1 className="text-3xl font-bold mb-2">{contentData.title || '제품 제목'}</h1>
+                        <p className="text-lg">{contentData.subtitle || '제품 부제목'}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* 썸네일 */}
+                {contentData.thumbnailImage && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>제품 썸네일</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <img 
+                        src={contentData.thumbnailImage} 
+                        alt="제품 썸네일" 
+                        className="w-48 h-48 object-cover rounded-lg border"
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 제품 개요 */}
+                {contentData.overview && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>제품 개요</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="whitespace-pre-wrap">{contentData.overview}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 주요 기능 */}
+                {contentData.features.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>주요 기능</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {contentData.features.map((feature, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Shield className="w-4 h-4 text-primary" />
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 갤러리 */}
+                {contentData.gallery.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>제품 갤러리</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {contentData.gallery.map((image, index) => (
+                          <img
+                            key={index}
+                            src={image}
+                            alt={`갤러리 이미지 ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg border"
+                          />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 기술 사양 */}
+                {contentData.specifications && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>기술 사양</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="whitespace-pre-wrap">{contentData.specifications}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* FAQ */}
+                {contentData.faq.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>자주 묻는 질문</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {contentData.faq.map((item, index) => (
+                          <div key={index} className="border-b pb-4 last:border-b-0">
+                            <h4 className="font-medium mb-2">Q: {item.question}</h4>
+                            <p className="text-muted-foreground">A: {item.answer}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          
           <Button onClick={handleSave}>
             <Save className="w-4 h-4 mr-2" />
             저장
@@ -191,22 +340,38 @@ const ProductContentManagement = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="thumbnail">썸네일 이미지 URL</Label>
+                  <Label htmlFor="thumbnail">썸네일 이미지</Label>
                   <div className="flex gap-2">
                     <Input
                       id="thumbnail"
                       value={contentData.thumbnailImage}
                       onChange={(e) => handleInputChange('thumbnailImage', e.target.value)}
-                      placeholder="제품 목록에 표시될 썸네일 이미지 URL"
+                      placeholder="이미지 URL 또는 파일 업로드"
                     />
-                    <Button variant="outline" size="icon">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleImageUpload('thumbnailImage', file);
+                        }
+                      }}
+                      className="hidden"
+                      id="thumbnail-file"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => document.getElementById('thumbnail-file')?.click()}
+                    >
                       <Upload className="w-4 h-4" />
                     </Button>
                   </div>
                   {contentData.thumbnailImage && (
                     <div className="mt-2">
                       <img
-                        src={contentData.thumbnailImage || '/placeholder.svg'}
+                        src={contentData.thumbnailImage}
                         alt="썸네일 미리보기"
                         className="w-32 h-32 object-cover rounded-md border"
                       />
@@ -215,22 +380,38 @@ const ProductContentManagement = () => {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="hero">히어로 이미지 URL</Label>
+                  <Label htmlFor="hero">히어로 이미지</Label>
                   <div className="flex gap-2">
                     <Input
                       id="hero"
                       value={contentData.heroImage}
                       onChange={(e) => handleInputChange('heroImage', e.target.value)}
-                      placeholder="상세 페이지 상단에 표시될 히어로 이미지 URL"
+                      placeholder="상세 페이지 상단 히어로 이미지 URL 또는 파일 업로드"
                     />
-                    <Button variant="outline" size="icon">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleImageUpload('heroImage', file);
+                        }
+                      }}
+                      className="hidden"
+                      id="hero-file"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => document.getElementById('hero-file')?.click()}
+                    >
                       <Upload className="w-4 h-4" />
                     </Button>
                   </div>
                   {contentData.heroImage && (
                     <div className="mt-2">
                       <img
-                        src={contentData.heroImage || '/placeholder.svg'}
+                        src={contentData.heroImage}
                         alt="히어로 이미지 미리보기"
                         className="w-full max-w-md h-48 object-cover rounded-md border"
                       />
@@ -256,7 +437,40 @@ const ProductContentManagement = () => {
                         }
                       }}
                     />
-                    <Button variant="outline" size="icon">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleGalleryImageUpload(file);
+                        }
+                      }}
+                      className="hidden"
+                      id="gallery-file"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => document.getElementById('gallery-file')?.click()}
+                    >
+                      <Upload className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={() => {
+                        const input = document.querySelector('input[placeholder="갤러리에 추가할 이미지 URL"]') as HTMLInputElement;
+                        const url = input.value;
+                        if (url) {
+                          setContentData(prev => ({
+                            ...prev,
+                            gallery: [...prev.gallery, url]
+                          }));
+                          input.value = '';
+                        }
+                      }}
+                    >
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
@@ -265,7 +479,7 @@ const ProductContentManagement = () => {
                       {contentData.gallery.map((image, index) => (
                         <div key={index} className="relative">
                           <img
-                            src={image || '/placeholder.svg'}
+                            src={image}
                             alt={`갤러리 이미지 ${index + 1}`}
                             className="w-full h-24 object-cover rounded-md border"
                           />
