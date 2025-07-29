@@ -8,22 +8,106 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Upload, Save, Eye, Plus, Trash2, Image, Star, Shield } from 'lucide-react';
+import { Upload, Save, Eye, Plus, Trash2 } from 'lucide-react';
 
 const ProductContentManagement = () => {
   const [selectedProduct, setSelectedProduct] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [contentData, setContentData] = useState({
     title: '',
-    subtitle: '',
     thumbnailImage: '',
-    heroImage: '',
     gallery: [] as string[],
-    overview: '',
-    features: [] as string[],
-    specifications: '',
-    installation: '',
-    maintenance: '',
+    overview: '프리미엄 샤워 필터 SF-100은 최신 다층 필터링 기술을 적용하여 개발된 고성능 샤워용 정수 필터입니다. 일반 수돗물에 포함된 염소, 중금속, 세균 등의 유해물질을 효과적으로 제거하여 깨끗하고 건강한 샤워 환경을 제공합니다.\n\n특허받은 5단계 필터링 시스템을 통해 물의 순도를 높이면서도 필수 미네랄은 보존하여, 피부와 모발 건강에 도움을 주는 최적의 샤워 워터를 만들어냅니다.',
+    coretech: {
+      title: '핵심 기술',
+      content: [
+        {
+          title: '5단계 필터링 시스템',
+          description: 'PP 필터, 활성탄 필터, KDF 필터, 세라믹볼, 비타민C 필터가 순차적으로 작동하여 최대 99.9%의 염소 제거 효과를 달성합니다.'
+        },
+        {
+          title: '중금속 차단 기술',
+          description: '특수 KDF 필터를 통해 납, 수은, 카드뮴 등의 중금속을 효과적으로 제거하여 안전한 샤워 환경을 조성합니다.'
+        },
+        {
+          title: '미네랄 보존 기술',
+          description: '유해물질은 제거하면서도 칼슘, 마그네슘 등 피부에 유익한 미네랄은 그대로 보존하는 선택적 필터링을 구현했습니다.'
+        },
+        {
+          title: '비타민C 인퓨전',
+          description: '천연 비타민C가 용해되어 피부에 영양을 공급하고 염소로 인한 자극과 건조를 완화시켜줍니다.'
+        }
+      ]
+    },
+    keyfeatures: {
+      title: '주요 특징 및 효과',
+      content: [
+        {
+          title: '염소 제거율 99.9%',
+          description: '염소 냄새와 자극을 완전히 제거하여 쾌적한 샤워 환경을 제공합니다.'
+        },
+        {
+          title: '중금속 차단 기능',
+          description: '납, 수은, 카드뮴 등 유해 중금속을 효과적으로 차단합니다.'
+        },
+        {
+          title: '6개월 장기 사용',
+          description: '한 번 설치로 최대 6개월까지 지속적인 필터링 효과를 유지합니다.'
+        },
+        {
+          title: '간편한 설치 및 교체',
+          description: '공구 없이 누구나 쉽게 설치하고 교체할 수 있도록 설계되었습니다.'
+        },
+        {
+          title: 'NSF 인증 획득',
+          description: '국제적으로 인정받은 NSF 인증을 획득하여 안전성이 검증되었습니다.'
+        },
+        {
+          title: '환경친화적 소재',
+          description: '재활용 가능한 친환경 소재를 사용하여 환경 보호에 기여합니다.'
+        }
+      ]
+    },
+    specs: {
+      title: '제품 사양',
+      content: {
+        '크기': '15cm x 8cm x 8cm',
+        '무게': '350g',
+        '필터 수명': '6개월 (약 15,000L)',
+        '적용 수압': '1~6kgf/cm²',
+        '사용 온도': '5~40°C',
+        '소재': 'ABS, 스테인리스 스틸'
+      } as Record<string, string>
+    },
+    installation: {
+      title: '설치 및 사용법',
+      content: [
+        {
+          step: '1',
+          title: '기존 샤워헤드 분리',
+          description: '기존 샤워헤드를 시계 반대 방향으로 돌려 분리합니다.'
+        },
+        {
+          step: '2',
+          title: '필터 연결',
+          description: '샤워 필터를 샤워 호스에 시계 방향으로 돌려 연결합니다.'
+        },
+        {
+          step: '3',
+          title: '샤워헤드 재연결',
+          description: '샤워헤드를 필터에 연결하고 물이 새지 않는지 확인합니다.'
+        }
+      ]
+    },
+    maintenance: {
+      title: '관리 및 유지보수',
+      content: [
+        '필터 교체 주기: 6개월 또는 약 15,000L 사용 시',
+        '외관 청소: 중성세제로 월 1회 청소 권장',
+        '보관 방법: 직사광선을 피하고 서늘한 곳에 보관',
+        '교체 알림: 물의 맛이나 냄새 변화 시 즉시 교체'
+      ]
+    },
     faq: [] as { question: string; answer: string }[],
     warranty: '',
     certifications: ''
@@ -36,7 +120,6 @@ const ProductContentManagement = () => {
     { id: 'if-1000', name: '산업용 대용량 필터 IF-1000' }
   ];
 
-  const [newFeature, setNewFeature] = useState('');
   const [newFaq, setNewFaq] = useState({ question: '', answer: '' });
 
   const handleInputChange = (field: string, value: string) => {
@@ -46,20 +129,13 @@ const ProductContentManagement = () => {
     }));
   };
 
-  const addFeature = () => {
-    if (newFeature.trim()) {
-      setContentData(prev => ({
-        ...prev,
-        features: [...prev.features, newFeature.trim()]
-      }));
-      setNewFeature('');
-    }
-  };
-
-  const removeFeature = (index: number) => {
+  const handleSectionChange = (section: string, field: string, value: string) => {
     setContentData(prev => ({
       ...prev,
-      features: prev.features.filter((_, i) => i !== index)
+      [section]: {
+        ...(prev[section as keyof typeof prev] as any),
+        [field]: value
+      }
     }));
   };
 
@@ -134,19 +210,6 @@ const ProductContentManagement = () => {
               </DialogHeader>
               
               <div className="space-y-6">
-                {/* 히어로 섹션 */}
-                {contentData.heroImage && (
-                  <div className="w-full h-64 bg-cover bg-center rounded-lg" 
-                       style={{ backgroundImage: `url(${contentData.heroImage})` }}>
-                    <div className="h-full bg-black bg-opacity-40 rounded-lg flex items-center justify-center">
-                      <div className="text-center text-white">
-                        <h1 className="text-3xl font-bold mb-2">{contentData.title || '제품 제목'}</h1>
-                        <p className="text-lg">{contentData.subtitle || '제품 부제목'}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
                 {/* 썸네일 */}
                 {contentData.thumbnailImage && (
                   <Card>
@@ -175,20 +238,104 @@ const ProductContentManagement = () => {
                   </Card>
                 )}
 
-                {/* 주요 기능 */}
-                {contentData.features.length > 0 && (
+                {/* 핵심 기술 */}
+                {contentData.coretech.content.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>주요 기능</CardTitle>
+                      <CardTitle>{contentData.coretech.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {contentData.features.map((feature, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <Shield className="w-4 h-4 text-primary" />
-                            <span>{feature}</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {contentData.coretech.content.map((tech, index) => (
+                          <div key={index} className="bg-secondary/30 rounded-lg p-6">
+                            <h4 className="font-semibold text-lg mb-3 text-primary">{tech.title}</h4>
+                            <p className="text-muted-foreground">{tech.description}</p>
                           </div>
                         ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 주요 특징 및 효과 */}
+                {contentData.keyfeatures.content.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{contentData.keyfeatures.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {contentData.keyfeatures.content.map((feature, index) => (
+                          <div key={index} className="flex items-start gap-4 p-4 bg-secondary/20 rounded-lg">
+                            <div className="w-3 h-3 bg-primary rounded-full mt-2 flex-shrink-0" />
+                            <div>
+                              <span className="font-medium text-lg">{feature.title}</span>
+                              <p className="text-sm text-muted-foreground mt-1">{feature.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 제품 사양 */}
+                {Object.keys(contentData.specs.content).length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{contentData.specs.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {Object.entries(contentData.specs.content).map(([key, value]) => (
+                          <div key={key} className="flex justify-between items-center border-b border-secondary pb-3">
+                            <span className="font-medium text-lg">{key}</span>
+                            <span className="text-muted-foreground text-lg">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 설치 및 사용법 */}
+                {contentData.installation.content.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{contentData.installation.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {contentData.installation.content.map((step, index) => (
+                          <div key={index} className="text-center">
+                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <span className="text-2xl font-bold text-primary">{step.step}</span>
+                            </div>
+                            <h4 className="font-semibold mb-2">{step.title}</h4>
+                            <p className="text-sm text-muted-foreground">{step.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 관리 및 유지보수 */}
+                {contentData.maintenance.content.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{contentData.maintenance.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-secondary/20 rounded-lg p-6">
+                        <ul className="space-y-3">
+                          {contentData.maintenance.content.map((item, index) => (
+                            <li key={index} className="flex items-start gap-3">
+                              <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </CardContent>
                   </Card>
@@ -211,18 +358,6 @@ const ProductContentManagement = () => {
                           />
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* 기술 사양 */}
-                {contentData.specifications && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>기술 사양</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="whitespace-pre-wrap">{contentData.specifications}</p>
                     </CardContent>
                   </Card>
                 )}
@@ -288,11 +423,10 @@ const ProductContentManagement = () => {
 
       {selectedProduct && (
         <Tabs defaultValue="basic" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic">기본 정보</TabsTrigger>
             <TabsTrigger value="images">이미지 관리</TabsTrigger>
             <TabsTrigger value="content">상세 컨텐츠</TabsTrigger>
-            <TabsTrigger value="extras">추가 정보</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic">
@@ -308,15 +442,6 @@ const ProductContentManagement = () => {
                     value={contentData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder="제품의 메인 제목을 입력하세요"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="subtitle">부제목</Label>
-                  <Input
-                    id="subtitle"
-                    value={contentData.subtitle}
-                    onChange={(e) => handleInputChange('subtitle', e.target.value)}
-                    placeholder="제품의 부제목을 입력하세요"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -374,46 +499,6 @@ const ProductContentManagement = () => {
                         src={contentData.thumbnailImage}
                         alt="썸네일 미리보기"
                         className="w-32 h-32 object-cover rounded-md border"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="hero">히어로 이미지</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="hero"
-                      value={contentData.heroImage}
-                      onChange={(e) => handleInputChange('heroImage', e.target.value)}
-                      placeholder="상세 페이지 상단 히어로 이미지 URL 또는 파일 업로드"
-                    />
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleImageUpload('heroImage', file);
-                        }
-                      }}
-                      className="hidden"
-                      id="hero-file"
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => document.getElementById('hero-file')?.click()}
-                    >
-                      <Upload className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  {contentData.heroImage && (
-                    <div className="mt-2">
-                      <img
-                        src={contentData.heroImage}
-                        alt="히어로 이미지 미리보기"
-                        className="w-full max-w-md h-48 object-cover rounded-md border"
                       />
                     </div>
                   )}
@@ -507,85 +592,254 @@ const ProductContentManagement = () => {
 
           <TabsContent value="content">
             <div className="space-y-6">
+              {/* 핵심 기술 */}
               <Card>
                 <CardHeader>
-                  <CardTitle>주요 기능</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex gap-2">
+                  <CardTitle>
                     <Input
-                      value={newFeature}
-                      onChange={(e) => setNewFeature(e.target.value)}
-                      placeholder="새로운 기능을 입력하세요"
-                      onKeyPress={(e) => e.key === 'Enter' && addFeature()}
+                      value={contentData.coretech.title}
+                      onChange={(e) => handleSectionChange('coretech', 'title', e.target.value)}
+                      className="text-lg font-semibold border-none p-0 h-auto"
                     />
-                    <Button onClick={addFeature}>
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    {contentData.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 border rounded">
-                        <span className="flex-1">{feature}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeFeature(index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {contentData.coretech.content.map((tech, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
+                        <div className="space-y-2">
+                          <Label>제목</Label>
+                          <Input
+                            value={tech.title}
+                            onChange={(e) => {
+                              const newContent = [...contentData.coretech.content];
+                              newContent[index] = { ...newContent[index], title: e.target.value };
+                              setContentData(prev => ({
+                                ...prev,
+                                coretech: { ...prev.coretech, content: newContent }
+                              }));
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>설명</Label>
+                          <Textarea
+                            value={tech.description}
+                            onChange={(e) => {
+                              const newContent = [...contentData.coretech.content];
+                              newContent[index] = { ...newContent[index], description: e.target.value };
+                              setContentData(prev => ({
+                                ...prev,
+                                coretech: { ...prev.coretech, content: newContent }
+                              }));
+                            }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
 
+              {/* 주요 특징 및 효과 */}
               <Card>
                 <CardHeader>
-                  <CardTitle>기술 사양</CardTitle>
+                  <CardTitle>
+                    <Input
+                      value={contentData.keyfeatures.title}
+                      onChange={(e) => handleSectionChange('keyfeatures', 'title', e.target.value)}
+                      className="text-lg font-semibold border-none p-0 h-auto"
+                    />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Textarea
-                    value={contentData.specifications}
-                    onChange={(e) => handleInputChange('specifications', e.target.value)}
-                    placeholder="제품의 상세한 기술 사양을 작성하세요..."
-                    className="min-h-[200px]"
-                  />
+                  <div className="space-y-4">
+                    {contentData.keyfeatures.content.map((feature, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
+                        <div className="space-y-2">
+                          <Label>제목</Label>
+                          <Input
+                            value={feature.title}
+                            onChange={(e) => {
+                              const newContent = [...contentData.keyfeatures.content];
+                              newContent[index] = { ...newContent[index], title: e.target.value };
+                              setContentData(prev => ({
+                                ...prev,
+                                keyfeatures: { ...prev.keyfeatures, content: newContent }
+                              }));
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>설명</Label>
+                          <Textarea
+                            value={feature.description}
+                            onChange={(e) => {
+                              const newContent = [...contentData.keyfeatures.content];
+                              newContent[index] = { ...newContent[index], description: e.target.value };
+                              setContentData(prev => ({
+                                ...prev,
+                                keyfeatures: { ...prev.keyfeatures, content: newContent }
+                              }));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
+              {/* 제품 사양 */}
               <Card>
                 <CardHeader>
-                  <CardTitle>설치 방법</CardTitle>
+                  <CardTitle>
+                    <Input
+                      value={contentData.specs.title}
+                      onChange={(e) => handleSectionChange('specs', 'title', e.target.value)}
+                      className="text-lg font-semibold border-none p-0 h-auto"
+                    />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Textarea
-                    value={contentData.installation}
-                    onChange={(e) => handleInputChange('installation', e.target.value)}
-                    placeholder="제품 설치 방법을 단계별로 작성하세요..."
-                    className="min-h-[200px]"
-                  />
+                  <div className="space-y-4">
+                    {Object.entries(contentData.specs.content).map(([key, value], index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
+                        <div className="space-y-2">
+                          <Label>항목</Label>
+                          <Input
+                            value={key}
+                            onChange={(e) => {
+                               const entries = Object.entries(contentData.specs.content);
+                               const newContent = Object.fromEntries(
+                                 entries.map(([k, v], i) => i === index ? [e.target.value, v] : [k, v])
+                               ) as Record<string, string>;
+                               setContentData(prev => ({
+                                 ...prev,
+                                 specs: { ...prev.specs, content: newContent }
+                               }));
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>값</Label>
+                          <Input
+                            value={value}
+                            onChange={(e) => {
+                               const entries = Object.entries(contentData.specs.content);
+                               const newContent = Object.fromEntries(
+                                 entries.map(([k, v], i) => i === index ? [k, e.target.value] : [k, v])
+                               ) as Record<string, string>;
+                               setContentData(prev => ({
+                                 ...prev,
+                                 specs: { ...prev.specs, content: newContent }
+                               }));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
+              {/* 설치 및 사용법 */}
               <Card>
                 <CardHeader>
-                  <CardTitle>유지보수</CardTitle>
+                  <CardTitle>
+                    <Input
+                      value={contentData.installation.title}
+                      onChange={(e) => handleSectionChange('installation', 'title', e.target.value)}
+                      className="text-lg font-semibold border-none p-0 h-auto"
+                    />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Textarea
-                    value={contentData.maintenance}
-                    onChange={(e) => handleInputChange('maintenance', e.target.value)}
-                    placeholder="제품 유지보수 방법을 작성하세요..."
-                    className="min-h-[200px]"
-                  />
+                  <div className="space-y-4">
+                    {contentData.installation.content.map((step, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg">
+                        <div className="space-y-2">
+                          <Label>단계</Label>
+                          <Input
+                            value={step.step}
+                            onChange={(e) => {
+                              const newContent = [...contentData.installation.content];
+                              newContent[index] = { ...newContent[index], step: e.target.value };
+                              setContentData(prev => ({
+                                ...prev,
+                                installation: { ...prev.installation, content: newContent }
+                              }));
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>제목</Label>
+                          <Input
+                            value={step.title}
+                            onChange={(e) => {
+                              const newContent = [...contentData.installation.content];
+                              newContent[index] = { ...newContent[index], title: e.target.value };
+                              setContentData(prev => ({
+                                ...prev,
+                                installation: { ...prev.installation, content: newContent }
+                              }));
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>설명</Label>
+                          <Textarea
+                            value={step.description}
+                            onChange={(e) => {
+                              const newContent = [...contentData.installation.content];
+                              newContent[index] = { ...newContent[index], description: e.target.value };
+                              setContentData(prev => ({
+                                ...prev,
+                                installation: { ...prev.installation, content: newContent }
+                              }));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
 
-          <TabsContent value="extras">
-            <div className="space-y-6">
+              {/* 관리 및 유지보수 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <Input
+                      value={contentData.maintenance.title}
+                      onChange={(e) => handleSectionChange('maintenance', 'title', e.target.value)}
+                      className="text-lg font-semibold border-none p-0 h-auto"
+                    />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {contentData.maintenance.content.map((item, index) => (
+                      <div key={index} className="space-y-2">
+                        <Label>항목 {index + 1}</Label>
+                        <Input
+                          value={item}
+                          onChange={(e) => {
+                            const newContent = [...contentData.maintenance.content];
+                            newContent[index] = e.target.value;
+                            setContentData(prev => ({
+                              ...prev,
+                              maintenance: { ...prev.maintenance, content: newContent }
+                            }));
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* FAQ */}
               <Card>
                 <CardHeader>
                   <CardTitle>자주 묻는 질문</CardTitle>
@@ -636,34 +890,6 @@ const ProductContentManagement = () => {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>보증 정보</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    value={contentData.warranty}
-                    onChange={(e) => handleInputChange('warranty', e.target.value)}
-                    placeholder="제품 보증 정보를 작성하세요..."
-                    className="min-h-[120px]"
-                  />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>인증 정보</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    value={contentData.certifications}
-                    onChange={(e) => handleInputChange('certifications', e.target.value)}
-                    placeholder="제품 인증 정보를 작성하세요..."
-                    className="min-h-[120px]"
-                  />
                 </CardContent>
               </Card>
             </div>
