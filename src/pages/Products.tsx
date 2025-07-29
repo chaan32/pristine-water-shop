@@ -161,16 +161,6 @@ const Products = () => {
               ))}
             </ul>
 
-            <div className="flex items-center gap-2 mb-4">
-              {product.originalPrice && (
-                <span className="text-sm text-muted-foreground line-through">
-                  {product.originalPrice.toLocaleString()}원
-                </span>
-              )}
-              <span className="text-2xl font-bold text-primary">
-                {product.price.toLocaleString()}원
-              </span>
-            </div>
 
             <Link to={`/product/${product.id}`}>
               <Button className="w-full water-drop">
@@ -260,16 +250,6 @@ const Products = () => {
                         ))}
                       </ul>
 
-                      <div className="flex items-center gap-2 mb-4">
-                        {product.originalPrice && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            {product.originalPrice.toLocaleString()}원
-                          </span>
-                        )}
-                        <span className="text-2xl font-bold text-primary">
-                          {product.price.toLocaleString()}원
-                        </span>
-                      </div>
 
                       <Link to={`/product/${product.id}`}>
                         <Button className="w-full water-drop">
