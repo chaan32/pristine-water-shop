@@ -141,7 +141,6 @@ const Register = () => {
     corporateForm.businessNumber &&
     corporateForm.address &&
     corporateForm.phone &&
-    corporateForm.isPhoneVerified &&
     // 프랜차이즈 지점 회원인 경우 추가 검증
     (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName));
 
@@ -625,38 +624,19 @@ const Register = () => {
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, email: e.target.value }))}
                       disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                     />
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Input 
-                          placeholder="회사 전화번호"
-                          value={corporateForm.phone}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone: e.target.value }))}
-                          className="flex-1"
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                        />
-                        <Button 
-                          type="button"
-                          variant="outline"
-                          onClick={() => handlePhoneVerification('corporate')}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable || corporateForm.isPhoneVerified}
-                        >
-                          {corporateForm.isPhoneVerified ? '인증완료' : '인증'}
-                        </Button>
-                      </div>
-                      {corporateForm.isPhoneVerified && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Check className="w-4 h-4 text-green-600" />
-                          <span className="text-green-600">휴대폰 인증이 완료되었습니다.</span>
-                        </div>
-                      )}
-                    </div>
+                    <Input 
+                      placeholder="회사 전화번호"
+                      value={corporateForm.phone}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                    />
                   </div>
                   
                   {/* 주소 입력 */}
                   <div className="space-y-4">
                     <div className="flex gap-2">
                       <Input 
-                        placeholder="회사 주소" 
+                        placeholder="주소" 
                         value={corporateForm.address}
                         readOnly
                         className="flex-1"
