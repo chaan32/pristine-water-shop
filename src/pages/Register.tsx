@@ -213,7 +213,6 @@ const Register = () => {
     corporateForm.privacyAccepted && 
     corporateForm.corporateType && 
     corporateForm.businessType && 
-    corporateForm.businessRegistration && 
     corporateForm.isIdChecked && 
     corporateForm.isIdAvailable &&
     corporateForm.email &&
@@ -1083,7 +1082,7 @@ const Register = () => {
                   
                   {/* 사업자등록증 업로드 */}
                   <div className="space-y-2">
-                    <Label htmlFor="businessRegistration">사업자등록증 업로드 (필수)</Label>
+                    <Label htmlFor="businessRegistration">사업자등록증 업로드 (선택)</Label>
                     <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors">
                       <input
                         id="businessRegistration"
