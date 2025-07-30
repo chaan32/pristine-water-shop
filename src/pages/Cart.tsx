@@ -4,47 +4,199 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Minus, Plus, X, ShoppingCart } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import showerFilter from '@/assets/shower-filter.jpg';
 import kitchenFilter from '@/assets/kitchen-filter.jpg';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: '프리미엄 샤워 필터 SF-100',
-      price: 89000,
-      quantity: 2,
-      image: showerFilter
-    },
-    {
-      id: 2,
-      name: '주방용 직수 정수기 KF-200',
-      price: 195000,
-      quantity: 1,
-      image: kitchenFilter
-    }
-  ]);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const updateQuantity = (id: number, change: number) => {
-    setCartItems(items => 
-      items.map(item => 
-        item.id === id 
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
-    );
+  /*
+  ==================== API 요청 명세 (장바구니 조회) ====================
+  Method: GET
+  URL: http://localhost:8080/api/cart
+  Headers: {
+    'Authorization': 'Bearer {accessToken}',
+    'Content-Type': 'application/json'
+  }
+  
+  ==================== 예상 응답 명세 ====================
+  성공 시 (200 OK):
+  {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "id": number,
+          "productId": number,
+          "name": string,
+          "price": number,
+          "quantity": number,
+          "image": string,
+          "options": object,      // 제품 옵션
+          "addedAt": string      // 추가 시간
+        }
+      ],
+      "totalItems": number,
+      "lastUpdated": string
+    }
+  }
+  */
+  
+  useEffect(() => {
+    fetchCartItems();
+  }, []);
+
+  const fetchCartItems = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        // 비로그인 상태에서는 localStorage에서 장바구니 정보 조회
+        const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        setCartItems(localCart);
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('http://localhost:8080/api/cart', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCartItems(data.data.items);
+      } else {
+        throw new Error('장바구니 조회 실패');
+      }
+    } catch (error) {
+      console.error('Cart fetch error:', error);
+      // 에러 시 로컬 장바구니 사용
+      const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCartItems(localCart);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeItem = (id: number) => {
-    setCartItems(items => items.filter(item => item.id !== id));
+  /*
+  ==================== API 요청 명세 (장바구니 수량 변경) ====================
+  Method: PUT
+  URL: http://localhost:8080/api/cart/items/{itemId}
+  Headers: {
+    'Authorization': 'Bearer {accessToken}',
+    'Content-Type': 'application/json'
+  }
+  
+  Request Body:
+  {
+    "quantity": number
+  }
+  */
+  const updateQuantity = async (id: number, change: number) => {
+    const currentItem = cartItems.find((item: any) => item.id === id);
+    if (!currentItem) return;
+
+    const newQuantity = Math.max(1, currentItem.quantity + change);
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        const response = await fetch(`http://localhost:8080/api/cart/items/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ quantity: newQuantity })
+        });
+
+        if (!response.ok) {
+          throw new Error('수량 변경 실패');
+        }
+      }
+
+      // 로컬 상태 업데이트
+      setCartItems((items: any) => 
+        items.map((item: any) => 
+          item.id === id 
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+
+      // 로컬 스토리지 업데이트 (비로그인 사용자용)
+      if (!token) {
+        const updatedItems = cartItems.map((item: any) => 
+          item.id === id ? { ...item, quantity: newQuantity } : item
+        );
+        localStorage.setItem('cart', JSON.stringify(updatedItems));
+      }
+    } catch (error) {
+      console.error('Update quantity error:', error);
+      alert('수량 변경 중 오류가 발생했습니다.');
+    }
+  };
+
+  /*
+  ==================== API 요청 명세 (장바구니 상품 삭제) ====================
+  Method: DELETE
+  URL: http://localhost:8080/api/cart/items/{itemId}
+  Headers: {
+    'Authorization': 'Bearer {accessToken}'
+  }
+  */
+  const removeItem = async (id: number) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        const response = await fetch(`http://localhost:8080/api/cart/items/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('상품 삭제 실패');
+        }
+      }
+
+      // 로컬 상태 업데이트
+      setCartItems((items: any) => items.filter((item: any) => item.id !== id));
+
+      // 로컬 스토리지 업데이트 (비로그인 사용자용)
+      if (!token) {
+        const updatedItems = cartItems.filter((item: any) => item.id !== id);
+        localStorage.setItem('cart', JSON.stringify(updatedItems));
+      }
+    } catch (error) {
+      console.error('Remove item error:', error);
+      alert('상품 삭제 중 오류가 발생했습니다.');
+    }
   };
 
   const shippingFee = 3000;
-  const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalPrice = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
   const finalPrice = totalPrice + (cartItems.length > 0 ? shippingFee : 0);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center">로딩 중...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

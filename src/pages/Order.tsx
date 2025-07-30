@@ -108,23 +108,147 @@ const Order = () => {
     }
   };
 
-  const handleOrder = () => {
+  const handleOrder = async () => {
     if (!orderInfo.name || !orderInfo.phone || !orderInfo.address) {
       alert('필수 정보를 모두 입력해주세요.');
       return;
     }
 
-    const orderSummary = {
-      items,
-      subtotal,
-      shippingFee,
-      couponDiscount,
-      pointUsage,
-      finalTotal,
-      deliveryInfo: orderInfo
+    /*
+    ==================== API 요청 명세 (주문 생성) ====================
+    Method: POST
+    URL: http://localhost:8080/api/orders
+    Headers: {
+      'Authorization': 'Bearer {accessToken}',
+      'Content-Type': 'application/json'
+    }
+    
+    Request Body:
+    {
+      "items": [
+        {
+          "productId": number,
+          "quantity": number,
+          "price": number,
+          "options": object
+        }
+      ],
+      "deliveryInfo": {
+        "name": string,
+        "phone": string,
+        "email": string,
+        "address": string,
+        "detailAddress": string,
+        "zipCode": string,
+        "memo": string
+      },
+      "payment": {
+        "method": "card" | "bank" | "mobile",
+        "amount": number,
+        "couponId": string,      // 선택사항
+        "pointUsage": number     // 사용 포인트
+      },
+      "shipping": {
+        "fee": number,
+        "method": "standard" | "express"
+      }
+    }
+    
+    ==================== 예상 응답 명세 ====================
+    성공 시 (201 Created):
+    {
+      "success": true,
+      "message": "주문이 완료되었습니다.",
+      "data": {
+        "orderId": string,
+        "orderNumber": string,
+        "status": "pending_payment" | "paid" | "processing",
+        "totalAmount": number,
+        "estimatedDelivery": string,
+        "trackingNumber": string,
+        "createdAt": string
+      }
+    }
+    
+    실패 시:
+    - 400 Bad Request: 잘못된 주문 정보
+    - 402 Payment Required: 결제 정보 오류
+    - 409 Conflict: 재고 부족
+    - 500 Internal Server Error: 서버 내부 오류
+    */
+
+    const orderData = {
+      items: items.map((item: any) => ({
+        productId: item.productId || item.id,
+        quantity: item.quantity,
+        price: item.price,
+        options: item.options || {}
+      })),
+      deliveryInfo: orderInfo,
+      payment: {
+        method: 'card', // 실제로는 선택된 결제 방법
+        amount: finalTotal,
+        couponId: selectedCoupon,
+        pointUsage: pointUsage
+      },
+      shipping: {
+        fee: shippingFee,
+        method: 'standard'
+      }
     };
 
-    alert(`주문이 완료되었습니다!\n\n주문 금액: ${finalTotal.toLocaleString()}원\n배송지: ${orderInfo.address}\n\n주문 내역은 마이페이지에서 확인하실 수 있습니다.`);
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:8080/api/orders', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`주문이 완료되었습니다!\n\n주문번호: ${data.data.orderNumber}\n주문 금액: ${finalTotal.toLocaleString()}원\n배송지: ${orderInfo.address}\n\n주문 내역은 마이페이지에서 확인하실 수 있습니다.`);
+        
+        // 장바구니에서 주문한 경우 장바구니 비우기
+        if (!isDirectPurchase) {
+          // 장바구니 비우기 API 호출
+          try {
+            await fetch('http://localhost:8080/api/cart', {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+          } catch (error) {
+            console.error('Cart clear error:', error);
+          }
+        }
+        
+        // 주문 완료 페이지로 이동 또는 마이페이지로 리다이렉트
+        // navigate('/mypage');
+      } else {
+        switch (response.status) {
+          case 400:
+            alert('주문 정보를 확인해주세요.');
+            break;
+          case 402:
+            alert('결제 정보에 오류가 있습니다.');
+            break;
+          case 409:
+            alert('선택하신 상품의 재고가 부족합니다.');
+            break;
+          default:
+            alert(data.message || '주문 처리 중 오류가 발생했습니다.');
+        }
+      }
+    } catch (error) {
+      console.error('Order error:', error);
+      alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   };
 
   return (

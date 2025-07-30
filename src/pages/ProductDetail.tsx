@@ -8,91 +8,346 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Star, Minus, Plus, ShoppingCart, Share2, Truck, Shield, RotateCcw, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [qnas, setQnas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock product data
-  const product = {
-    id: 1,
-    name: '프리미엄 샤워 필터 SF-100',
-    price: 89000,
-    originalPrice: 120000,
-    images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
-    rating: 4.8,
-    reviews: 234,
-    badge: 'BEST',
-    status: 'available',
-    shippingFee: 3000,
-    description: '프리미엄 샤워 필터 SF-100은 첨단 필터링 기술을 통해 염소와 중금속을 효과적으로 제거하여 건강하고 깨끗한 샤워를 제공합니다.',
-    features: [
-      '염소 제거율 99.9%',
-      '중금속 차단 기능',
-      '6개월 장기 사용',
-      '간편한 설치 및 교체',
-      'NSF 인증 획득',
-      '환경친화적 소재'
-    ],
-    specifications: {
-      '크기': '15cm x 8cm x 8cm',
-      '무게': '350g',
-      '필터 수명': '6개월 (약 15,000L)',
-      '적용 수압': '1~6kgf/cm²',
-      '사용 온도': '5~40°C',
-      '소재': 'ABS, 스테인리스 스틸'
+  /*
+  ==================== API 요청 명세 (제품 상세 조회) ====================
+  Method: GET
+  URL: http://localhost:8080/api/products/{productId}
+  Headers: {
+    'Content-Type': 'application/json'
+  }
+  
+  ==================== 예상 응답 명세 ====================
+  성공 시 (200 OK):
+  {
+    "success": true,
+    "data": {
+      "id": number,
+      "name": string,
+      "price": number,
+      "originalPrice": number,
+      "images": string[],
+      "rating": number,
+      "reviewCount": number,
+      "badge": string,
+      "status": "available" | "out_of_stock" | "discontinued",
+      "shippingFee": number,
+      "description": string,
+      "features": string[],
+      "specifications": object,
+      "category": string,
+      "createdAt": string,
+      "updatedAt": string
+    }
+  }
+  */
+
+  /*
+  ==================== API 요청 명세 (리뷰 조회) ====================
+  Method: GET
+  URL: http://localhost:8080/api/products/{productId}/reviews?page={page}&limit={limit}
+  
+  ==================== 예상 응답 명세 ====================
+  {
+    "success": true,
+    "data": {
+      "reviews": [
+        {
+          "id": number,
+          "userId": string,
+          "userName": string,
+          "rating": number,
+          "content": string,
+          "images": string[],
+          "createdAt": string,
+          "helpful": number
+        }
+      ],
+      "pagination": {
+        "currentPage": number,
+        "totalPages": number,
+        "totalItems": number
+      }
+    }
+  }
+  */
+
+  /*
+  ==================== API 요청 명세 (Q&A 조회) ====================
+  Method: GET
+  URL: http://localhost:8080/api/products/{productId}/qnas?page={page}&limit={limit}
+  
+  ==================== 예상 응답 명세 ====================
+  {
+    "success": true,
+    "data": {
+      "qnas": [
+        {
+          "id": number,
+          "userId": string,
+          "userName": string,
+          "question": string,
+          "answer": string,
+          "answeredAt": string,
+          "createdAt": string
+        }
+      ],
+      "pagination": {
+        "currentPage": number,
+        "totalPages": number,
+        "totalItems": number
+      }
+    }
+  }
+  */
+
+  useEffect(() => {
+    if (id) {
+      fetchProductDetail();
+      fetchReviews();
+      fetchQnAs();
+    }
+  }, [id]);
+
+  const fetchProductDetail = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/products/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProduct(data.data);
+      } else {
+        throw new Error('제품 정보 조회 실패');
+      }
+    } catch (error) {
+      console.error('Product fetch error:', error);
+      // 임시 mock 데이터 사용
+      setProduct({
+        id: 1,
+        name: '프리미엄 샤워 필터 SF-100',
+        price: 89000,
+        originalPrice: 120000,
+        images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
+        rating: 4.8,
+        reviews: 234,
+        badge: 'BEST',
+        status: 'available',
+        shippingFee: 3000,
+        description: '프리미엄 샤워 필터 SF-100은 첨단 필터링 기술을 통해 염소와 중금속을 효과적으로 제거하여 건강하고 깨끗한 샤워를 제공합니다.',
+        features: [
+          '염소 제거율 99.9%',
+          '중금속 차단 기능',
+          '6개월 장기 사용',
+          '간편한 설치 및 교체',
+          'NSF 인증 획득',
+          '환경친화적 소재'
+        ],
+        specifications: {
+          '크기': '15cm x 8cm x 8cm',
+          '무게': '350g',
+          '필터 수명': '6개월 (약 15,000L)',
+          '적용 수압': '1~6kgf/cm²',
+          '사용 온도': '5~40°C',
+          '소재': 'ABS, 스테인리스 스틸'
+        }
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const reviews = [
-    {
-      id: 1,
-      user: '김**',
-      rating: 5,
-      date: '2024.01.15',
-      content: '설치가 정말 간단하고 물이 부드러워진 게 바로 느껴져요. 피부가 많이 좋아졌습니다.'
-    },
-    {
-      id: 2,
-      user: '이**',
-      rating: 4,
-      date: '2024.01.10',
-      content: '가격 대비 만족스럽습니다. 염소 냄새가 확실히 줄어들었어요.'
-    },
-    {
-      id: 3,
-      user: '박**',
-      rating: 5,
-      date: '2024.01.08',
-      content: '6개월째 사용 중인데 아직도 효과가 좋습니다. 추천해요!'
-    }
-  ];
+  const fetchReviews = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/products/${id}/reviews?page=1&limit=10`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-  const qnas = [
-    {
-      id: 1,
-      user: '홍**',
-      question: '설치 시 별도 공구가 필요한가요?',
-      answer: '간단한 설치로 별도 공구 없이 손으로만 설치 가능합니다.',
-      date: '2024.01.12'
-    },
-    {
-      id: 2,
-      user: '김**',
-      question: '필터 교체 주기는 언제인가요?',
-      answer: '일반적으로 6개월 또는 15,000L 사용 시 교체를 권장합니다.',
-      date: '2024.01.05'
+      if (response.ok) {
+        const data = await response.json();
+        setReviews(data.data.reviews);
+      } else {
+        throw new Error('리뷰 조회 실패');
+      }
+    } catch (error) {
+      console.error('Reviews fetch error:', error);
+      // 임시 mock 데이터 사용
+      setReviews([
+        {
+          id: 1,
+          user: '김**',
+          rating: 5,
+          date: '2024.01.15',
+          content: '설치가 정말 간단하고 물이 부드러워진 게 바로 느껴져요. 피부가 많이 좋아졌습니다.'
+        },
+        {
+          id: 2,
+          user: '이**',
+          rating: 4,
+          date: '2024.01.10',
+          content: '가격 대비 만족스럽습니다. 염소 냄새가 확실히 줄어들었어요.'
+        },
+        {
+          id: 3,
+          user: '박**',
+          rating: 5,
+          date: '2024.01.08',
+          content: '6개월째 사용 중인데 아직도 효과가 좋습니다. 추천해요!'
+        }
+      ]);
     }
-  ];
+  };
+
+  const fetchQnAs = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/products/${id}/qnas?page=1&limit=10`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setQnas(data.data.qnas);
+      } else {
+        throw new Error('Q&A 조회 실패');
+      }
+    } catch (error) {
+      console.error('QnAs fetch error:', error);
+      // 임시 mock 데이터 사용
+      setQnas([
+        {
+          id: 1,
+          user: '홍**',
+          question: '설치 시 별도 공구가 필요한가요?',
+          answer: '간단한 설치로 별도 공구 없이 손으로만 설치 가능합니다.',
+          date: '2024.01.12'
+        },
+        {
+          id: 2,
+          user: '김**',
+          question: '필터 교체 주기는 언제인가요?',
+          answer: '일반적으로 6개월 또는 15,000L 사용 시 교체를 권장합니다.',
+          date: '2024.01.05'
+        }
+      ]);
+    }
+  };
+
+  /*
+  ==================== API 요청 명세 (장바구니 추가) ====================
+  Method: POST
+  URL: http://localhost:8080/api/cart/items
+  Headers: {
+    'Authorization': 'Bearer {accessToken}',
+    'Content-Type': 'application/json'
+  }
+  
+  Request Body:
+  {
+    "productId": number,
+    "quantity": number,
+    "options": object    // 제품 옵션 (색상, 사이즈 등)
+  }
+  */
+  const handleAddToCart = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        // 비로그인 상태에서는 localStorage에 저장
+        const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const existingItem = localCart.find((item: any) => item.productId === product?.id);
+        
+        if (existingItem) {
+          existingItem.quantity += quantity;
+        } else {
+          localCart.push({
+            id: Date.now(), // 임시 ID
+            productId: product?.id,
+            name: product?.name,
+            price: product?.price,
+            quantity: quantity,
+            image: product?.images[0]
+          });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(localCart));
+        alert('장바구니에 추가되었습니다.');
+        return;
+      }
+
+      const response = await fetch('http://localhost:8080/api/cart/items', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product?.id,
+          quantity: quantity,
+          options: {} // 제품 옵션이 있는 경우 추가
+        })
+      });
+
+      if (response.ok) {
+        alert('장바구니에 추가되었습니다.');
+      } else {
+        throw new Error('장바구니 추가 실패');
+      }
+    } catch (error) {
+      console.error('Add to cart error:', error);
+      alert('장바구니 추가 중 오류가 발생했습니다.');
+    }
+  };
 
   const handleQuantityChange = (value: number) => {
     if (value >= 1 && value <= 10) {
       setQuantity(value);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center">로딩 중...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center">제품을 찾을 수 없습니다.</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const totalPrice = (product.price * quantity) + product.shippingFee;
 
@@ -170,9 +425,8 @@ const ProductDetail = () => {
                 <Badge variant="destructive">26% 할인</Badge>
               </div>
 
-              {/* 구매 버튼 */}
               <div className="flex gap-3 mb-6">
-                <Button className="flex-1" size="lg">
+                <Button className="flex-1" size="lg" onClick={handleAddToCart}>
                   <ShoppingCart className="w-5 h-5 mr-2" />
                   장바구니 담기
                 </Button>
@@ -273,7 +527,7 @@ const ProductDetail = () => {
                   {Object.entries(product.specifications).map(([key, value]) => (
                     <div key={key} className="flex justify-between items-center border-b border-secondary pb-3">
                       <span className="font-medium text-lg">{key}</span>
-                      <span className="text-muted-foreground text-lg">{value}</span>
+                      <span className="text-muted-foreground text-lg">{String(value)}</span>
                     </div>
                   ))}
                 </div>

@@ -15,35 +15,131 @@ const Login = () => {
     password: ''
   });
 
-  const handleLogin = () => {
-    // 임시 로그인 로직 - 실제로는 백엔드 API와 연동
-    if (loginData.username === 'admin' && loginData.password === 'admin') {
-      // 관리자 로그인
-      localStorage.setItem('userType', 'admin');
-      localStorage.setItem('userName', '김관리자');
-      navigate('/admin');
-    } else if (loginData.username === 'headquarters' && loginData.password === 'headquarters') {
-      // 본사 회원 로그인
-      localStorage.setItem('userType', 'headquarters');
-      localStorage.setItem('userName', 'ABC카페 본사');
-      localStorage.setItem('companyName', 'ABC카페');
-      localStorage.setItem('isHeadquarters', 'true');
-      navigate('/mypage');
-    } else if (loginData.username === 'branch' && loginData.password === 'branch') {
-      // 지점 회원 로그인
-      localStorage.setItem('userType', 'branch');
-      localStorage.setItem('userName', 'ABC카페 강남점');
-      localStorage.setItem('companyName', 'ABC카페');
-      localStorage.setItem('parentCompany', 'ABC카페 본사');
-      localStorage.setItem('isHeadquarters', 'false');
-      navigate('/mypage');
-    } else if (loginData.username && loginData.password) {
-      // 일반 사용자 로그인
-      localStorage.setItem('userType', 'individual');
-      localStorage.setItem('userName', '홍길동');
-      navigate('/mypage');
-    } else {
-      alert('아이디 또는 비밀번호가 올바르지 않습니다.');
+  const handleLogin = async () => {
+    /*
+    ==================== API 요청 명세 ====================
+    Method: POST
+    URL: http://localhost:8080/api/auth/login
+    Headers: {
+      'Content-Type': 'application/json'
+    }
+    
+    Request Body:
+    {
+      "username": string,        // 아이디
+      "password": string,        // 비밀번호
+      "deviceInfo": {           // 선택사항
+        "userAgent": string,
+        "ip": string
+      }
+    }
+    
+    ==================== 예상 응답 명세 ====================
+    성공 시 (200 OK):
+    {
+      "success": true,
+      "message": "로그인 성공",
+      "data": {
+        "accessToken": string,      // JWT 액세스 토큰
+        "refreshToken": string,     // JWT 리프레시 토큰
+        "user": {
+          "id": string,
+          "username": string,
+          "name": string,
+          "email": string,
+          "userType": "admin" | "individual" | "corporate" | "headquarters" | "branch",
+          "companyName": string,    // 법인 회원인 경우
+          "isHeadquarters": boolean, // 본사 여부
+          "parentCompany": string,  // 지점인 경우 본사명
+          "permissions": string[]   // 권한 목록
+        },
+        "expiresIn": number        // 토큰 만료 시간(초)
+      }
+    }
+    
+    실패 시:
+    - 401 Unauthorized: 아이디/비밀번호 불일치
+    - 403 Forbidden: 계정 잠김/비활성화
+    - 429 Too Many Requests: 로그인 시도 횟수 초과
+    - 500 Internal Server Error: 서버 내부 오류
+    */
+    
+    if (!loginData.username || !loginData.password) {
+      alert('아이디와 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: loginData.username,
+          password: loginData.password,
+          deviceInfo: {
+            userAgent: navigator.userAgent,
+            ip: 'auto' // 서버에서 자동 감지
+          }
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 토큰 저장
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        
+        // 사용자 정보 저장
+        const user = data.data.user;
+        localStorage.setItem('userType', user.userType);
+        localStorage.setItem('userName', user.name);
+        
+        if (user.companyName) {
+          localStorage.setItem('companyName', user.companyName);
+        }
+        if (user.isHeadquarters !== undefined) {
+          localStorage.setItem('isHeadquarters', user.isHeadquarters.toString());
+        }
+        if (user.parentCompany) {
+          localStorage.setItem('parentCompany', user.parentCompany);
+        }
+
+        // 사용자 타입에 따른 리다이렉트
+        switch (user.userType) {
+          case 'admin':
+            navigate('/admin');
+            break;
+          case 'headquarters':
+          case 'branch':
+          case 'corporate':
+          case 'individual':
+            navigate('/mypage');
+            break;
+          default:
+            navigate('/');
+        }
+      } else {
+        // 에러 처리
+        switch (response.status) {
+          case 401:
+            alert('아이디 또는 비밀번호가 올바르지 않습니다.');
+            break;
+          case 403:
+            alert('계정이 잠겨있거나 비활성화되었습니다. 고객센터에 문의해주세요.');
+            break;
+          case 429:
+            alert('로그인 시도 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.');
+            break;
+          default:
+            alert(data.message || '로그인 중 오류가 발생했습니다.');
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
     }
   };
 

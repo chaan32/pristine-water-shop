@@ -14,55 +14,231 @@ const MyPage = () => {
   const [userName, setUserName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [isHeadquarters, setIsHeadquarters] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  /*
+  ==================== API 요청 명세 (사용자 정보 조회) ====================
+  Method: GET
+  URL: http://localhost:8080/api/users/me
+  Headers: {
+    'Authorization': 'Bearer {accessToken}',
+    'Content-Type': 'application/json'
+  }
+  
+  ==================== 예상 응답 명세 ====================
+  성공 시 (200 OK):
+  {
+    "success": true,
+    "data": {
+      "id": string,
+      "username": string,
+      "name": string,
+      "email": string,
+      "phone": string,
+      "userType": "individual" | "corporate" | "headquarters" | "branch",
+      "companyName": string,
+      "isHeadquarters": boolean,
+      "parentCompany": string,
+      "address": string,
+      "detailAddress": string,
+      "createdAt": string,
+      "lastLoginAt": string
+    }
+  }
+  */
+
+  /*
+  ==================== API 요청 명세 (주문 내역 조회) ====================
+  Method: GET
+  URL: http://localhost:8080/api/orders?page={page}&limit={limit}&status={status}
+  Headers: {
+    'Authorization': 'Bearer {accessToken}',
+    'Content-Type': 'application/json'
+  }
+  
+  ==================== 예상 응답 명세 ====================
+  성공 시 (200 OK):
+  {
+    "success": true,
+    "data": {
+      "orders": [
+        {
+          "id": string,
+          "orderNumber": string,
+          "items": [
+            {
+              "productId": number,
+              "name": string,
+              "quantity": number,
+              "price": number,
+              "image": string
+            }
+          ],
+          "totalAmount": number,
+          "status": "pending" | "paid" | "processing" | "shipped" | "delivered" | "cancelled",
+          "trackingNumber": string,
+          "deliveryAddress": string,
+          "createdAt": string,
+          "estimatedDelivery": string
+        }
+      ],
+      "pagination": {
+        "currentPage": number,
+        "totalPages": number,
+        "totalItems": number
+      }
+    }
+  }
+  */
 
   useEffect(() => {
-    const type = localStorage.getItem('userType') || 'individual';
-    const name = localStorage.getItem('userName') || '홍길동';
-    const company = localStorage.getItem('companyName') || '';
-    const headquarters = localStorage.getItem('isHeadquarters') === 'true';
-    
-    setUserType(type);
-    setUserName(name);
-    setCompanyName(company);
-    setIsHeadquarters(headquarters);
+    fetchUserInfo();
+    fetchOrders();
   }, []);
 
-  // 본사 회원인 경우 대시보드 렌더링
-  if (userType === 'headquarters') {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Crown className="w-8 h-8 text-yellow-500" />
-              <h1 className="text-4xl font-bold text-foreground">본사 관리</h1>
-            </div>
-            <p className="text-lg text-muted-foreground">{userName} (본사 회원)</p>
-          </div>
-          <HeadquartersDashboard />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const fetchUserInfo = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        // 로컬 스토리지에서 기본 정보 로드
+        const type = localStorage.getItem('userType') || 'individual';
+        const name = localStorage.getItem('userName') || '홍길동';
+        const company = localStorage.getItem('companyName') || '';
+        const headquarters = localStorage.getItem('isHeadquarters') === 'true';
+        
+        setUserType(type);
+        setUserName(name);
+        setCompanyName(company);
+        setIsHeadquarters(headquarters);
+        return;
+      }
 
-  const orders = [
-    {
-      id: 'ORD-2024-001',
-      date: '2024.01.20',
-      products: ['프리미엄 샤워 필터 SF-100'],
-      total: 92000,
-      status: '배송완료'
-    },
-    {
-      id: 'ORD-2024-002', 
-      date: '2024.01.15',
-      products: ['주방용 직수 정수기 KF-200'],
-      total: 198000,
-      status: '배송중'
+      const response = await fetch('http://localhost:8080/api/users/me', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const user = data.data;
+        
+        setUserType(user.userType);
+        setUserName(user.name);
+        setCompanyName(user.companyName || '');
+        setIsHeadquarters(user.isHeadquarters || false);
+        
+        // 로컬 스토리지도 업데이트
+        localStorage.setItem('userType', user.userType);
+        localStorage.setItem('userName', user.name);
+        if (user.companyName) {
+          localStorage.setItem('companyName', user.companyName);
+        }
+        if (user.isHeadquarters !== undefined) {
+          localStorage.setItem('isHeadquarters', user.isHeadquarters.toString());
+        }
+      } else {
+        throw new Error('사용자 정보 조회 실패');
+      }
+    } catch (error) {
+      console.error('User info fetch error:', error);
+      // 에러 시 로컬 스토리지 정보 사용
+      const type = localStorage.getItem('userType') || 'individual';
+      const name = localStorage.getItem('userName') || '홍길동';
+      const company = localStorage.getItem('companyName') || '';
+      const headquarters = localStorage.getItem('isHeadquarters') === 'true';
+      
+      setUserType(type);
+      setUserName(name);
+      setCompanyName(company);
+      setIsHeadquarters(headquarters);
     }
-  ];
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        // 비로그인 상태에서는 mock 데이터 사용
+        setOrders([
+          {
+            id: 'ORD-2024-001',
+            date: '2024.01.20',
+            products: ['프리미엄 샤워 필터 SF-100'],
+            total: 92000,
+            status: '배송완료'
+          },
+          {
+            id: 'ORD-2024-002', 
+            date: '2024.01.15',
+            products: ['주방용 직수 정수기 KF-200'],
+            total: 198000,
+            status: '배송중'
+          }
+        ]);
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('http://localhost:8080/api/orders?page=1&limit=10', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const ordersData = data.data.orders.map((order: any) => ({
+          id: order.orderNumber,
+          date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
+          products: order.items.map((item: any) => item.name),
+          total: order.totalAmount,
+          status: getStatusText(order.status)
+        }));
+        setOrders(ordersData);
+      } else {
+        throw new Error('주문 내역 조회 실패');
+      }
+    } catch (error) {
+      console.error('Orders fetch error:', error);
+      // 에러 시 mock 데이터 사용
+      setOrders([
+        {
+          id: 'ORD-2024-001',
+          date: '2024.01.20',
+          products: ['프리미엄 샤워 필터 SF-100'],
+          total: 92000,
+          status: '배송완료'
+        },
+        {
+          id: 'ORD-2024-002', 
+          date: '2024.01.15',
+          products: ['주방용 직수 정수기 KF-200'],
+          total: 198000,
+          status: '배송중'
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'pending': '결제 대기',
+      'paid': '결제 완료',
+      'processing': '상품 준비중',
+      'shipped': '배송중',
+      'delivered': '배송완료',
+      'cancelled': '주문 취소'
+    };
+    return statusMap[status] || status;
+  };
 
   const getUserTypeText = () => {
     switch (userType) {

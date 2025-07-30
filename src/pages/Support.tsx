@@ -14,6 +14,103 @@ import { Bell, FileText, MessageCircle, HelpCircle, Send, Pin, Upload, X } from 
 
 const Support = () => {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [inquiryData, setInquiryData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    category: '',
+    title: '',
+    content: ''
+  });
+
+  /*
+  ==================== API 요청 명세 (1:1 문의 접수) ====================
+  Method: POST
+  URL: http://localhost:8080/api/inquiries
+  Headers: {
+    'Authorization': 'Bearer {accessToken}', // 선택사항 (비로그인도 가능)
+    'Content-Type': 'multipart/form-data' (파일 첨부 시) | 'application/json' (텍스트만)
+  }
+  
+  Request Body (FormData with files):
+  FormData {
+    "data": JSON.stringify({
+      "name": string,
+      "phone": string,
+      "email": string,
+      "category": "refund" | "exchange" | "general" | "product" | "order",
+      "title": string,
+      "content": string,
+      "isAnonymous": boolean
+    }),
+    "attachments": File[] // 첨부파일들
+  }
+  
+  Request Body (JSON only):
+  {
+    "name": string,
+    "phone": string,
+    "email": string,
+    "category": "refund" | "exchange" | "general" | "product" | "order",
+    "title": string,
+    "content": string,
+    "isAnonymous": boolean
+  }
+  
+  ==================== 예상 응답 명세 ====================
+  성공 시 (201 Created):
+  {
+    "success": true,
+    "message": "문의가 접수되었습니다.",
+    "data": {
+      "inquiryId": string,
+      "inquiryNumber": string,
+      "status": "pending",
+      "createdAt": string,
+      "estimatedResponseTime": string // 예상 답변 시간
+    }
+  }
+  
+  실패 시:
+  - 400 Bad Request: 필수 필드 누락, 파일 형식 오류
+  - 413 Payload Too Large: 첨부파일 용량 초과
+  - 429 Too Many Requests: 문의 접수 제한 (일일 제한)
+  - 500 Internal Server Error: 서버 내부 오류
+  */
+
+  /*
+  ==================== API 요청 명세 (공지사항 조회) ====================
+  Method: GET
+  URL: http://localhost:8080/api/notices?page={page}&limit={limit}&pinned={boolean}
+  Headers: {
+    'Content-Type': 'application/json'
+  }
+  
+  ==================== 예상 응답 명세 ====================
+  성공 시 (200 OK):
+  {
+    "success": true,
+    "data": {
+      "notices": [
+        {
+          "id": number,
+          "title": string,
+          "content": string,
+          "pinned": boolean,
+          "category": string,
+          "viewCount": number,
+          "createdAt": string,
+          "updatedAt": string
+        }
+      ],
+      "pagination": {
+        "currentPage": number,
+        "totalPages": number,
+        "totalItems": number
+      }
+    }
+  }
+  */
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -29,6 +126,82 @@ const Support = () => {
 
   const removeFile = (index: number) => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleInquirySubmit = async () => {
+    if (!inquiryData.name || !inquiryData.email || !inquiryData.title || !inquiryData.content) {
+      alert('필수 항목을 모두 입력해주세요.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      let body;
+      let headers: HeadersInit = {};
+
+      if (attachedFiles.length > 0) {
+        // 파일 첨부가 있는 경우 FormData 사용
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(inquiryData));
+        
+        attachedFiles.forEach((file, index) => {
+          formData.append(`attachments`, file);
+        });
+        
+        body = formData;
+        // FormData 사용 시 Content-Type 자동 설정
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      } else {
+        // 텍스트만 있는 경우 JSON 사용
+        headers['Content-Type'] = 'application/json';
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        body = JSON.stringify(inquiryData);
+      }
+
+      const response = await fetch('http://localhost:8080/api/inquiries', {
+        method: 'POST',
+        headers,
+        body
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`문의가 접수되었습니다!\n\n문의번호: ${data.data.inquiryNumber}\n예상 답변 시간: ${data.data.estimatedResponseTime}\n\n답변은 등록하신 이메일로 발송됩니다.`);
+        
+        // 폼 초기화
+        setInquiryData({
+          name: '',
+          phone: '',
+          email: '',
+          category: '',
+          title: '',
+          content: ''
+        });
+        setAttachedFiles([]);
+      } else {
+        switch (response.status) {
+          case 400:
+            alert('입력 정보를 확인해주세요.');
+            break;
+          case 413:
+            alert('첨부파일 용량이 너무 큽니다.');
+            break;
+          case 429:
+            alert('일일 문의 제한을 초과했습니다. 내일 다시 시도해주세요.');
+            break;
+          default:
+            alert(data.message || '문의 접수 중 오류가 발생했습니다.');
+        }
+      }
+    } catch (error) {
+      console.error('Inquiry submit error:', error);
+      alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   };
   const notices = [
     {
@@ -192,22 +365,35 @@ const Support = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium mb-2 block">이름</label>
-                      <Input placeholder="이름을 입력하세요" />
+                      <Input 
+                        placeholder="이름을 입력하세요" 
+                        value={inquiryData.name}
+                        onChange={(e) => setInquiryData({...inquiryData, name: e.target.value})}
+                      />
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">연락처</label>
-                      <Input placeholder="연락처를 입력하세요" />
+                      <Input 
+                        placeholder="연락처를 입력하세요" 
+                        value={inquiryData.phone}
+                        onChange={(e) => setInquiryData({...inquiryData, phone: e.target.value})}
+                      />
                     </div>
                   </div>
                   
                   <div>
                     <label className="text-sm font-medium mb-2 block">이메일</label>
-                    <Input type="email" placeholder="이메일을 입력하세요" />
+                    <Input 
+                      type="email" 
+                      placeholder="이메일을 입력하세요" 
+                      value={inquiryData.email}
+                      onChange={(e) => setInquiryData({...inquiryData, email: e.target.value})}
+                    />
                   </div>
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">문의 유형</label>
-                    <Select>
+                    <Select value={inquiryData.category} onValueChange={(value) => setInquiryData({...inquiryData, category: value})}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="문의 유형을 선택하세요" />
                       </SelectTrigger>
@@ -223,7 +409,11 @@ const Support = () => {
 
                   <div>
                     <label className="text-sm font-medium mb-2 block">제목</label>
-                    <Input placeholder="문의 제목을 입력하세요" />
+                    <Input 
+                      placeholder="문의 제목을 입력하세요" 
+                      value={inquiryData.title}
+                      onChange={(e) => setInquiryData({...inquiryData, title: e.target.value})}
+                    />
                   </div>
 
                   <div>
@@ -231,6 +421,8 @@ const Support = () => {
                     <Textarea 
                       placeholder="문의 내용을 상세히 입력해주세요"
                       rows={6}
+                      value={inquiryData.content}
+                      onChange={(e) => setInquiryData({...inquiryData, content: e.target.value})}
                     />
                   </div>
 
@@ -286,7 +478,7 @@ const Support = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full water-drop">
+                  <Button className="w-full water-drop" onClick={handleInquirySubmit}>
                     <Send className="w-4 h-4 mr-2" />
                     문의 접수
                   </Button>
