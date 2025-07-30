@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { UserPlus, Building, User, Check, X, Upload, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+interface Headquarters {
+  id: string;
+  name: string;
+  businessNumber: string;
+}
 
 const Register = () => {
   const { toast } = useToast();
@@ -58,7 +64,28 @@ const Register = () => {
   // 본사 검색 모달 상태
   const [isHeadquartersModalOpen, setIsHeadquartersModalOpen] = useState(false);
   const [headquartersSearchTerm, setHeadquartersSearchTerm] = useState('');
-  
+  const [isSearching, setIsSearching] = useState(false); // 검색 중 로딩 상태
+  const [searchedHeadquarters, setSearchedHeadquarters] = useState<Headquarters[]>([]);
+  // 검색어가 변경될 때마다 API를 호출 (디바운싱 적용)
+  useEffect(() => {
+    // 검색어가 비어있으면 목록을 비움
+    if (!headquartersSearchTerm.trim()) {
+      setSearchedHeadquarters([]);
+      return;
+    }
+
+    // 디바운싱: 사용자가 타이핑을 멈춘 후 300ms 뒤에 API 호출
+    const debounceTimer = setTimeout(() => {
+      fetchHeadquarters(headquartersSearchTerm);
+    }, 300);
+
+    // 컴포넌트 언마운트 또는 검색어 변경 시 타이머 정리
+    return () => clearTimeout(debounceTimer);
+  }, [headquartersSearchTerm]);
+
+
+
+
   // 임시 본사 데이터 (실제로는 API에서 가져옴)
   const mockHeadquarters = [
     { id: '1', name: '스타벅스 코리아', businessNumber: '123-45-67890' },
@@ -306,6 +333,41 @@ const Register = () => {
     }
   };
 
+  // 본사 선택 함수
+  const handleHeadquartersSelect = (headquarters: Headquarters) => {
+    setCorporateForm(prev => ({
+      ...prev,
+      headquartersName: headquarters.name,
+      companyName: headquarters.name, // 회사명도 본사명으로 자동 채우기
+      businessNumber: headquarters.businessNumber, // 사업자번호도 자동 채우기
+      headquartersId: headquarters.id
+    }));
+    setIsHeadquartersModalOpen(false);
+    setHeadquartersSearchTerm(''); // 모달 닫을 때 검색어 초기화
+  };
+
+  const fetchHeadquarters = async (term: string) => {
+    setIsSearching(true);
+    try {
+      const response = await fetch(`http://localhost:8080/api/search/headquarters?term=${term}`);
+      if (!response.ok) {
+        throw new Error('본사 검색에 실패했습니다.');
+      }
+      const data = await response.json();
+      // 백엔드에서 id가 Long 타입이므로 문자열로 변환
+      const formattedData = data.map((hq: any) => ({
+        ...hq,
+        id: String(hq.id),
+      }));
+      setSearchedHeadquarters(formattedData);
+    } catch (error) {
+      console.error(error);
+      toast({ title: "오류", description: "본사 검색 중 오류가 발생했습니다.", variant: "destructive" });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   // 회원가입 처리 함수
   const handleIndividualRegister = async () => {
     try {
@@ -537,17 +599,18 @@ const Register = () => {
   };
 
   // 본사 선택 함수
-  const handleHeadquartersSelect = (headquarters: { id: string; name: string; businessNumber: string }) => {
-    setCorporateForm(prev => ({ 
-      ...prev, 
-      headquartersName: headquarters.name,
-      companyName: headquarters.name,
-      businessNumber: headquarters.businessNumber,
-      headquartersId: headquarters.id  // 본사 ID 추가
-    }));
-    setIsHeadquartersModalOpen(false);
-    setHeadquartersSearchTerm('');
-  };
+  // const handleHeadquartersSelect = (headquarters: { id: string; name: string; businessNumber: string }) => {
+  //   setCorporateForm(prev => ({
+  //     ...prev,
+  //     headquartersName: headquarters.name,
+  //     companyName: headquarters.name,
+  //     businessNumber: headquarters.businessNumber,
+  //     headquartersId: headquarters.id  // 본사 ID 추가
+  //   }));
+  //   setIsHeadquartersModalOpen(false);
+  //   setHeadquartersSearchTerm('');
+  // };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -858,28 +921,31 @@ const Register = () => {
                                 <DialogTitle>본사 선택</DialogTitle>
                               </DialogHeader>
                               <div className="space-y-4">
-                                <Input 
-                                  placeholder="본사명으로 검색..." 
-                                  value={headquartersSearchTerm}
-                                  onChange={(e) => setHeadquartersSearchTerm(e.target.value)}
+                                <Input
+                                    placeholder="본사명으로 검색..."
+                                    value={headquartersSearchTerm}
+                                    onChange={(e) => setHeadquartersSearchTerm(e.target.value)}
                                 />
                                 <div className="max-h-60 overflow-y-auto space-y-2">
-                                  {filteredHeadquarters.map((hq) => (
-                                    <div 
-                                      key={hq.id}
-                                      className="border rounded-lg p-3 cursor-pointer hover:bg-muted/50"
-                                      onClick={() => handleHeadquartersSelect(hq)}
-                                    >
-                                      <div className="font-medium">{hq.name}</div>
-                                      <div className="text-sm text-muted-foreground">
-                                        사업자번호: {hq.businessNumber}
+                                  {isSearching ? (
+                                      <div className="text-center py-4 text-muted-foreground">검색 중...</div>
+                                  ) : searchedHeadquarters.length > 0 ? (
+                                      searchedHeadquarters.map((hq) => (
+                                          <div
+                                              key={hq.id}
+                                              className="border rounded-lg p-3 cursor-pointer hover:bg-muted/50"
+                                              onClick={() => handleHeadquartersSelect(hq)}
+                                          >
+                                            <div className="font-medium">{hq.name}</div>
+                                            <div className="text-sm text-muted-foreground">
+                                              사업자번호: {hq.businessNumber}
+                                            </div>
+                                          </div>
+                                      ))
+                                  ) : (
+                                      <div className="text-center py-4 text-muted-foreground">
+                                        {headquartersSearchTerm ? '검색 결과가 없습니다.' : '검색어를 입력해주세요.'}
                                       </div>
-                                    </div>
-                                  ))}
-                                  {filteredHeadquarters.length === 0 && (
-                                    <div className="text-center py-4 text-muted-foreground">
-                                      검색 결과가 없습니다.
-                                    </div>
                                   )}
                                 </div>
                               </div>
