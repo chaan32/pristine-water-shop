@@ -12,28 +12,66 @@ import { UserPlus, Building, User, Check, X, Upload } from 'lucide-react';
 
 const Register = () => {
   const [individualForm, setIndividualForm] = useState({
+    id: '',
     password: '',
     confirmPassword: '',
     termsAccepted: false,
-    privacyAccepted: false
+    privacyAccepted: false,
+    isIdChecked: false,
+    isIdAvailable: false
   });
 
   const [corporateForm, setCorporateForm] = useState({
+    id: '',
     password: '',
     confirmPassword: '',
     termsAccepted: false,
     privacyAccepted: false,
     businessType: '',
-    businessRegistration: null as File | null
+    businessRegistration: null as File | null,
+    isIdChecked: false,
+    isIdAvailable: false
   });
 
   const isIndividualPasswordMatch = individualForm.password && individualForm.confirmPassword && individualForm.password === individualForm.confirmPassword;
   const isIndividualPasswordMismatch = individualForm.password && individualForm.confirmPassword && individualForm.password !== individualForm.confirmPassword;
-  const isIndividualFormValid = isIndividualPasswordMatch && individualForm.termsAccepted && individualForm.privacyAccepted;
+  const isIndividualFormValid = isIndividualPasswordMatch && individualForm.termsAccepted && individualForm.privacyAccepted && individualForm.isIdChecked && individualForm.isIdAvailable;
 
   const isCorporatePasswordMatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password === corporateForm.confirmPassword;
   const isCorporatePasswordMismatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password !== corporateForm.confirmPassword;
-  const isCorporateFormValid = isCorporatePasswordMatch && corporateForm.termsAccepted && corporateForm.privacyAccepted && corporateForm.businessType && corporateForm.businessRegistration;
+  const isCorporateFormValid = isCorporatePasswordMatch && corporateForm.termsAccepted && corporateForm.privacyAccepted && corporateForm.businessType && corporateForm.businessRegistration && corporateForm.isIdChecked && corporateForm.isIdAvailable;
+
+  const handleIdCheck = (type: 'individual' | 'corporate') => {
+    const id = type === 'individual' ? individualForm.id : corporateForm.id;
+    
+    if (!id.trim()) {
+      alert('아이디를 입력해주세요.');
+      return;
+    }
+
+    // 임시 아이디 중복 체크 로직 (실제로는 백엔드 API 호출)
+    const isAvailable = !['admin', 'test', 'user', 'manager'].includes(id.toLowerCase());
+    
+    if (type === 'individual') {
+      setIndividualForm(prev => ({ 
+        ...prev, 
+        isIdChecked: true, 
+        isIdAvailable: isAvailable 
+      }));
+    } else {
+      setCorporateForm(prev => ({ 
+        ...prev, 
+        isIdChecked: true, 
+        isIdAvailable: isAvailable 
+      }));
+    }
+
+    if (isAvailable) {
+      alert('사용 가능한 아이디입니다.');
+    } else {
+      alert('이미 사용중인 아이디입니다.');
+    }
+  };
 
   const handleBusinessRegistrationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,16 +114,54 @@ const Register = () => {
                   <CardTitle>개인회원 가입</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input placeholder="이름" />
-                    <Input placeholder="아이디" />
+                  <Input placeholder="이름" />
+                  
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="아이디" 
+                        value={individualForm.id}
+                        onChange={(e) => setIndividualForm(prev => ({ 
+                          ...prev, 
+                          id: e.target.value,
+                          isIdChecked: false,
+                          isIdAvailable: false 
+                        }))}
+                        className="flex-1"
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        onClick={() => handleIdCheck('individual')}
+                        disabled={!individualForm.id.trim()}
+                      >
+                        중복확인
+                      </Button>
+                    </div>
+                    {individualForm.isIdChecked && (
+                      <div className="flex items-center gap-2 text-sm">
+                        {individualForm.isIdAvailable ? (
+                          <>
+                            <Check className="w-4 h-4 text-green-600" />
+                            <span className="text-green-600">사용 가능한 아이디입니다.</span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="w-4 h-4 text-red-600" />
+                            <span className="text-red-600">이미 사용중인 아이디입니다.</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
+                  
                   <div className="space-y-4">
                     <Input 
                       type="password" 
                       placeholder="비밀번호"
                       value={individualForm.password}
                       onChange={(e) => setIndividualForm(prev => ({ ...prev, password: e.target.value }))}
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
                     />
                     <div className="space-y-2">
                       <Input 
@@ -93,6 +169,7 @@ const Register = () => {
                         placeholder="비밀번호 확인"
                         value={individualForm.confirmPassword}
                         onChange={(e) => setIndividualForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
                       />
                       {individualForm.confirmPassword && (
                         <div className="flex items-center gap-2 text-sm">
@@ -111,12 +188,24 @@ const Register = () => {
                       )}
                     </div>
                   </div>
-                  <Input type="email" placeholder="이메일" />
+                  <Input 
+                    type="email" 
+                    placeholder="이메일" 
+                    disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                  />
                   <div className="flex gap-2">
-                    <Input placeholder="휴대폰 번호" className="flex-1" />
-                    <Button variant="outline">인증</Button>
+                    <Input 
+                      placeholder="휴대폰 번호" 
+                      className="flex-1" 
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                    />
+                    <Button 
+                      variant="outline"
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                    >
+                      인증
+                    </Button>
                   </div>
-                  <Input placeholder="주소" />
                   
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
@@ -186,13 +275,52 @@ const Register = () => {
                     </Select>
                   </div>
 
-                  <Input placeholder="아이디" />
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="아이디" 
+                        value={corporateForm.id}
+                        onChange={(e) => setCorporateForm(prev => ({ 
+                          ...prev, 
+                          id: e.target.value,
+                          isIdChecked: false,
+                          isIdAvailable: false 
+                        }))}
+                        className="flex-1"
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        onClick={() => handleIdCheck('corporate')}
+                        disabled={!corporateForm.id.trim()}
+                      >
+                        중복확인
+                      </Button>
+                    </div>
+                    {corporateForm.isIdChecked && (
+                      <div className="flex items-center gap-2 text-sm">
+                        {corporateForm.isIdAvailable ? (
+                          <>
+                            <Check className="w-4 h-4 text-green-600" />
+                            <span className="text-green-600">사용 가능한 아이디입니다.</span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="w-4 h-4 text-red-600" />
+                            <span className="text-red-600">이미 사용중인 아이디입니다.</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="space-y-4">
                     <Input 
                       type="password" 
                       placeholder="비밀번호"
                       value={corporateForm.password}
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, password: e.target.value }))}
+                      disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                     />
                     <div className="space-y-2">
                       <Input 
@@ -200,6 +328,7 @@ const Register = () => {
                         placeholder="비밀번호 확인"
                         value={corporateForm.confirmPassword}
                         onChange={(e) => setCorporateForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                       />
                       {corporateForm.confirmPassword && (
                         <div className="flex items-center gap-2 text-sm">
@@ -219,10 +348,16 @@ const Register = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input type="email" placeholder="이메일" />
-                    <Input placeholder="회사 전화번호" />
+                    <Input 
+                      type="email" 
+                      placeholder="이메일"
+                      disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                    />
+                    <Input 
+                      placeholder="회사 전화번호"
+                      disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                    />
                   </div>
-                  <Input placeholder="회사 주소" />
                   
                   {/* 사업자등록증 업로드 */}
                   <div className="space-y-2">
