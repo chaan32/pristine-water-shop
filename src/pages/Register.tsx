@@ -18,7 +18,9 @@ const Register = () => {
     termsAccepted: false,
     privacyAccepted: false,
     isIdChecked: false,
-    isIdAvailable: false
+    isIdAvailable: false,
+    address: '',
+    detailAddress: ''
   });
 
   const [corporateForm, setCorporateForm] = useState({
@@ -30,8 +32,34 @@ const Register = () => {
     businessType: '',
     businessRegistration: null as File | null,
     isIdChecked: false,
-    isIdAvailable: false
+    isIdAvailable: false,
+    address: '',
+    detailAddress: ''
   });
+
+  // 카카오 주소 검색 함수
+  const handleAddressSearch = (type: 'individual' | 'corporate') => {
+    new (window as any).daum.Postcode({
+      oncomplete: function(data: any) {
+        // 팝업에서 검색결과 항목을 클릭했을때 실행할 코드를 작성하는 부분.
+        let addr = ''; // 주소 변수
+
+        // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+        if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+          addr = data.roadAddress;
+        } else { // 사용자가 지번 주소를 선택했을 경우(J)
+          addr = data.jibunAddress;
+        }
+
+        // 선택된 주소를 폼에 설정
+        if (type === 'individual') {
+          setIndividualForm(prev => ({ ...prev, address: addr }));
+        } else {
+          setCorporateForm(prev => ({ ...prev, address: addr }));
+        }
+      }
+    }).open();
+  };
 
   const isIndividualPasswordMatch = individualForm.password && individualForm.confirmPassword && individualForm.password === individualForm.confirmPassword;
   const isIndividualPasswordMismatch = individualForm.password && individualForm.confirmPassword && individualForm.password !== individualForm.confirmPassword;
@@ -207,6 +235,33 @@ const Register = () => {
                     </Button>
                   </div>
                   
+                  {/* 주소 입력 */}
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="주소" 
+                        value={individualForm.address}
+                        readOnly
+                        className="flex-1"
+                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        onClick={() => handleAddressSearch('individual')}
+                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                      >
+                        주소검색
+                      </Button>
+                    </div>
+                    <Input 
+                      placeholder="상세주소" 
+                      value={individualForm.detailAddress}
+                      onChange={(e) => setIndividualForm(prev => ({ ...prev, detailAddress: e.target.value }))}
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable || !individualForm.address}
+                    />
+                  </div>
+                  
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <Checkbox 
@@ -356,6 +411,33 @@ const Register = () => {
                     <Input 
                       placeholder="회사 전화번호"
                       disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                    />
+                  </div>
+                  
+                  {/* 주소 입력 */}
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="회사 주소" 
+                        value={corporateForm.address}
+                        readOnly
+                        className="flex-1"
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        onClick={() => handleAddressSearch('corporate')}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                      >
+                        주소검색
+                      </Button>
+                    </div>
+                    <Input 
+                      placeholder="상세주소" 
+                      value={corporateForm.detailAddress}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, detailAddress: e.target.value }))}
+                      disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable || !corporateForm.address}
                     />
                   </div>
                   
