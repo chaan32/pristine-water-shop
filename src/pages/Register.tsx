@@ -191,7 +191,12 @@ const Register = () => {
 
   // 본사 선택 함수
   const handleHeadquartersSelect = (headquarters: { id: string; name: string; businessNumber: string }) => {
-    setCorporateForm(prev => ({ ...prev, headquartersName: headquarters.name }));
+    setCorporateForm(prev => ({ 
+      ...prev, 
+      headquartersName: headquarters.name,
+      companyName: headquarters.name,
+      businessNumber: headquarters.businessNumber
+    }));
     setIsHeadquartersModalOpen(false);
     setHeadquartersSearchTerm('');
   };
