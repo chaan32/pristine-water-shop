@@ -205,7 +205,7 @@ const Register = () => {
         marketingAccepted: false
       };
 
-      const response = await fetch('http://localhost:8080/api/register', {
+      const response = await fetch('http://localhost:8080/api/register/individual', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -266,7 +266,12 @@ const Register = () => {
         body = JSON.stringify(requestData);
       }
 
-      const response = await fetch('http://localhost:8080/api/register', {
+      // 가맹점과 일반 법인회원에 따라 다른 endpoint 사용
+      const endpoint = corporateForm.corporateType === 'franchise' 
+        ? 'http://localhost:8080/api/register/franchise'
+        : 'http://localhost:8080/api/register/corporate';
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers,
         body
