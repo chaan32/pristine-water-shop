@@ -266,10 +266,20 @@ const Register = () => {
         body = JSON.stringify(requestData);
       }
 
-      // 가맹점과 일반 법인회원에 따라 다른 endpoint 사용
-      const endpoint = corporateForm.corporateType === 'franchise' 
-        ? 'http://localhost:8080/api/register/franchise'
-        : 'http://localhost:8080/api/register/corporate';
+      // 법인 유형별로 다른 endpoint 사용
+      let endpoint;
+      switch (corporateForm.corporateType) {
+        case 'franchise':
+          endpoint = 'http://localhost:8080/api/register/franchise';
+          break;
+        case 'headquarters':
+          endpoint = 'http://localhost:8080/api/register/headquarters';
+          break;
+        case 'single':
+        default:
+          endpoint = 'http://localhost:8080/api/register/corporate';
+          break;
+      }
 
       const response = await fetch(endpoint, {
         method: 'POST',
