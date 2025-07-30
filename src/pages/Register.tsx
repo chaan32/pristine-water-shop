@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +22,7 @@ interface Headquarters {
 
 const Register = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [individualForm, setIndividualForm] = useState({
     id: '',
     password: '',
@@ -440,6 +442,7 @@ const Register = () => {
           title: "회원가입 완료",
           description: "개인회원 가입이 완료되었습니다.",
         });
+        navigate('/');
       } else {
         throw new Error('회원가입 실패');
       }
@@ -585,6 +588,7 @@ const Register = () => {
           title: "회원가입 완료",
           description: "법인회원 가입이 완료되었습니다.",
         });
+        navigate('/');
       } else {
         throw new Error('회원가입 실패');
       }
