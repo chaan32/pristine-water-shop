@@ -19,6 +19,8 @@ const Register = () => {
     id: '',
     password: '',
     confirmPassword: '',
+    name: '',
+    email: '',
     termsAccepted: false,
     privacyAccepted: false,
     isIdChecked: false,
@@ -239,8 +241,8 @@ const Register = () => {
         memberType: "individual",
         id: individualForm.id,
         password: individualForm.password,
-        name: "사용자 이름", // 실제로는 폼에서 입력받은 값
-        email: "user@example.com", // 실제로는 폼에서 입력받은 값
+        name: individualForm.name,
+        email: individualForm.email,
         phone: individualForm.phone,
         address: individualForm.address,
         detailAddress: individualForm.detailAddress,
@@ -389,7 +391,11 @@ const Register = () => {
                   <CardTitle>개인회원 가입</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <Input placeholder="이름" />
+                  <Input 
+                    placeholder="이름" 
+                    value={individualForm.name}
+                    onChange={(e) => setIndividualForm(prev => ({ ...prev, name: e.target.value }))}
+                  />
                   
                   <div className="space-y-2">
                     <div className="flex gap-2">
@@ -466,6 +472,8 @@ const Register = () => {
                   <Input 
                     type="email" 
                     placeholder="이메일" 
+                    value={individualForm.email}
+                    onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
                     disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
                   />
                   <div className="space-y-2">
