@@ -144,35 +144,79 @@ const Register = () => {
     // 프랜차이즈 지점 회원인 경우 추가 검증
     (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName));
 
-  const handleIdCheck = (type: 'individual' | 'corporate') => {
+  const handleIdCheck = async (type: 'individual' | 'corporate') => {
     const id = type === 'individual' ? individualForm.id : corporateForm.id;
     
     if (!id.trim()) {
-      alert('아이디를 입력해주세요.');
+      toast({
+        title: "오류",
+        description: "아이디를 입력해주세요.",
+        variant: "destructive"
+      });
       return;
     }
 
-    // 임시 아이디 중복 체크 로직 (실제로는 백엔드 API 호출)
-    const isAvailable = !['admin', 'test', 'user', 'manager'].includes(id.toLowerCase());
-    
-    if (type === 'individual') {
-      setIndividualForm(prev => ({ 
-        ...prev, 
-        isIdChecked: true, 
-        isIdAvailable: isAvailable 
-      }));
-    } else {
-      setCorporateForm(prev => ({ 
-        ...prev, 
-        isIdChecked: true, 
-        isIdAvailable: isAvailable 
-      }));
+    // 아이디 유효성 검사 (영문, 숫자만 허용, 4-20자)
+    const idRegex = /^[a-zA-Z0-9]{4,20}$/;
+    if (!idRegex.test(id)) {
+      toast({
+        title: "오류",
+        description: "아이디는 영문, 숫자 조합으로 4-20자여야 합니다.",
+        variant: "destructive"
+      });
+      return;
     }
 
-    if (isAvailable) {
-      alert('사용 가능한 아이디입니다.');
-    } else {
-      alert('이미 사용중인 아이디입니다.');
+    try {
+      // API 호출하여 중복 체크
+      const response = await fetch(`http://localhost:8080/api/check-id/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('서버 오류가 발생했습니다.');
+      }
+
+      const data = await response.json();
+      const isAvailable = data.available;
+      
+      if (type === 'individual') {
+        setIndividualForm(prev => ({ 
+          ...prev, 
+          isIdChecked: true, 
+          isIdAvailable: isAvailable 
+        }));
+      } else {
+        setCorporateForm(prev => ({ 
+          ...prev, 
+          isIdChecked: true, 
+          isIdAvailable: isAvailable 
+        }));
+      }
+
+      if (isAvailable) {
+        toast({
+          title: "사용 가능",
+          description: "사용 가능한 아이디입니다.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "사용 불가",
+          description: "이미 사용중인 아이디입니다.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('ID check error:', error);
+      toast({
+        title: "오류",
+        description: "중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive"
+      });
     }
   };
 
