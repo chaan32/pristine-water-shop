@@ -188,6 +188,107 @@ const Register = () => {
     }
   };
 
+  // 회원가입 처리 함수
+  const handleIndividualRegister = async () => {
+    try {
+      const requestData = {
+        memberType: "individual",
+        id: individualForm.id,
+        password: individualForm.password,
+        name: "사용자 이름", // 실제로는 폼에서 입력받은 값
+        email: "user@example.com", // 실제로는 폼에서 입력받은 값
+        phone: individualForm.phone,
+        address: individualForm.address,
+        detailAddress: individualForm.detailAddress,
+        termsAccepted: individualForm.termsAccepted,
+        privacyAccepted: individualForm.privacyAccepted,
+        marketingAccepted: false
+      };
+
+      const response = await fetch('http://localhost:8080/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "회원가입 완료",
+          description: "개인회원 가입이 완료되었습니다.",
+        });
+      } else {
+        throw new Error('회원가입 실패');
+      }
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "회원가입 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCorporateRegister = async () => {
+    try {
+      const requestData = {
+        memberType: "corporate",
+        corporateType: corporateForm.corporateType,
+        id: corporateForm.id,
+        password: corporateForm.password,
+        email: corporateForm.email,
+        companyName: corporateForm.companyName,
+        businessNumber: corporateForm.businessNumber,
+        businessType: corporateForm.businessType,
+        phone: corporateForm.phone,
+        address: corporateForm.address,
+        detailAddress: corporateForm.detailAddress,
+        termsAccepted: corporateForm.termsAccepted,
+        privacyAccepted: corporateForm.privacyAccepted,
+        ...(corporateForm.corporateType === 'franchise' && {
+          headquartersName: corporateForm.headquartersName,
+          branchName: corporateForm.branchName
+        })
+      };
+
+      // 사업자등록증 파일이 있는 경우 FormData 사용
+      let body;
+      let headers: HeadersInit = {};
+
+      if (corporateForm.businessRegistration) {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(requestData));
+        formData.append('businessRegistration', corporateForm.businessRegistration);
+        body = formData;
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify(requestData);
+      }
+
+      const response = await fetch('http://localhost:8080/api/register', {
+        method: 'POST',
+        headers,
+        body
+      });
+
+      if (response.ok) {
+        toast({
+          title: "회원가입 완료",
+          description: "법인회원 가입이 완료되었습니다.",
+        });
+      } else {
+        throw new Error('회원가입 실패');
+      }
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "회원가입 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // 본사 선택 함수
   const handleHeadquartersSelect = (headquarters: { id: string; name: string; businessNumber: string }) => {
     setCorporateForm(prev => ({ 
@@ -388,6 +489,7 @@ const Register = () => {
                     className="w-full water-drop" 
                     size="lg"
                     disabled={!isIndividualFormValid}
+                    onClick={handleIndividualRegister}
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
                     개인회원 가입
@@ -730,6 +832,7 @@ const Register = () => {
                     className="w-full water-drop" 
                     size="lg"
                     disabled={!isCorporateFormValid}
+                    onClick={handleCorporateRegister}
                   >
                     <Building className="w-4 h-4 mr-2" />
                     법인회원 가입 신청
