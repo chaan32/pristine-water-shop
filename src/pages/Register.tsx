@@ -51,7 +51,8 @@ const Register = () => {
     isPhoneVerified: false,
     // 프랜차이즈 지점 회원 전용 필드
     headquartersName: '',
-    branchName: ''
+    branchName: '',
+    headquartersId: ''  // 본사 ID
   });
 
   // 본사 검색 모달 상태
@@ -425,9 +426,10 @@ const Register = () => {
         "termsAccepted": boolean, // 이용약관 동의
         "privacyAccepted": boolean, // 개인정보처리방침 동의
         
-        // 프랜차이즈 지점 전용 필드 (corporateType이 'franchise'일 때만)
-        "headquartersName": string, // 본사명
-        "branchName": string       // 지점명
+         // 프랜차이즈 지점 전용 필드 (corporateType이 'franchise'일 때만)
+         "headquartersId": string,   // 본사 ID (식별값)
+         "headquartersName": string, // 본사명
+         "branchName": string       // 지점명
       }
       
       Request Body (FormData 형태 - 사업자등록증 파일 포함):
@@ -475,10 +477,11 @@ const Register = () => {
         detailAddress: corporateForm.detailAddress,
         termsAccepted: corporateForm.termsAccepted,
         privacyAccepted: corporateForm.privacyAccepted,
-        ...(corporateForm.corporateType === 'franchise' && {
-          headquartersName: corporateForm.headquartersName,
-          branchName: corporateForm.branchName
-        })
+         ...(corporateForm.corporateType === 'franchise' && {
+           headquartersId: corporateForm.headquartersId,
+           headquartersName: corporateForm.headquartersName,
+           branchName: corporateForm.branchName
+         })
       };
 
       // 사업자등록증 파일이 있는 경우 FormData 사용
@@ -539,7 +542,8 @@ const Register = () => {
       ...prev, 
       headquartersName: headquarters.name,
       companyName: headquarters.name,
-      businessNumber: headquarters.businessNumber
+      businessNumber: headquarters.businessNumber,
+      headquartersId: headquarters.id  // 본사 ID 추가
     }));
     setIsHeadquartersModalOpen(false);
     setHeadquartersSearchTerm('');
