@@ -36,8 +36,6 @@ const Register = () => {
     email: '',
     companyName: '',
     businessNumber: '',
-    representativeName: '',
-    managerName: '',
     termsAccepted: false,
     privacyAccepted: false,
     corporateType: '', // 'headquarters', 'franchise', 'single'
@@ -141,8 +139,6 @@ const Register = () => {
     corporateForm.email &&
     corporateForm.companyName &&
     corporateForm.businessNumber &&
-    corporateForm.representativeName &&
-    corporateForm.managerName &&
     corporateForm.address &&
     corporateForm.phone &&
     corporateForm.isPhoneVerified &&
@@ -451,18 +447,6 @@ const Register = () => {
                       placeholder="사업자등록번호" 
                       value={corporateForm.businessNumber}
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber: e.target.value }))}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input 
-                      placeholder="대표자명" 
-                      value={corporateForm.representativeName}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, representativeName: e.target.value }))}
-                    />
-                    <Input 
-                      placeholder="담당자명" 
-                      value={corporateForm.managerName}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, managerName: e.target.value }))}
                     />
                   </div>
                   
