@@ -8,7 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { UserPlus, Building, User, Check, X, Upload } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { UserPlus, Building, User, Check, X, Upload, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Register = () => {
@@ -31,8 +33,14 @@ const Register = () => {
     id: '',
     password: '',
     confirmPassword: '',
+    email: '',
+    companyName: '',
+    businessNumber: '',
+    representativeName: '',
+    managerName: '',
     termsAccepted: false,
     privacyAccepted: false,
+    corporateType: '', // 'headquarters', 'franchise', 'single'
     businessType: '',
     businessRegistration: null as File | null,
     isIdChecked: false,
@@ -40,8 +48,28 @@ const Register = () => {
     address: '',
     detailAddress: '',
     phone: '',
-    isPhoneVerified: false
+    isPhoneVerified: false,
+    // 프랜차이즈 지점 회원 전용 필드
+    headquartersName: '',
+    branchName: ''
   });
+
+  // 본사 검색 모달 상태
+  const [isHeadquartersModalOpen, setIsHeadquartersModalOpen] = useState(false);
+  const [headquartersSearchTerm, setHeadquartersSearchTerm] = useState('');
+  
+  // 임시 본사 데이터 (실제로는 API에서 가져옴)
+  const mockHeadquarters = [
+    { id: '1', name: '스타벅스 코리아', businessNumber: '123-45-67890' },
+    { id: '2', name: '맥도날드 코리아', businessNumber: '234-56-78901' },
+    { id: '3', name: '롯데리아', businessNumber: '345-67-89012' },
+    { id: '4', name: 'KFC 코리아', businessNumber: '456-78-90123' },
+    { id: '5', name: '버거킹 코리아', businessNumber: '567-89-01234' },
+  ];
+
+  const filteredHeadquarters = mockHeadquarters.filter(hq => 
+    hq.name.toLowerCase().includes(headquartersSearchTerm.toLowerCase())
+  );
 
   // 휴대폰 인증 함수
   const handlePhoneVerification = (type: 'individual' | 'corporate') => {
@@ -102,7 +130,24 @@ const Register = () => {
 
   const isCorporatePasswordMatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password === corporateForm.confirmPassword;
   const isCorporatePasswordMismatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password !== corporateForm.confirmPassword;
-  const isCorporateFormValid = isCorporatePasswordMatch && corporateForm.termsAccepted && corporateForm.privacyAccepted && corporateForm.businessType && corporateForm.businessRegistration && corporateForm.isIdChecked && corporateForm.isIdAvailable;
+  const isCorporateFormValid = isCorporatePasswordMatch && 
+    corporateForm.termsAccepted && 
+    corporateForm.privacyAccepted && 
+    corporateForm.corporateType && 
+    corporateForm.businessType && 
+    corporateForm.businessRegistration && 
+    corporateForm.isIdChecked && 
+    corporateForm.isIdAvailable &&
+    corporateForm.email &&
+    corporateForm.companyName &&
+    corporateForm.businessNumber &&
+    corporateForm.representativeName &&
+    corporateForm.managerName &&
+    corporateForm.address &&
+    corporateForm.phone &&
+    corporateForm.isPhoneVerified &&
+    // 프랜차이즈 지점 회원인 경우 추가 검증
+    (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName));
 
   const handleIdCheck = (type: 'individual' | 'corporate') => {
     const id = type === 'individual' ? individualForm.id : corporateForm.id;
@@ -139,13 +184,20 @@ const Register = () => {
   const handleBusinessRegistrationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // 이미지 파일만 허용
-      if (file.type.startsWith('image/')) {
+      // 이미지와 PDF 파일 허용
+      if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         setCorporateForm(prev => ({ ...prev, businessRegistration: file }));
       } else {
-        alert('이미지 파일만 업로드 가능합니다. (JPG, PNG, HEIC 등)');
+        alert('이미지 파일 또는 PDF 파일만 업로드 가능합니다.');
       }
     }
+  };
+
+  // 본사 선택 함수
+  const handleHeadquartersSelect = (headquarters: { id: string; name: string; businessNumber: string }) => {
+    setCorporateForm(prev => ({ ...prev, headquartersName: headquarters.name }));
+    setIsHeadquartersModalOpen(false);
+    setHeadquartersSearchTerm('');
   };
 
   return (
@@ -350,19 +402,77 @@ const Register = () => {
                   <CardTitle>법인회원 가입</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* 법인 유형 선택 */}
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">법인 회원 유형 (필수)</Label>
+                    <RadioGroup
+                      value={corporateForm.corporateType}
+                      onValueChange={(value) => setCorporateForm(prev => ({ 
+                        ...prev, 
+                        corporateType: value,
+                        // 유형 변경 시 관련 필드 초기화
+                        headquartersName: '',
+                        branchName: ''
+                      }))}
+                      className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                    >
+                      <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50">
+                        <RadioGroupItem value="headquarters" id="headquarters" />
+                        <Label htmlFor="headquarters" className="cursor-pointer flex-1">
+                          <div className="font-medium">프랜차이즈 본사 회원</div>
+                          <div className="text-sm text-muted-foreground">본사/가맹본부</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50">
+                        <RadioGroupItem value="franchise" id="franchise" />
+                        <Label htmlFor="franchise" className="cursor-pointer flex-1">
+                          <div className="font-medium">프랜차이즈 지점 회원</div>
+                          <div className="text-sm text-muted-foreground">가맹점/지점</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50">
+                        <RadioGroupItem value="single" id="single" />
+                        <Label htmlFor="single" className="cursor-pointer flex-1">
+                          <div className="font-medium">단일 법인 회원</div>
+                          <div className="text-sm text-muted-foreground">일반 법인</div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* 공통 입력 필드 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input placeholder="회사명" />
-                    <Input placeholder="사업자등록번호" />
+                    <Input 
+                      placeholder="회사명" 
+                      value={corporateForm.companyName}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
+                    />
+                    <Input 
+                      placeholder="사업자등록번호" 
+                      value={corporateForm.businessNumber}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber: e.target.value }))}
+                    />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input placeholder="대표자명" />
-                    <Input placeholder="담당자명" />
+                    <Input 
+                      placeholder="대표자명" 
+                      value={corporateForm.representativeName}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, representativeName: e.target.value }))}
+                    />
+                    <Input 
+                      placeholder="담당자명" 
+                      value={corporateForm.managerName}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, managerName: e.target.value }))}
+                    />
                   </div>
                   
                   {/* 법인 업종 선택 */}
                   <div className="space-y-2">
                     <Label htmlFor="businessType">법인 업종 (필수)</Label>
-                    <Select onValueChange={(value) => setCorporateForm(prev => ({ ...prev, businessType: value }))}>
+                    <Select 
+                      value={corporateForm.businessType}
+                      onValueChange={(value) => setCorporateForm(prev => ({ ...prev, businessType: value }))}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="업종을 선택해주세요" />
                       </SelectTrigger>
@@ -376,6 +486,75 @@ const Register = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* 프랜차이즈 지점 회원 전용 필드 */}
+                  {corporateForm.corporateType === 'franchise' && (
+                    <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
+                      <h3 className="font-medium text-sm text-muted-foreground">프랜차이즈 지점 정보</h3>
+                      
+                      {/* 본사명 선택 */}
+                      <div className="space-y-2">
+                        <Label>본사명 (필수)</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="본사를 선택해주세요" 
+                            value={corporateForm.headquartersName}
+                            readOnly
+                            className="flex-1"
+                          />
+                          <Dialog open={isHeadquartersModalOpen} onOpenChange={setIsHeadquartersModalOpen}>
+                            <DialogTrigger asChild>
+                              <Button type="button" variant="outline">
+                                <Search className="w-4 h-4 mr-2" />
+                                본사 선택
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>본사 선택</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <Input 
+                                  placeholder="본사명으로 검색..." 
+                                  value={headquartersSearchTerm}
+                                  onChange={(e) => setHeadquartersSearchTerm(e.target.value)}
+                                />
+                                <div className="max-h-60 overflow-y-auto space-y-2">
+                                  {filteredHeadquarters.map((hq) => (
+                                    <div 
+                                      key={hq.id}
+                                      className="border rounded-lg p-3 cursor-pointer hover:bg-muted/50"
+                                      onClick={() => handleHeadquartersSelect(hq)}
+                                    >
+                                      <div className="font-medium">{hq.name}</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        사업자번호: {hq.businessNumber}
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {filteredHeadquarters.length === 0 && (
+                                    <div className="text-center py-4 text-muted-foreground">
+                                      검색 결과가 없습니다.
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </div>
+
+                      {/* 지점명 입력 */}
+                      <div className="space-y-2">
+                        <Label>지점명 (필수)</Label>
+                        <Input 
+                          placeholder="지점명을 입력해주세요" 
+                          value={corporateForm.branchName}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, branchName: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <div className="flex gap-2">
@@ -453,6 +632,8 @@ const Register = () => {
                     <Input 
                       type="email" 
                       placeholder="이메일"
+                      value={corporateForm.email}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, email: e.target.value }))}
                       disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                     />
                     <div className="space-y-2">
@@ -516,7 +697,7 @@ const Register = () => {
                       <input
                         id="businessRegistration"
                         type="file"
-                        accept="image/*"
+                        accept="image/*,.pdf"
                         onChange={handleBusinessRegistrationUpload}
                         className="hidden"
                       />
@@ -539,7 +720,7 @@ const Register = () => {
                             <div className="space-y-1">
                               <p className="font-medium">사업자등록증을 업로드하세요</p>
                               <p className="text-xs text-muted-foreground">
-                                JPG, PNG, HEIC 등 이미지 파일만 가능
+                                이미지 파일(JPG, PNG, HEIC) 또는 PDF 파일
                               </p>
                             </div>
                           )}
