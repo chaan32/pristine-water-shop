@@ -528,7 +528,7 @@ const Register = () => {
       - 415 Unsupported Media Type: 지원하지 않는 파일 형식
       - 500 Internal Server Error: 서버 내부 오류
       */
-      const requestData = {
+      const requestData: any = {
         memberType: "corporate",
         corporateType: corporateForm.corporateType,
         id: corporateForm.id,
@@ -549,19 +549,28 @@ const Register = () => {
          })
       };
 
-      // 사업자등록증 파일이 있는 경우 FormData 사용
+      // 사업자등록증 파일을 Base64로 인코딩해서 JSON에 포함
       let body;
-      let headers: HeadersInit = {};
+      let headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
 
       if (corporateForm.businessRegistration) {
-        const formData = new FormData();
-        formData.append('data', JSON.stringify(requestData));
-        formData.append('businessRegistration', corporateForm.businessRegistration);
-        body = formData;
-      } else {
-        headers['Content-Type'] = 'application/json';
-        body = JSON.stringify(requestData);
+        // 파일을 Base64로 변환
+        const reader = new FileReader();
+        const fileData = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(corporateForm.businessRegistration!);
+        });
+        
+        requestData.businessRegistrationFile = {
+          name: corporateForm.businessRegistration.name,
+          type: corporateForm.businessRegistration.type,
+          data: fileData
+        };
       }
+
+      body = JSON.stringify(requestData);
 
       // 법인 유형별로 다른 endpoint 사용
       let endpoint;
