@@ -884,20 +884,6 @@ const Register = () => {
                     </Select>
                   </div>
 
-                  {/* 회사 명 / 사업자등록번호 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input 
-                      placeholder="회사명" 
-                      value={corporateForm.companyName}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
-                    />
-                    <Input 
-                      placeholder="사업자등록번호" 
-                      value={corporateForm.businessNumber}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber: e.target.value }))}
-                    />
-                  </div>
-
                   {/* 프랜차이즈 지점 회원 전용 필드 */}
                   {corporateForm.corporateType === 'franchise' && (
                     <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
@@ -969,6 +955,20 @@ const Register = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* 회사 명 / 사업자등록번호 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input 
+                      placeholder="회사명" 
+                      value={corporateForm.companyName}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
+                    />
+                    <Input 
+                      placeholder="사업자등록번호" 
+                      value={corporateForm.businessNumber}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber: e.target.value }))}
+                    />
+                  </div>
 
                   <div className="space-y-2">
                     <div className="flex gap-2">
