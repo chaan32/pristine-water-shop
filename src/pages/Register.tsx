@@ -439,11 +439,7 @@ const Register = () => {
       });
 
       if (response.ok) {
-        toast({
-          title: "회원가입 완료",
-          description: "개인회원 가입이 완료되었습니다.",
-        });
-        navigate('/');
+        navigate('/registration-success?type=individual');
       } else {
         throw new Error('회원가입 실패');
       }
@@ -586,11 +582,7 @@ const Register = () => {
       });
 
       if (response.ok) {
-        toast({
-          title: "회원가입 완료",
-          description: "법인회원 가입이 완료되었습니다.",
-        });
-        navigate('/');
+        navigate(`/registration-success?type=${corporateForm.corporateType}`);
       } else {
         throw new Error('회원가입 실패');
       }
