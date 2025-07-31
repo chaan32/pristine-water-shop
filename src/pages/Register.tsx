@@ -555,12 +555,12 @@ const Register = () => {
 
       if (corporateForm.businessRegistration) {
         const formData = new FormData();
-        formData.append(
-            'data',
-            new Blob([JSON.stringify(requestData)], { type: 'application/json' })
-        );
+        formData.append('data', JSON.stringify(requestData));
         formData.append('businessRegistration', corporateForm.businessRegistration);
         body = formData;
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify(requestData);
       }
 
 
