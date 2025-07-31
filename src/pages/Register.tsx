@@ -555,13 +555,14 @@ const Register = () => {
 
       if (corporateForm.businessRegistration) {
         const formData = new FormData();
-        formData.append('data', JSON.stringify(requestData));
+        formData.append(
+            'data',
+            new Blob([JSON.stringify(requestData)], { type: 'application/json' })
+        );
         formData.append('businessRegistration', corporateForm.businessRegistration);
         body = formData;
-      } else {
-        headers['Content-Type'] = 'application/json';
-        body = JSON.stringify(requestData);
       }
+
 
       // 법인 유형별로 다른 endpoint 사용
       let endpoint;
