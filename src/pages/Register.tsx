@@ -222,6 +222,7 @@ const Register = () => {
     corporateForm.businessNumber &&
     corporateForm.address &&
     corporateForm.phone &&
+    corporateForm.businessRegistration && // 사업자등록증 필수
     // 프랜차이즈 지점 회원인 경우 추가 검증
     (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName));
 
@@ -862,20 +863,6 @@ const Register = () => {
                     </RadioGroup>
                   </div>
 
-                  {/* 공통 입력 필드 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input 
-                      placeholder="회사명" 
-                      value={corporateForm.companyName}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
-                    />
-                    <Input 
-                      placeholder="사업자등록번호" 
-                      value={corporateForm.businessNumber}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber: e.target.value }))}
-                    />
-                  </div>
-                  
                   {/* 법인 업종 선택 */}
                   <div className="space-y-2">
                     <Label htmlFor="businessType">법인 업종 (필수)</Label>
@@ -895,6 +882,20 @@ const Register = () => {
                         <SelectItem value="other">기타</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* 회사 명 / 사업자등록번호 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input 
+                      placeholder="회사명" 
+                      value={corporateForm.companyName}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
+                    />
+                    <Input 
+                      placeholder="사업자등록번호" 
+                      value={corporateForm.businessNumber}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber: e.target.value }))}
+                    />
                   </div>
 
                   {/* 프랜차이즈 지점 회원 전용 필드 */}
@@ -1086,7 +1087,7 @@ const Register = () => {
                   
                   {/* 사업자등록증 업로드 */}
                   <div className="space-y-2">
-                    <Label htmlFor="businessRegistration">사업자등록증 업로드 (선택)</Label>
+                    <Label htmlFor="businessRegistration">사업자등록증 업로드 (필수)</Label>
                     <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors">
                       <input
                         id="businessRegistration"
