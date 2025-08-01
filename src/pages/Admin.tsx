@@ -11,10 +11,11 @@ import InquiryManagement from '@/components/Admin/InquiryManagement';
 import RefundExchangeManagement from '@/components/Admin/RefundExchangeManagement';
 
 const Admin = () => {
-  // 임시로 관리자 로그인 상태 체크 - 나중에 실제 인증 로직으로 대체
-  const [isAdmin] = useState(true); // 실제로는 로그인 상태에서 가져와야 함
+  // 실제 관리자 로그인 상태 체크
+  const userType = localStorage.getItem('userType');
+  const accessToken = localStorage.getItem('accessToken');
   
-  if (!isAdmin) {
+  if (!accessToken || userType !== 'admin') {
     return <Navigate to="/login" replace />;
   }
 

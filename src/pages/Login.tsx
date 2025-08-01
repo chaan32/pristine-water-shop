@@ -87,24 +87,29 @@ const Login = () => {
 
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.success) {
         // 토큰 저장
         localStorage.setItem('accessToken', data.data.accessToken);
-        localStorage.setItem('refreshToken', data.data.refreshToken);
+        localStorage.setItem('secretToken', data.data.secretToken);
         
         // 사용자 정보 저장
         const user = data.data.user;
         localStorage.setItem('userType', user.userType);
         localStorage.setItem('userName', user.name);
+        localStorage.setItem('userEmail', user.email);
+        localStorage.setItem('userId', user.id.toString());
         
         if (user.companyName) {
           localStorage.setItem('companyName', user.companyName);
         }
-        if (user.isHeadquarters !== undefined) {
-          localStorage.setItem('isHeadquarters', user.isHeadquarters.toString());
+        if (user.isHeadQuarters !== undefined) {
+          localStorage.setItem('isHeadquarters', user.isHeadQuarters.toString());
         }
         if (user.parentCompany) {
           localStorage.setItem('parentCompany', user.parentCompany);
+        }
+        if (user.permissions) {
+          localStorage.setItem('permissions', JSON.stringify(user.permissions));
         }
 
         // 사용자 타입에 따른 리다이렉트

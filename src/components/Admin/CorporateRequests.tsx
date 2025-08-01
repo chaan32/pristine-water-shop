@@ -15,54 +15,69 @@ import {
 } from '@/components/ui/table';
 import { CheckCircle, XCircle, Eye, Clock, Crown } from 'lucide-react';
 
+// ApproveResponseDto 타입 정의
+interface ApproveRequest {
+  id: number;
+  companyName: string;
+  branchName: string;
+  phone: string;
+  email: string;
+  businessRegistrationNumber: string;
+  businessRegistrationURL: string;
+  businessType: string;
+  isHeadquarters: boolean;
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  requestDate: string;
+}
+
 const CorporateRequests = () => {
-  const [requests, setRequests] = useState([
+  const [requests, setRequests] = useState<ApproveRequest[]>([
     {
       id: 1,
       companyName: 'DEF 펜션',
-      contactName: '정사장',
+      branchName: '제주점',
       email: 'def@pension.com',
       phone: '033-123-4567',
-      businessNumber: '456-78-91234',
+      businessRegistrationNumber: '456-78-91234',
+      businessRegistrationURL: 'https://example.com/business-cert-1.pdf',
       businessType: 'hotel',
       requestDate: '2024-07-20',
-      status: 'pending',
-      documents: ['사업자등록증', '통장사본'],
+      approvalStatus: 'PENDING',
       isHeadquarters: false
     },
     {
       id: 2,
       companyName: 'GHI 카페',
-      contactName: '김대표',
+      branchName: '강남점',
       email: 'ghi@cafe.com',
       phone: '02-987-6543',
-      businessNumber: '789-12-34567',
+      businessRegistrationNumber: '789-12-34567',
+      businessRegistrationURL: 'https://example.com/business-cert-2.pdf',
       businessType: 'cafe',
       requestDate: '2024-07-18',
-      status: 'pending',
-      documents: ['사업자등록증'],
+      approvalStatus: 'PENDING',
       isHeadquarters: false
     },
     {
       id: 3,
       companyName: 'JKL 리조트',
-      contactName: '이팀장',
+      branchName: '본사',
       email: 'jkl@resort.com',
       phone: '064-555-7777',
-      businessNumber: '321-65-98765',
+      businessRegistrationNumber: '321-65-98765',
+      businessRegistrationURL: 'https://example.com/business-cert-3.pdf',
       businessType: 'hotel',
       requestDate: '2024-07-15',
-      status: 'approved',
-      documents: ['사업자등록증', '통장사본', '신분증'],
+      approvalStatus: 'APPROVED',
       isHeadquarters: true
     }
   ]);
 
-  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [selectedRequest, setSelectedRequest] = useState<ApproveRequest | null>(null);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [isHeadquartersChecked, setIsHeadquartersChecked] = useState(false);
 
-  const handleApprovalClick = (request: any) => {
+  const handleApprovalClick = (request: ApproveRequest) => {
     setSelectedRequest(request);
     setIsHeadquartersChecked(request.isHeadquarters || false);
     setShowApprovalDialog(true);
@@ -72,7 +87,7 @@ const CorporateRequests = () => {
     if (selectedRequest) {
       setRequests(requests.map(req => 
         req.id === selectedRequest.id 
-          ? { ...req, status: 'approved', isHeadquarters: isHeadquartersChecked } 
+          ? { ...req, approvalStatus: 'APPROVED', isHeadquarters: isHeadquartersChecked } 
           : req
       ));
       setShowApprovalDialog(false);
@@ -83,7 +98,7 @@ const CorporateRequests = () => {
 
   const handleReject = (id: number) => {
     setRequests(requests.map(req => 
-      req.id === id ? { ...req, status: 'rejected' } : req
+      req.id === id ? { ...req, approvalStatus: 'REJECTED' } : req
     ));
     console.log('거절:', id);
   };
@@ -106,17 +121,17 @@ const CorporateRequests = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'PENDING':
         return <Badge variant="secondary" className="flex items-center gap-1">
           <Clock className="w-3 h-3" />
           검토중
         </Badge>;
-      case 'approved':
+      case 'APPROVED':
         return <Badge variant="default" className="flex items-center gap-1 bg-green-500">
           <CheckCircle className="w-3 h-3" />
           승인
         </Badge>;
-      case 'rejected':
+      case 'REJECTED':
         return <Badge variant="destructive" className="flex items-center gap-1">
           <XCircle className="w-3 h-3" />
           거절
@@ -126,7 +141,7 @@ const CorporateRequests = () => {
     }
   };
 
-  const pendingCount = requests.filter(req => req.status === 'pending').length;
+  const pendingCount = requests.filter(req => req.approvalStatus === 'PENDING').length;
 
   return (
     <div className="space-y-6">
@@ -145,13 +160,13 @@ const CorporateRequests = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>회사명</TableHead>
-                <TableHead>담당자</TableHead>
+                <TableHead>회사명/지점명</TableHead>
+                <TableHead>이메일</TableHead>
                 <TableHead>연락처</TableHead>
                 <TableHead>사업자번호</TableHead>
                 <TableHead>업종</TableHead>
                 <TableHead>요청일</TableHead>
-                <TableHead>제출 서류</TableHead>
+                <TableHead>사업자등록증</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead className="text-right">관리</TableHead>
               </TableRow>
@@ -161,8 +176,11 @@ const CorporateRequests = () => {
                 <TableRow key={request.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      {request.companyName}
-                      {request.isHeadquarters && request.status === 'approved' && (
+                      <div>
+                        <div>{request.companyName}</div>
+                        <div className="text-sm text-muted-foreground">{request.branchName}</div>
+                      </div>
+                      {request.isHeadquarters && request.approvalStatus === 'APPROVED' && (
                         <div title="본사 회원">
                           <Crown className="w-4 h-4 text-yellow-500" />
                         </div>
@@ -170,13 +188,10 @@ const CorporateRequests = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div>
-                      <div>{request.contactName}</div>
-                      <div className="text-sm text-muted-foreground">{request.email}</div>
-                    </div>
+                    {request.email}
                   </TableCell>
                   <TableCell>{request.phone}</TableCell>
-                  <TableCell className="font-mono text-sm">{request.businessNumber}</TableCell>
+                  <TableCell className="font-mono text-sm">{request.businessRegistrationNumber}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-xs">
                       {getBusinessTypeText(request.businessType)}
@@ -184,16 +199,17 @@ const CorporateRequests = () => {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{request.requestDate}</TableCell>
                   <TableCell>
-                    <div className="space-y-1">
-                      {request.documents.map((doc, index) => (
-                        <Badge key={index} variant="outline" className="mr-1 text-xs">
-                          {doc}
-                        </Badge>
-                      ))}
-                    </div>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => window.open(request.businessRegistrationURL, '_blank')}
+                      className="p-0 h-auto text-blue-600 hover:text-blue-800"
+                    >
+                      보기
+                    </Button>
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(request.status)}
+                    {getStatusBadge(request.approvalStatus)}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -204,7 +220,7 @@ const CorporateRequests = () => {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      {request.status === 'pending' && (
+                      {request.approvalStatus === 'PENDING' && (
                         <>
                           <Button
                             variant="outline"
@@ -253,7 +269,7 @@ const CorporateRequests = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {requests.filter(req => req.status === 'approved').length}
+              {requests.filter(req => req.approvalStatus === 'APPROVED').length}
             </div>
             <p className="text-xs text-muted-foreground">승인된 요청</p>
           </CardContent>
@@ -281,7 +297,8 @@ const CorporateRequests = () => {
             {selectedRequest && (
               <div className="space-y-2">
                 <p><strong>회사명:</strong> {selectedRequest.companyName}</p>
-                <p><strong>담당자:</strong> {selectedRequest.contactName}</p>
+                <p><strong>지점명:</strong> {selectedRequest.branchName}</p>
+                <p><strong>이메일:</strong> {selectedRequest.email}</p>
                 <p><strong>업종:</strong> {getBusinessTypeText(selectedRequest.businessType)}</p>
               </div>
             )}
