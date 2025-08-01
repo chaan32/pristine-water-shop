@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { LogIn, User, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,11 +16,12 @@ const Login = () => {
   });
 
   // 로그인 상태 체크
-  const accessToken = localStorage.getItem('accessToken');
-  if (accessToken) {
-    navigate('/', { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogin = async () => {
     /*

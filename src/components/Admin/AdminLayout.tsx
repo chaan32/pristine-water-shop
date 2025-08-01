@@ -22,7 +22,7 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [adminName] = useState(localStorage.getItem('userName') || '관리자');
+  const adminName = localStorage.getItem('userName') || '관리자';
   const location = useLocation();
 
   const menuItems = [
