@@ -94,16 +94,16 @@ const Login = () => {
         
         // 실제 API 응답 구조에 따른 사용자 정보 저장
         const user = data.data.user;
-        localStorage.setItem('userType', user.userType);
-        localStorage.setItem('userName', user.name);
-        localStorage.setItem('userEmail', user.email);
-        localStorage.setItem('userId', user.id.toString());
-        localStorage.setItem('username', user.username);
+        localStorage.setItem('userType', user.userType || '');
+        localStorage.setItem('userName', user.name || '');
+        localStorage.setItem('userEmail', user.email || '');
+        localStorage.setItem('userId', user.id ? user.id.toString() : '');
+        localStorage.setItem('username', user.username || '');
         
         if (user.companyName) {
           localStorage.setItem('companyName', user.companyName);
         }
-        if (user.isHeadQuarters !== undefined) {
+        if (user.isHeadQuarters !== undefined && user.isHeadQuarters !== null) {
           localStorage.setItem('isHeadquarters', user.isHeadQuarters.toString());
         }
         if (user.parentCompany) {
