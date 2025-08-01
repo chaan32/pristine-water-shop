@@ -88,16 +88,17 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // 토큰 저장
+        // 실제 API 응답 구조에 따른 토큰 저장
         localStorage.setItem('accessToken', data.data.accessToken);
         localStorage.setItem('secretToken', data.data.secretToken);
         
-        // 사용자 정보 저장
+        // 실제 API 응답 구조에 따른 사용자 정보 저장
         const user = data.data.user;
         localStorage.setItem('userType', user.userType);
         localStorage.setItem('userName', user.name);
         localStorage.setItem('userEmail', user.email);
         localStorage.setItem('userId', user.id.toString());
+        localStorage.setItem('username', user.username);
         
         if (user.companyName) {
           localStorage.setItem('companyName', user.companyName);
@@ -108,7 +109,7 @@ const Login = () => {
         if (user.parentCompany) {
           localStorage.setItem('parentCompany', user.parentCompany);
         }
-        if (user.permissions) {
+        if (user.permissions && Array.isArray(user.permissions)) {
           localStorage.setItem('permissions', JSON.stringify(user.permissions));
         }
 

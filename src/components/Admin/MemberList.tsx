@@ -20,99 +20,57 @@ const MemberList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('individual');
   const [showHeadquartersOnly, setShowHeadquartersOnly] = useState(false);
+  const [individualMembers, setIndividualMembers] = useState([]);
+  const [corporateMembers, setCorporateMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const individualMembers = [
-    {
-      id: 1,
-      name: '홍길동',
-      email: 'hong@email.com',
-      phone: '010-1234-5678',
-      joinDate: '2024-01-15',
-      orderCount: 12,
-      totalAmount: 890000,
-      status: '정상'
-    },
-    {
-      id: 2,
-      name: '김영희',
-      email: 'kim@email.com',
-      phone: '010-9876-5432',
-      joinDate: '2024-02-10',
-      orderCount: 8,
-      totalAmount: 650000,
-      status: '정상'
-    },
-    {
-      id: 3,
-      name: '박철수',
-      email: 'park@email.com',
-      phone: '010-5555-1234',
-      joinDate: '2024-03-05',
-      orderCount: 3,
-      totalAmount: 230000,
-      status: '휴면'
-    }
-  ];
+  // 실제 API에서 회원 목록 가져오기
+  const fetchMembers = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      
+      // 개인 회원 목록
+      const individualResponse = await fetch('http://localhost:8080/api/admin/members/individual', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-  const corporateMembers = [
-    {
-      id: 1,
-      companyName: 'ABC 호텔',
-      contactName: '이담당자',
-      email: 'contact@abchotel.com',
-      phone: '02-1234-5678',
-      businessNumber: '123-45-67890',
-      businessType: 'hotel',
-      memberType: 'headquarters',
-      joinDate: '2024-01-20',
-      orderCount: 25,
-      totalAmount: 5600000,
-      status: '정상'
-    },
-    {
-      id: 2,
-      companyName: 'XYZ 레스토랑',
-      contactName: '최매니저',
-      email: 'manager@xyz.com',
-      phone: '02-9876-5432',
-      businessNumber: '987-65-43210',
-      businessType: 'restaurant',
-      memberType: 'branch',
-      joinDate: '2024-02-15',
-      orderCount: 18,
-      totalAmount: 3200000,
-      status: '정상'
-    },
-    {
-      id: 3,
-      companyName: 'DEF 카페 본사',
-      contactName: '김본부장',
-      email: 'head@defcafe.com',
-      phone: '02-1111-2222',
-      businessNumber: '111-22-33444',
-      businessType: 'cafe',
-      memberType: 'headquarters',
-      joinDate: '2024-03-01',
-      orderCount: 45,
-      totalAmount: 8900000,
-      status: '정상'
-    },
-    {
-      id: 4,
-      companyName: 'DEF 카페 강남점',
-      contactName: '박점장',
-      email: 'gangnam@defcafe.com',
-      phone: '02-3333-4444',
-      businessNumber: '111-22-33444',
-      businessType: 'cafe',
-      memberType: 'branch',
-      parentCompany: 'DEF 카페 본사',
-      joinDate: '2024-03-10',
-      orderCount: 12,
-      totalAmount: 890000,
-      status: '정상'
+      // 법인 회원 목록
+      const corporateResponse = await fetch('http://localhost:8080/api/admin/members/corporate', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (individualResponse.ok) {
+        const individualData = await individualResponse.json();
+        if (individualData.success) {
+          setIndividualMembers(individualData.data);
+        }
+      }
+
+      if (corporateResponse.ok) {
+        const corporateData = await corporateResponse.json();
+        if (corporateData.success) {
+          setCorporateMembers(corporateData.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching members:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // 컴포넌트 마운트 시 데이터 로드
+  useState(() => {
+    fetchMembers();
+  });
 
   const filteredIndividual = individualMembers.filter(member =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

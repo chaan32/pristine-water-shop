@@ -31,47 +31,38 @@ interface ApproveRequest {
 }
 
 const CorporateRequests = () => {
-  const [requests, setRequests] = useState<ApproveRequest[]>([
-    {
-      id: 1,
-      companyName: 'DEF 펜션',
-      branchName: '제주점',
-      email: 'def@pension.com',
-      phone: '033-123-4567',
-      businessRegistrationNumber: '456-78-91234',
-      businessRegistrationURL: 'https://example.com/business-cert-1.pdf',
-      businessType: 'hotel',
-      requestDate: '2024-07-20',
-      approvalStatus: 'PENDING',
-      isHeadquarters: false
-    },
-    {
-      id: 2,
-      companyName: 'GHI 카페',
-      branchName: '강남점',
-      email: 'ghi@cafe.com',
-      phone: '02-987-6543',
-      businessRegistrationNumber: '789-12-34567',
-      businessRegistrationURL: 'https://example.com/business-cert-2.pdf',
-      businessType: 'cafe',
-      requestDate: '2024-07-18',
-      approvalStatus: 'PENDING',
-      isHeadquarters: false
-    },
-    {
-      id: 3,
-      companyName: 'JKL 리조트',
-      branchName: '본사',
-      email: 'jkl@resort.com',
-      phone: '064-555-7777',
-      businessRegistrationNumber: '321-65-98765',
-      businessRegistrationURL: 'https://example.com/business-cert-3.pdf',
-      businessType: 'hotel',
-      requestDate: '2024-07-15',
-      approvalStatus: 'APPROVED',
-      isHeadquarters: true
+  const [requests, setRequests] = useState<ApproveRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 실제 API에서 법인 승인 요청 목록 가져오기
+  const fetchCorporateRequests = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:8080/api/admin/corporate-requests', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setRequests(data.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching corporate requests:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  // 컴포넌트 마운트 시 데이터 로드
+  useState(() => {
+    fetchCorporateRequests();
+  });
 
   const [selectedRequest, setSelectedRequest] = useState<ApproveRequest | null>(null);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
@@ -83,24 +74,66 @@ const CorporateRequests = () => {
     setShowApprovalDialog(true);
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     if (selectedRequest) {
-      setRequests(requests.map(req => 
-        req.id === selectedRequest.id 
-          ? { ...req, approvalStatus: 'APPROVED', isHeadquarters: isHeadquartersChecked } 
-          : req
-      ));
-      setShowApprovalDialog(false);
-      setSelectedRequest(null);
-      console.log('승인:', selectedRequest.id, '본사 지위:', isHeadquartersChecked);
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        const response = await fetch(`http://localhost:8080/api/admin/corporate-requests/${selectedRequest.id}/approve`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            isHeadquarters: isHeadquartersChecked
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            // UI 업데이트
+            setRequests(requests.map(req => 
+              req.id === selectedRequest.id 
+                ? { ...req, approvalStatus: 'APPROVED', isHeadquarters: isHeadquartersChecked } 
+                : req
+            ));
+            setShowApprovalDialog(false);
+            setSelectedRequest(null);
+            alert('승인이 완료되었습니다.');
+          }
+        }
+      } catch (error) {
+        console.error('Error approving request:', error);
+        alert('승인 처리 중 오류가 발생했습니다.');
+      }
     }
   };
 
-  const handleReject = (id: number) => {
-    setRequests(requests.map(req => 
-      req.id === id ? { ...req, approvalStatus: 'REJECTED' } : req
-    ));
-    console.log('거절:', id);
+  const handleReject = async (id: number) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await fetch(`http://localhost:8080/api/admin/corporate-requests/${id}/reject`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setRequests(requests.map(req => 
+            req.id === id ? { ...req, approvalStatus: 'REJECTED' } : req
+          ));
+          alert('거절이 완료되었습니다.');
+        }
+      }
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      alert('거절 처리 중 오류가 발생했습니다.');
+    }
   };
 
   const handleViewDetail = (id: number) => {
