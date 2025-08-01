@@ -75,7 +75,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
               <span className="text-primary font-medium">
                 관리자 {adminName}님
               </span>
-              <Button variant="ghost" size="sm">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  localStorage.clear();
+                  window.location.href = '/login';
+                }}
+              >
                 <LogOut className="w-4 h-4 mr-1" />
                 로그아웃
               </Button>

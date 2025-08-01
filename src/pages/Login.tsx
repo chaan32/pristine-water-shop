@@ -15,6 +15,13 @@ const Login = () => {
     password: ''
   });
 
+  // 로그인 상태 체크
+  const accessToken = localStorage.getItem('accessToken');
+  if (accessToken) {
+    navigate('/', { replace: true });
+    return null;
+  }
+
   const handleLogin = async () => {
     /*
     ==================== API 요청 명세 ====================
