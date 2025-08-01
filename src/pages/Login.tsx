@@ -113,6 +113,8 @@ const Login = () => {
             navigate('/admin');
             break;
           case 'headquarters':
+            navigate('/headquarters-dashboard');
+            break;
           case 'branch':
           case 'corporate':
           case 'individual':

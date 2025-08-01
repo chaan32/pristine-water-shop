@@ -15,10 +15,11 @@ import {
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userType'));
-  const [userType, setUserType] = useState<'individual' | 'corporate' | 'admin'>(
-    (localStorage.getItem('userType') as 'individual' | 'corporate' | 'admin') || 'individual'
+  const [userType, setUserType] = useState<'individual' | 'corporate' | 'admin' | 'headquarters' | 'branch'>(
+    (localStorage.getItem('userType') as 'individual' | 'corporate' | 'admin' | 'headquarters' | 'branch') || 'individual'
   );
   const [userName] = useState(localStorage.getItem('userName') || '홍길동');
+  const [companyName] = useState(localStorage.getItem('companyName') || '');
   const [cartCount] = useState(3);
   const location = useLocation();
 
@@ -61,7 +62,10 @@ const Header = () => {
                 <>
                   <span className="text-primary font-medium">
                     {userType === 'admin' ? `관리자 ${userName}님` : 
-                     `${userName}님 (${userType === 'individual' ? '개인' : 'OO기업'})`}
+                     userType === 'headquarters' ? `${companyName || userName} (본사)` :
+                     userType === 'branch' ? `${userName} (${companyName || '지점'})` :
+                     userType === 'corporate' ? `${companyName || userName} (법인)` :
+                     `${userName}님 (개인)`}
                   </span>
                   <Button 
                     variant="ghost" 
@@ -145,10 +149,12 @@ const Header = () => {
           <div className="flex items-center gap-3">
             {/* My Page / Admin Panel */}
             {isLoggedIn && (
-              <Link to={userType === 'admin' ? '/admin' : '/mypage'}>
+              <Link to={userType === 'admin' ? '/admin' : 
+                       userType === 'headquarters' ? '/headquarters-dashboard' : '/mypage'}>
                 <Button variant="ghost" size="sm" className="hidden md:flex">
                   <User className="w-4 h-4 mr-1" />
-                  {userType === 'admin' ? '관리자 패널' : '마이페이지'}
+                  {userType === 'admin' ? '관리자 패널' : 
+                   userType === 'headquarters' ? '본사 대시보드' : '마이페이지'}
                 </Button>
               </Link>
             )}
@@ -220,15 +226,20 @@ const Header = () => {
                   <div className="space-y-2">
                     <p className="text-primary font-medium">
                       {userType === 'admin' ? `관리자 ${userName}님` : 
-                       `${userName}님 (${userType === 'individual' ? '개인' : 'OO기업'})`}
+                       userType === 'headquarters' ? `${companyName || userName} (본사)` :
+                       userType === 'branch' ? `${userName} (${companyName || '지점'})` :
+                       userType === 'corporate' ? `${companyName || userName} (법인)` :
+                       `${userName}님 (개인)`}
                     </p>
-                    <Link to={userType === 'admin' ? '/admin' : '/mypage'} onClick={() => setIsMenuOpen(false)}>
+                    <Link to={userType === 'admin' ? '/admin' : 
+                             userType === 'headquarters' ? '/headquarters-dashboard' : '/mypage'} onClick={() => setIsMenuOpen(false)}>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         className="w-full justify-start"
                       >
-                        {userType === 'admin' ? '관리자 패널' : '마이페이지'}
+                        {userType === 'admin' ? '관리자 패널' : 
+                         userType === 'headquarters' ? '본사 대시보드' : '마이페이지'}
                       </Button>
                     </Link>
                     <Button 

@@ -17,6 +17,7 @@ import Register from "./pages/Register";
 import RegistrationSuccess from "./pages/RegistrationSuccess";
 import MyPage from "./pages/MyPage";
 import Admin from "./pages/Admin";
+import HeadquartersDashboard from "./pages/HeadquartersDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/registration-success" element={<RegistrationSuccess />} />
           <Route path="/mypage" element={<MyPage />} />
+          <Route path="/headquarters-dashboard" element={<HeadquartersDashboard />} />
           <Route path="/admin/*" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
