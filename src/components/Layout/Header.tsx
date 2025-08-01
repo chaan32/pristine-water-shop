@@ -14,12 +14,17 @@ import {
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userType'));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
   const [userType, setUserType] = useState<'individual' | 'corporate' | 'admin' | 'headquarters' | 'branch'>(
     (localStorage.getItem('userType') as 'individual' | 'corporate' | 'admin' | 'headquarters' | 'branch') || 'individual'
   );
-  const [userName] = useState(localStorage.getItem('userName') || '홍길동');
-  const [companyName] = useState(localStorage.getItem('companyName') || '');
+  
+  // 실제 로그인 정보에서 가져오기
+  const userName = localStorage.getItem('userName') || '';
+  const companyName = localStorage.getItem('companyName') || '';
+  const isHeadquarters = localStorage.getItem('isHeadquarters') === 'true';
+  const parentCompany = localStorage.getItem('parentCompany') || '';
+  
   const [cartCount] = useState(3);
   const location = useLocation();
 
@@ -60,22 +65,32 @@ const Header = () => {
             <div className="hidden md:flex items-center gap-4">
               {isLoggedIn ? (
                 <>
-                  <span className="text-primary font-medium">
-                    {userType === 'admin' ? `관리자 ${userName}님` : 
-                     userType === 'headquarters' ? `${companyName || userName} (본사)` :
-                     userType === 'branch' ? `${userName} (${companyName || '지점'})` :
-                     userType === 'corporate' ? `${companyName || userName} (법인)` :
-                     `${userName}님 (개인)`}
-                  </span>
+                   <span className="text-primary font-medium">
+                     {userType === 'admin' ? `${userName}님` : 
+                      userType === 'headquarters' ? `${companyName} (본사)` :
+                      userType === 'branch' ? `${companyName} (${parentCompany})` :
+                      userType === 'corporate' ? `${companyName} (법인)` :
+                      `${userName}님 (개인)`}
+                   </span>
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => {
-                      localStorage.removeItem('userType');
-                      localStorage.removeItem('userName');
-                      setIsLoggedIn(false);
-                      window.location.href = '/';
-                    }}
+                     onClick={() => {
+                       // 모든 로그인 관련 데이터 삭제
+                       localStorage.removeItem('accessToken');
+                       localStorage.removeItem('secretToken');
+                       localStorage.removeItem('userType');
+                       localStorage.removeItem('userName');
+                       localStorage.removeItem('userEmail');
+                       localStorage.removeItem('userId');
+                       localStorage.removeItem('username');
+                       localStorage.removeItem('companyName');
+                       localStorage.removeItem('isHeadquarters');
+                       localStorage.removeItem('parentCompany');
+                       localStorage.removeItem('permissions');
+                       setIsLoggedIn(false);
+                       window.location.href = '/';
+                     }}
                   >
                     로그아웃
                   </Button>
@@ -224,13 +239,13 @@ const Header = () => {
               <div className="pt-4 border-t border-border">
                 {isLoggedIn ? (
                   <div className="space-y-2">
-                    <p className="text-primary font-medium">
-                      {userType === 'admin' ? `관리자 ${userName}님` : 
-                       userType === 'headquarters' ? `${companyName || userName} (본사)` :
-                       userType === 'branch' ? `${userName} (${companyName || '지점'})` :
-                       userType === 'corporate' ? `${companyName || userName} (법인)` :
-                       `${userName}님 (개인)`}
-                    </p>
+                     <p className="text-primary font-medium">
+                       {userType === 'admin' ? `${userName}님` : 
+                        userType === 'headquarters' ? `${companyName} (본사)` :
+                        userType === 'branch' ? `${companyName} (${parentCompany})` :
+                        userType === 'corporate' ? `${companyName} (법인)` :
+                        `${userName}님 (개인)`}
+                     </p>
                     <Link to={userType === 'admin' ? '/admin' : 
                              userType === 'headquarters' ? '/headquarters-dashboard' : '/mypage'} onClick={() => setIsMenuOpen(false)}>
                       <Button 
@@ -246,13 +261,23 @@ const Header = () => {
                       variant="ghost" 
                       size="sm" 
                       className="w-full justify-start"
-                      onClick={() => {
-                        localStorage.removeItem('userType');
-                        localStorage.removeItem('userName');
-                        setIsLoggedIn(false);
-                        setIsMenuOpen(false);
-                        window.location.href = '/';
-                      }}
+                       onClick={() => {
+                         // 모든 로그인 관련 데이터 삭제
+                         localStorage.removeItem('accessToken');
+                         localStorage.removeItem('secretToken');
+                         localStorage.removeItem('userType');
+                         localStorage.removeItem('userName');
+                         localStorage.removeItem('userEmail');
+                         localStorage.removeItem('userId');
+                         localStorage.removeItem('username');
+                         localStorage.removeItem('companyName');
+                         localStorage.removeItem('isHeadquarters');
+                         localStorage.removeItem('parentCompany');
+                         localStorage.removeItem('permissions');
+                         setIsLoggedIn(false);
+                         setIsMenuOpen(false);
+                         window.location.href = '/';
+                       }}
                     >
                       로그아웃
                     </Button>

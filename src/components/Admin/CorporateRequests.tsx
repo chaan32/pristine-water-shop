@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import { CheckCircle, XCircle, Eye, Clock, Crown } from 'lucide-react';
 
-// ApproveResponseDto 타입 정의
+// 실제 백엔드 ApproveResponseDto 구조에 맞는 타입 정의
 interface ApproveRequest {
   id: number;
   companyName: string;
@@ -27,7 +27,7 @@ interface ApproveRequest {
   businessType: string;
   isHeadquarters: boolean;
   approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
-  requestDate: string;
+  requestDate: string; // Date를 string으로 받아서 처리
 }
 
 const CorporateRequests = () => {
@@ -60,9 +60,9 @@ const CorporateRequests = () => {
   };
 
   // 컴포넌트 마운트 시 데이터 로드
-  useState(() => {
+  useEffect(() => {
     fetchCorporateRequests();
-  });
+  }, []);
 
   const [selectedRequest, setSelectedRequest] = useState<ApproveRequest | null>(null);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);

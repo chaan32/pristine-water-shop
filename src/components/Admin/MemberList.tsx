@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,12 +16,39 @@ import {
 } from '@/components/ui/table';
 import { Search, Eye, User, Building, Crown } from 'lucide-react';
 
+// 실제 백엔드 DTO 구조에 맞는 타입 정의
+interface IndividualMember {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  joinDate: string;
+  orderCount: number;
+  totalAmount: number;
+  status: string;
+}
+
+interface CorporateMember {
+  id: number;
+  companyName: string;
+  branchName: string;
+  email: string;
+  phone: string;
+  businessRegistrationNumber: string;
+  businessType: string;
+  isHeadquarters: boolean;
+  joinDate: string;
+  orderCount: number;
+  totalAmount: number;
+  status: string;
+}
+
 const MemberList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('individual');
   const [showHeadquartersOnly, setShowHeadquartersOnly] = useState(false);
-  const [individualMembers, setIndividualMembers] = useState([]);
-  const [corporateMembers, setCorporateMembers] = useState([]);
+  const [individualMembers, setIndividualMembers] = useState<IndividualMember[]>([]);
+  const [corporateMembers, setCorporateMembers] = useState<CorporateMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   // 실제 API에서 회원 목록 가져오기
@@ -68,9 +95,9 @@ const MemberList = () => {
   };
 
   // 컴포넌트 마운트 시 데이터 로드
-  useState(() => {
+  useEffect(() => {
     fetchMembers();
-  });
+  }, []);
 
   const filteredIndividual = individualMembers.filter(member =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,10 +106,9 @@ const MemberList = () => {
 
   const filteredCorporate = corporateMembers.filter(member => {
     const matchesSearch = member.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesFilter = showHeadquartersOnly ? member.memberType === 'headquarters' : true;
+    const matchesFilter = showHeadquartersOnly ? member.isHeadquarters : true;
     
     return matchesSearch && matchesFilter;
   });
@@ -99,13 +125,24 @@ const MemberList = () => {
     return types[type] || type;
   };
 
-  const getMemberTypeText = (type: string) => {
-    return type === 'headquarters' ? '본사' : '지점';
-  };
-
   const handleViewDetail = (id: number, type: 'individual' | 'corporate') => {
     console.log('회원 상세 조회:', { id, type });
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">회원 리스트</h1>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">로딩 중...</div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -214,11 +251,11 @@ const MemberList = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>회사명</TableHead>
-                    <TableHead>담당자</TableHead>
+                    <TableHead>지점명</TableHead>
                     <TableHead>이메일</TableHead>
                     <TableHead>연락처</TableHead>
                     <TableHead>사업자번호</TableHead>
-                    <TableHead>업종/구분</TableHead>
+                    <TableHead>업종</TableHead>
                     <TableHead>가입일</TableHead>
                     <TableHead>주문 수</TableHead>
                     <TableHead>총 구매금액</TableHead>
@@ -232,31 +269,21 @@ const MemberList = () => {
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {member.companyName}
-                           {member.memberType === 'headquarters' && (
+                           {member.isHeadquarters && (
                              <div title="본사 회원">
                                <Crown className="w-4 h-4 text-yellow-500" />
                              </div>
                            )}
                         </div>
-                        {member.parentCompany && (
-                          <div className="text-xs text-muted-foreground">
-                            소속: {member.parentCompany}
-                          </div>
-                        )}
                       </TableCell>
-                      <TableCell>{member.contactName}</TableCell>
+                      <TableCell>{member.branchName}</TableCell>
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.phone}</TableCell>
-                      <TableCell className="text-muted-foreground">{member.businessNumber}</TableCell>
+                      <TableCell className="text-muted-foreground">{member.businessRegistrationNumber}</TableCell>
                       <TableCell>
-                        <div className="space-y-1">
-                          <Badge variant="outline" className="text-xs">
-                            {getBusinessTypeText(member.businessType)}
-                          </Badge>
-                          <div className="text-xs text-muted-foreground">
-                            {getMemberTypeText(member.memberType)}
-                          </div>
-                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {getBusinessTypeText(member.businessType)}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
                       <TableCell>{member.orderCount}회</TableCell>
