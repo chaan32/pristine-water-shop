@@ -366,6 +366,7 @@ const CorporateRequests = () => {
                 <p><strong>회사명:</strong> {selectedRequest.companyName}</p>
                 <p><strong>지점명:</strong> {selectedRequest.branchName}</p>
                 <p><strong>이메일:</strong> {selectedRequest.email}</p>
+                <p><strong>연락처:</strong> {selectedRequest.phone}</p>
                 <p><strong>업종:</strong> {getBusinessTypeText(selectedRequest.businessType)}</p>
               </div>
             )}
