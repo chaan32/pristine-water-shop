@@ -20,18 +20,13 @@ const ProductManagement = () => {
     image: ''
   });
 
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([
-    { id: '1', name: '샤워 필터' },
-    { id: '2', name: '주방 필터' },
-    { id: '3', name: '산업용 필터' }
-  ]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
   const fetchCategories = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      console.log('카테고리 조회 시도, 토큰:', token ? '있음' : '없음');
       
       const response = await fetch('http://localhost:8080/api/admin/categories', {
         headers: {
@@ -40,19 +35,14 @@ const ProductManagement = () => {
         }
       });
       
-      console.log('카테고리 조회 응답 상태:', response.status);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('받은 카테고리 데이터:', data);
         if (data && Array.isArray(data) && data.length > 0) {
-          // 데이터 구조 정규화
           const normalizedCategories = data.map((item: any, index: number) => ({
             id: item.id || item.categoryId || (index + 100).toString(),
             name: item.name || item.categoryName || item.category || 'Unknown'
           }));
-          console.log('정규화된 카테고리:', normalizedCategories);
-          setCategories(prev => [...prev, ...normalizedCategories]);
+          setCategories(normalizedCategories);
         }
       }
     } catch (error) {
@@ -63,10 +53,8 @@ const ProductManagement = () => {
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
     
-    console.log('카테고리 추가 시도:', newCategoryName.trim());
-    
     try {
-      const token = localStorage.getItem('accessToken'); // 또는 적절한 토큰 저장소에서 가져오기
+      const token = localStorage.getItem('accessToken');
       const response = await fetch('http://localhost:8080/api/admin/categories/add', {
         method: 'POST',
         headers: {
@@ -76,18 +64,14 @@ const ProductManagement = () => {
         body: JSON.stringify({ name: newCategoryName.trim() }),
       });
       
-      console.log('응답 상태:', response.status);
-      
       if (response.ok) {
-        // 백엔드가 null을 반환할 수 있으므로 새 카테고리 객체를 직접 생성
         const newCategory = { 
-          id: Date.now().toString(), // 임시 ID
+          id: Date.now().toString(),
           name: newCategoryName.trim() 
         };
         setCategories(prev => [...prev, newCategory]);
         setNewCategoryName('');
         setIsAddCategoryOpen(false);
-        console.log('카테고리 추가 성공');
       }
     } catch (error) {
       console.error('카테고리 추가 실패:', error);
@@ -103,7 +87,6 @@ const ProductManagement = () => {
   };
 
   const handleSave = () => {
-    console.log('상품 등록:', formData);
     // 실제 저장 로직 구현
   };
 
@@ -179,18 +162,15 @@ const ProductManagement = () => {
                         카테고리가 없습니다
                       </DropdownMenuItem>
                     ) : (
-                      categories.map((category, index) => {
-                        console.log('렌더링 중인 카테고리:', category);
-                        return (
-                          <DropdownMenuItem 
-                            key={`${category.id}-${index}`}
-                            onClick={() => handleInputChange('category', category.name)}
-                            className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
-                          >
-                            <span className="text-sm font-medium">{category.name}</span>
-                          </DropdownMenuItem>
-                        );
-                      })
+                      categories.map((category, index) => (
+                        <DropdownMenuItem 
+                          key={`${category.id}-${index}`}
+                          onClick={() => handleInputChange('category', category.name)}
+                          className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
+                        >
+                          <span className="text-sm font-medium">{category.name}</span>
+                        </DropdownMenuItem>
+                      ))
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
