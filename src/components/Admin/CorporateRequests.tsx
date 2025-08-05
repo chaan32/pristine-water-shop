@@ -92,12 +92,8 @@ const CorporateRequests = () => {
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
-            // UI 업데이트
-            setRequests(requests.map(req => 
-              req.id === selectedRequest.id 
-                ? { ...req, approvalStatus: 'APPROVED', isHeadquarters: isHeadquartersChecked } 
-                : req
-            ));
+            // 서버에서 최신 데이터를 다시 가져옴
+            await fetchCorporateRequests();
             setShowApprovalDialog(false);
             setSelectedRequest(null);
             alert('승인이 완료되었습니다.');
@@ -124,9 +120,8 @@ const CorporateRequests = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setRequests(requests.map(req => 
-            req.id === id ? { ...req, approvalStatus: 'REJECTED' } : req
-          ));
+          // 서버에서 최신 데이터를 다시 가져옴
+          await fetchCorporateRequests();
           alert('거절이 완료되었습니다.');
         }
       }
