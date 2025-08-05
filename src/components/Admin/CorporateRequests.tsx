@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   Table,
   TableBody,
@@ -33,6 +34,7 @@ interface ApproveRequest {
 const CorporateRequests = () => {
   const [requests, setRequests] = useState<ApproveRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState<'all' | 'headquarters' | 'branch'>('all');
 
   // 실제 API에서 법인 승인 요청 목록 가져오기
   const fetchCorporateRequests = async () => {
@@ -174,6 +176,13 @@ const CorporateRequests = () => {
     }
   };
 
+  // 필터링된 요청 목록
+  const filteredRequests = requests.filter(request => {
+    if (filterType === 'headquarters') return request.isHeadquarters;
+    if (filterType === 'branch') return !request.isHeadquarters;
+    return true; // 'all'
+  });
+
   const pendingCount = requests.filter(req => req.approvalStatus === 'PENDING').length;
 
   return (
@@ -187,7 +196,32 @@ const CorporateRequests = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>등록 요청 목록</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>등록 요청 목록</span>
+            <div className="flex items-center gap-4">
+              <RadioGroup
+                value={filterType}
+                onValueChange={(value) => setFilterType(value as 'all' | 'headquarters' | 'branch')}
+                className="flex flex-row gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="all" />
+                  <Label htmlFor="all" className="text-sm">모두 보기</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="headquarters" id="headquarters" />
+                  <Label htmlFor="headquarters" className="text-sm flex items-center gap-1">
+                    <Crown className="w-3 h-3 text-yellow-500" />
+                    본사만 보기
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="branch" id="branch" />
+                  <Label htmlFor="branch" className="text-sm">지점만 보기</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -205,7 +239,7 @@ const CorporateRequests = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((request) => (
+              {filteredRequests.map((request) => (
                 <TableRow key={request.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
@@ -213,7 +247,7 @@ const CorporateRequests = () => {
                         <div>{request.companyName}</div>
                         <div className="text-sm text-muted-foreground">{request.branchName}</div>
                       </div>
-                      {request.isHeadquarters && request.approvalStatus === 'APPROVED' && (
+                      {request.isHeadquarters && (
                         <div title="본사 회원">
                           <Crown className="w-4 h-4 text-yellow-500" />
                         </div>
