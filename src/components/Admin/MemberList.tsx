@@ -131,6 +131,18 @@ const MemberList = () => {
     return types[type] || type;
   };
 
+  const getBusinessTypeStyle = (type: string) => {
+    const styles: { [key: string]: string } = {
+      bakery: 'bg-orange-50 text-orange-700 border-orange-200',
+      cafe: 'bg-amber-50 text-amber-700 border-amber-200',
+      franchise: 'bg-purple-50 text-purple-700 border-purple-200',
+      restaurant: 'bg-red-50 text-red-700 border-red-200',
+      hotel: 'bg-blue-50 text-blue-700 border-blue-200',
+      other: 'bg-gray-50 text-gray-700 border-gray-200'
+    };
+    return styles[type] || 'bg-gray-50 text-gray-700 border-gray-200';
+  };
+
   const handleViewDetail = (id: number, type: 'individual' | 'corporate') => {
     console.log('회원 상세 조회:', { id, type });
   };
@@ -282,23 +294,25 @@ const MemberList = () => {
                            )}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {member.isHeadquarters ? (
-                          <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                            본사
-                          </Badge>
-                        ) : (
-                          member.branchName
-                        )}
-                      </TableCell>
+                       <TableCell>
+                         {member.isHeadquarters ? (
+                           <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                             본사
+                           </Badge>
+                         ) : (
+                           <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                             {member.branchName}
+                           </Badge>
+                         )}
+                       </TableCell>
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.phone}</TableCell>
                       <TableCell className="text-muted-foreground">{member.businessRegistrationNumber}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {getBusinessTypeText(member.businessType)}
-                        </Badge>
-                      </TableCell>
+                       <TableCell>
+                         <Badge variant="outline" className={`text-xs ${getBusinessTypeStyle(member.businessType)}`}>
+                           {getBusinessTypeText(member.businessType)}
+                         </Badge>
+                       </TableCell>
                       <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
                       <TableCell>{member.orderCount}회</TableCell>
                       <TableCell>₩{member.totalAmount.toLocaleString()}</TableCell>
