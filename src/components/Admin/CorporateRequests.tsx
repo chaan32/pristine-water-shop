@@ -48,7 +48,12 @@ const CorporateRequests = () => {
 
       if (response.ok) {
         const data = await response.json();
-        if (data.success) {
+        console.log('Corporate requests data:', data);
+        
+        // API 응답이 직접 배열인 경우와 { success, data } 형태 모두 처리
+        if (Array.isArray(data)) {
+          setRequests(data);
+        } else if (data.success && data.data) {
           setRequests(data.data);
         }
       }
