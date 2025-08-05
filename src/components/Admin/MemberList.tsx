@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   Table,
   TableBody,
@@ -46,7 +47,7 @@ interface CorporateMember {
 const MemberList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('individual');
-  const [showHeadquartersOnly, setShowHeadquartersOnly] = useState(false);
+  const [filterType, setFilterType] = useState<'all' | 'headquarters' | 'branch'>('all');
   const [individualMembers, setIndividualMembers] = useState<IndividualMember[]>([]);
   const [corporateMembers, setCorporateMembers] = useState<CorporateMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,9 +109,9 @@ const MemberList = () => {
     const matchesSearch = member.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesFilter = showHeadquartersOnly ? member.isHeadquarters : true;
-    
-    return matchesSearch && matchesFilter;
+    if (filterType === 'headquarters') return matchesSearch && member.isHeadquarters;
+    if (filterType === 'branch') return matchesSearch && !member.isHeadquarters;
+    return matchesSearch; // 'all'
   });
 
   const getBusinessTypeText = (type: string) => {
@@ -231,20 +232,27 @@ const MemberList = () => {
 
             <TabsContent value="corporate" className="mt-6">
               <div className="mb-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="headquarters-filter" 
-                    checked={showHeadquartersOnly}
-                    onCheckedChange={(checked) => setShowHeadquartersOnly(!!checked)}
-                  />
-                  <Label 
-                    htmlFor="headquarters-filter" 
-                    className="text-sm cursor-pointer flex items-center gap-2"
-                  >
-                    <Crown className="w-4 h-4 text-yellow-500" />
-                    본사 회원만 보기
-                  </Label>
-                </div>
+                <RadioGroup
+                  value={filterType}
+                  onValueChange={(value) => setFilterType(value as 'all' | 'headquarters' | 'branch')}
+                  className="flex flex-row gap-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="all" id="all" />
+                    <Label htmlFor="all" className="text-sm">모두 보기</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="headquarters" id="headquarters" />
+                    <Label htmlFor="headquarters" className="text-sm flex items-center gap-1">
+                      <Crown className="w-4 h-4 text-yellow-500" />
+                      본사만 보기
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="branch" id="branch" />
+                    <Label htmlFor="branch" className="text-sm">지점만 보기</Label>
+                  </div>
+                </RadioGroup>
               </div>
               
               <Table>
@@ -276,7 +284,15 @@ const MemberList = () => {
                            )}
                         </div>
                       </TableCell>
-                      <TableCell>{member.branchName}</TableCell>
+                      <TableCell>
+                        {member.isHeadquarters ? (
+                          <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                            본사
+                          </Badge>
+                        ) : (
+                          member.branchName
+                        )}
+                      </TableCell>
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.phone}</TableCell>
                       <TableCell className="text-muted-foreground">{member.businessRegistrationNumber}</TableCell>
