@@ -25,8 +25,8 @@ const ProductManagement = () => {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('token'); // 또는 적절한 토큰 저장소에서 가져오기
-      const response = await fetch('/api/admin/categories', {
+      const token = localStorage.getItem('accessToken'); // 또는 적절한 토큰 저장소에서 가져오기
+      const response = await fetch('http://localhost:8080/api/admin/categories', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -45,8 +45,8 @@ const ProductManagement = () => {
     console.log('카테고리 추가 시도:', newCategoryName.trim());
     
     try {
-      const token = localStorage.getItem('token'); // 또는 적절한 토큰 저장소에서 가져오기
-      const response = await fetch('/api/admin/categories', {
+      const token = localStorage.getItem('accessToken'); // 또는 적절한 토큰 저장소에서 가져오기
+      const response = await fetch('http://localhost:8080/api/admin/categories/add', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
