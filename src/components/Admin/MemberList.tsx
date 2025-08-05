@@ -197,7 +197,6 @@ const MemberList = () => {
                     <TableHead>가입일</TableHead>
                     <TableHead>주문 수</TableHead>
                     <TableHead>총 구매금액</TableHead>
-                    <TableHead>상태</TableHead>
                     <TableHead className="text-right">관리</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -210,11 +209,6 @@ const MemberList = () => {
                       <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
                       <TableCell>{member.orderCount}회</TableCell>
                       <TableCell>₩{member.totalAmount.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Badge variant={member.status === '정상' ? 'default' : 'secondary'}>
-                          {member.status}
-                        </Badge>
-                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="outline"
@@ -267,7 +261,6 @@ const MemberList = () => {
                     <TableHead>가입일</TableHead>
                     <TableHead>주문 수</TableHead>
                     <TableHead>총 구매금액</TableHead>
-                    <TableHead>상태</TableHead>
                     <TableHead className="text-right">관리</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -304,11 +297,6 @@ const MemberList = () => {
                       <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
                       <TableCell>{member.orderCount}회</TableCell>
                       <TableCell>₩{member.totalAmount.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Badge variant={member.status === '정상' ? 'default' : 'secondary'}>
-                          {member.status}
-                        </Badge>
-                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="outline"
