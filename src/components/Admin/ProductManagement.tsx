@@ -8,9 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { Upload, Save, Plus, ChevronDown } from 'lucide-react';
 
 const ProductManagement = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -86,8 +88,68 @@ const ProductManagement = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    // 실제 저장 로직 구현
+  const handleSave = async () => {
+    // 필수 필드 검증
+    if (!formData.name || !formData.price || !formData.stock || !formData.category) {
+      toast({
+        title: "입력 오류",
+        description: "제품명, 가격, 재고, 카테고리는 필수 입력 항목입니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      
+      const productData = {
+        name: formData.name,
+        price: parseInt(formData.price),
+        stock: parseInt(formData.stock),
+        category: formData.category,
+        description: formData.description,
+        image: formData.image
+      };
+
+      const response = await fetch('http://localhost:8080/api/admin/products', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "상품 등록 성공",
+          description: "새 상품이 성공적으로 등록되었습니다.",
+        });
+        
+        // 폼 초기화
+        setFormData({
+          name: '',
+          price: '',
+          stock: '',
+          category: '',
+          description: '',
+          image: ''
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "상품 등록 실패",
+          description: errorData.message || "상품 등록 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "네트워크 오류",
+        description: "서버와의 연결에 문제가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
   };
 
   const recentProducts = [
