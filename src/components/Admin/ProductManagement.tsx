@@ -26,7 +26,7 @@ const ProductManagement = () => {
   // 카테고리 목록 가져오기
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch('/api/admin/categories');
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -39,7 +39,7 @@ const ProductManagement = () => {
     if (!newCategoryName.trim()) return;
     
     try {
-      const response = await fetch('/api/categories', {
+      const response = await fetch('/api/admin/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
