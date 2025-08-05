@@ -48,11 +48,14 @@ const ProductManagement = () => {
       });
       
       if (response.ok) {
-        const newCategory = await response.json();
+        // 백엔드가 null을 반환할 수 있으므로 새 카테고리 객체를 직접 생성
+        const newCategory = { 
+          id: Date.now().toString(), // 임시 ID
+          name: newCategoryName.trim() 
+        };
         setCategories(prev => [...prev, newCategory]);
         setNewCategoryName('');
         setIsAddCategoryOpen(false);
-        console.log('카테고리 추가 성공');
       }
     } catch (error) {
       console.error('카테고리 추가 실패:', error);
