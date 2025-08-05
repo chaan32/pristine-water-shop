@@ -46,7 +46,13 @@ const ProductManagement = () => {
         const data = await response.json();
         console.log('받은 카테고리 데이터:', data);
         if (data && Array.isArray(data) && data.length > 0) {
-          setCategories(data);
+          // 데이터 구조 정규화
+          const normalizedCategories = data.map((item: any, index: number) => ({
+            id: item.id || item.categoryId || (index + 100).toString(),
+            name: item.name || item.categoryName || item.category || 'Unknown'
+          }));
+          console.log('정규화된 카테고리:', normalizedCategories);
+          setCategories(prev => [...prev, ...normalizedCategories]);
         }
       }
     } catch (error) {
@@ -167,21 +173,24 @@ const ProductManagement = () => {
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-full min-w-[200px]">
+                  <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                     {categories.length === 0 ? (
-                      <DropdownMenuItem disabled>
+                      <DropdownMenuItem disabled className="text-gray-500">
                         카테고리가 없습니다
                       </DropdownMenuItem>
                     ) : (
-                      categories.map((category) => (
-                        <DropdownMenuItem 
-                          key={category.id}
-                          onClick={() => handleInputChange('category', category.name)}
-                          className="cursor-pointer"
-                        >
-                          {category.name}
-                        </DropdownMenuItem>
-                      ))
+                      categories.map((category, index) => {
+                        console.log('렌더링 중인 카테고리:', category);
+                        return (
+                          <DropdownMenuItem 
+                            key={`${category.id}-${index}`}
+                            onClick={() => handleInputChange('category', category.name)}
+                            className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
+                          >
+                            <span className="text-sm font-medium">{category.name}</span>
+                          </DropdownMenuItem>
+                        );
+                      })
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
