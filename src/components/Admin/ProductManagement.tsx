@@ -23,10 +23,15 @@ const ProductManagement = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
-  // 카테고리 목록 가져오기
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/admin/categories');
+      const token = localStorage.getItem('token'); // 또는 적절한 토큰 저장소에서 가져오기
+      const response = await fetch('/api/admin/categories', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -40,9 +45,11 @@ const ProductManagement = () => {
     console.log('카테고리 추가 시도:', newCategoryName.trim());
     
     try {
+      const token = localStorage.getItem('token'); // 또는 적절한 토큰 저장소에서 가져오기
       const response = await fetch('/api/admin/categories', {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ name: newCategoryName.trim() }),
