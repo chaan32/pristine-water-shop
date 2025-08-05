@@ -364,7 +364,7 @@ const CorporateRequests = () => {
             {selectedRequest && (
               <div className="space-y-2">
                 <p><strong>회사명:</strong> {selectedRequest.companyName}</p>
-                {!selectedRequest.isHeadquarters && (
+                {!selectedRequest.isHeadquarters && selectedRequest.branchName && (
                   <p><strong>지점명:</strong> {selectedRequest.branchName}</p>
                 )}
                 <p><strong>이메일:</strong> {selectedRequest.email}</p>
