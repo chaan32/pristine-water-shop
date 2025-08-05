@@ -19,21 +19,35 @@ const ProductManagement = () => {
     image: ''
   });
 
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([
+    { id: '1', name: '샤워 필터' },
+    { id: '2', name: '주방 필터' },
+    { id: '3', name: '산업용 필터' }
+  ]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem('accessToken'); // 또는 적절한 토큰 저장소에서 가져오기
+      const token = localStorage.getItem('accessToken');
+      console.log('카테고리 조회 시도, 토큰:', token ? '있음' : '없음');
+      
       const response = await fetch('http://localhost:8080/api/admin/categories', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      const data = await response.json();
-      setCategories(data);
+      
+      console.log('카테고리 조회 응답 상태:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('받은 카테고리 데이터:', data);
+        if (data && Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+        }
+      }
     } catch (error) {
       console.error('카테고리 가져오기 실패:', error);
     }
@@ -150,11 +164,21 @@ const ProductManagement = () => {
                     <SelectValue placeholder="카테고리를 선택하세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.name}>
-                        {category.name}
+                    {categories.length === 0 ? (
+                      <SelectItem value="no-categories" disabled>
+                        카테고리가 없습니다
                       </SelectItem>
-                    ))}
+                    ) : (
+                      categories.map((category) => (
+                        <SelectItem 
+                          key={category.id} 
+                          value={category.name}
+                          className="text-gray-900 dark:text-gray-100"
+                        >
+                          {category.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
