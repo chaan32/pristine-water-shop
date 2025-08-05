@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Upload, Save, Plus } from 'lucide-react';
+import { Upload, Save, Plus, ChevronDown } from 'lucide-react';
 
 const ProductManagement = () => {
   const [formData, setFormData] = useState({
@@ -159,28 +160,31 @@ const ProductManagement = () => {
             <div className="space-y-2">
               <Label htmlFor="category">카테고리</Label>
               <div className="flex gap-2">
-                <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="카테고리를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex-1 justify-between">
+                      {formData.category || "카테고리를 선택하세요"}
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-full min-w-[200px]">
                     {categories.length === 0 ? (
-                      <SelectItem value="no-categories" disabled>
+                      <DropdownMenuItem disabled>
                         카테고리가 없습니다
-                      </SelectItem>
+                      </DropdownMenuItem>
                     ) : (
                       categories.map((category) => (
-                        <SelectItem 
-                          key={category.id} 
-                          value={category.name}
-                          className="text-gray-900 dark:text-gray-100"
+                        <DropdownMenuItem 
+                          key={category.id}
+                          onClick={() => handleInputChange('category', category.name)}
+                          className="cursor-pointer"
                         >
                           {category.name}
-                        </SelectItem>
+                        </DropdownMenuItem>
                       ))
                     )}
-                  </SelectContent>
-                </Select>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="icon">
