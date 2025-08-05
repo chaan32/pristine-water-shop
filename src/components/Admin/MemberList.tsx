@@ -84,7 +84,9 @@ const MemberList = () => {
 
       if (corporateResponse.ok) {
         const corporateData = await corporateResponse.json();
+        console.log('Corporate data:', corporateData);
         if (corporateData.success) {
+          console.log('Corporate members:', corporateData.data);
           setCorporateMembers(corporateData.data);
         }
       }
@@ -108,6 +110,9 @@ const MemberList = () => {
   const filteredCorporate = corporateMembers.filter(member => {
     const matchesSearch = member.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    console.log('Filter type:', filterType);
+    console.log('Member:', member.companyName, 'isHeadquarters:', member.isHeadquarters);
     
     if (filterType === 'headquarters') return matchesSearch && member.isHeadquarters;
     if (filterType === 'branch') return matchesSearch && !member.isHeadquarters;
