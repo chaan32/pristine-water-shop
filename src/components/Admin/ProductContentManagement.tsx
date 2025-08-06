@@ -26,14 +26,16 @@ const ProductContentManagement = () => {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [contentData, setContentData] = useState({
     title: '',
-    thumbnailImage: '',
-    gallery: [] as string[],
     overview: '',
     sections: [] as { subtitle: string; content: string }[],
     faq: [] as { question: string; answer: string }[],
     warranty: '',
     certifications: ''
   });
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
   // API에서 상품 목록 가져오기
   const fetchProducts = async () => {
@@ -146,17 +148,14 @@ const ProductContentManagement = () => {
     }));
   };
 
-  const handleImageUpload = (field: string, file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      handleInputChange(field, result);
-    };
-    reader.readAsDataURL(file);
+  const handleImageUpload = (file: File) => {
+    setThumbnailFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setThumbnailPreview(previewUrl);
   };
 
   const handleGalleryImageUpload = (file: File) => {
-    if (contentData.gallery.length >= 5) {
+    if (galleryFiles.length >= 5) {
       toast({
         title: "이미지 제한",
         description: "갤러리 이미지는 최대 5장까지 업로드 가능합니다.",
@@ -165,22 +164,14 @@ const ProductContentManagement = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setContentData(prev => ({
-        ...prev,
-        gallery: [...prev.gallery, result]
-      }));
-    };
-    reader.readAsDataURL(file);
+    setGalleryFiles(prev => [...prev, file]);
+    const previewUrl = URL.createObjectURL(file);
+    setGalleryPreviews(prev => [...prev, previewUrl]);
   };
 
   const removeGalleryImage = (index: number) => {
-    setContentData(prev => ({
-      ...prev,
-      gallery: prev.gallery.filter((_, i) => i !== index)
-    }));
+    setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const convertToHtml = () => {
@@ -223,20 +214,49 @@ const ProductContentManagement = () => {
       return;
     }
 
-    const htmlContent = convertToHtml();
-    const postData = {
-      productId: selectedProduct,
-      title: contentData.title,
-      thumbnailImage: contentData.thumbnailImage,
-      gallery: contentData.gallery,
-      htmlContent: htmlContent
-    };
-
-    console.log('저장될 데이터:', postData);
-    toast({
-      title: "저장 완료",
-      description: "상품 상세 컨텐츠가 HTML로 변환되어 저장되었습니다.",
+    const formData = new FormData();
+    
+    // 기본 데이터 추가
+    formData.append('productId', selectedProduct);
+    formData.append('title', contentData.title);
+    formData.append('htmlContent', convertToHtml());
+    
+    // 썸네일 이미지 파일 추가
+    if (thumbnailFile) {
+      formData.append('thumbnailImage', thumbnailFile);
+    }
+    
+    // 갤러리 이미지 파일들 추가
+    galleryFiles.forEach((file, index) => {
+      formData.append(`galleryImage_${index}`, file);
     });
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:8080/api/admin/products/content', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Content-Type 헤더는 FormData 사용 시 자동으로 multipart/form-data로 설정됨
+        },
+        body: formData // FormData 객체 직접 전송 (multipart/form-data)
+      });
+
+      if (response.ok) {
+        toast({
+          title: "저장 완료",
+          description: "상품 상세 컨텐츠가 저장되었습니다.",
+        });
+      } else {
+        throw new Error('저장 실패');
+      }
+    } catch (error) {
+      toast({
+        title: "저장 실패",
+        description: "컨텐츠 저장 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePreview = () => {
@@ -268,14 +288,14 @@ const ProductContentManagement = () => {
               
               <div className="space-y-6">
                 {/* 썸네일 */}
-                {contentData.thumbnailImage && (
+                {thumbnailPreview && (
                   <Card>
                     <CardHeader>
                       <CardTitle>제품 썸네일</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <img 
-                        src={contentData.thumbnailImage} 
+                        src={thumbnailPreview} 
                         alt="제품 썸네일" 
                         className="w-48 h-48 object-cover rounded-lg border"
                       />
@@ -308,14 +328,14 @@ const ProductContentManagement = () => {
                 ))}
 
                 {/* 갤러리 */}
-                {contentData.gallery.length > 0 && (
+                {galleryPreviews.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle>제품 갤러리</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {contentData.gallery.map((image, index) => (
+                        {galleryPreviews.map((image, index) => (
                           <img
                             key={index}
                             src={image}
@@ -429,65 +449,34 @@ const ProductContentManagement = () => {
               <CardHeader>
                 <CardTitle>이미지 관리</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="thumbnail">썸네일 이미지</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="thumbnail"
-                      value={contentData.thumbnailImage}
-                      onChange={(e) => handleInputChange('thumbnailImage', e.target.value)}
-                      placeholder="이미지 URL 또는 파일 업로드"
-                    />
+                  <Label htmlFor="thumbnail">제품 썸네일</Label>
+                  <div className="flex items-center gap-4">
                     <Input
                       type="file"
                       accept="image/*"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          handleImageUpload('thumbnailImage', file);
+                          handleImageUpload(file);
                         }
                       }}
-                      className="hidden"
-                      id="thumbnail-file"
+                      className="flex-1"
                     />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => document.getElementById('thumbnail-file')?.click()}
-                    >
-                      <Upload className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  {contentData.thumbnailImage && (
-                    <div className="mt-2">
-                      <img
-                        src={contentData.thumbnailImage}
-                        alt="썸네일 미리보기"
-                        className="w-32 h-32 object-cover rounded-md border"
+                    {thumbnailPreview && (
+                      <img 
+                        src={thumbnailPreview} 
+                        alt="썸네일 미리보기" 
+                        className="w-16 h-16 object-cover rounded border"
                       />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid gap-2">
                   <Label>갤러리 이미지</Label>
                   <div className="flex gap-2">
-                    <Input
-                      placeholder="갤러리에 추가할 이미지 URL"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          const url = (e.target as HTMLInputElement).value;
-                          if (url) {
-                            setContentData(prev => ({
-                              ...prev,
-                              gallery: [...prev.gallery, url]
-                            }));
-                            (e.target as HTMLInputElement).value = '';
-                          }
-                        }
-                      }}
-                    />
                     <Input
                       type="file"
                       accept="image/*"
@@ -502,53 +491,36 @@ const ProductContentManagement = () => {
                     />
                     <Button 
                       variant="outline" 
-                      size="icon"
                       onClick={() => document.getElementById('gallery-file')?.click()}
                     >
-                      <Upload className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      onClick={() => {
-                        const input = document.querySelector('input[placeholder="갤러리에 추가할 이미지 URL"]') as HTMLInputElement;
-                        const url = input.value;
-                        if (url) {
-                          setContentData(prev => ({
-                            ...prev,
-                            gallery: [...prev.gallery, url]
-                          }));
-                          input.value = '';
-                        }
-                      }}
-                    >
-                      <Plus className="w-4 h-4" />
+                      <Upload className="w-4 h-4 mr-2" />
+                      이미지 추가
                     </Button>
                   </div>
-                   {contentData.gallery.length > 0 && (
-                     <div className="mt-4">
-                       <p className="text-sm text-muted-foreground mb-2">갤러리 이미지 ({contentData.gallery.length}/5)</p>
-                       <div className="grid grid-cols-3 gap-4">
-                         {contentData.gallery.map((image, index) => (
-                           <div key={index} className="relative">
-                             <img
-                               src={image}
-                               alt={`갤러리 이미지 ${index + 1}`}
-                               className="w-full h-24 object-cover rounded-md border"
-                             />
-                             <Button
-                               variant="destructive"
-                               size="icon"
-                               className="absolute top-1 right-1 h-6 w-6"
-                               onClick={() => removeGalleryImage(index)}
-                             >
-                               <Trash2 className="w-3 h-3" />
-                             </Button>
-                           </div>
-                         ))}
-                       </div>
-                     </div>
-                   )}
+                  {galleryFiles.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground mb-2">갤러리 이미지 ({galleryFiles.length}/5)</p>
+                      <div className="grid grid-cols-3 gap-4">
+                        {galleryPreviews.map((image, index) => (
+                          <div key={index} className="relative">
+                            <img
+                              src={image}
+                              alt={`갤러리 이미지 ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-md border"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-1 right-1 h-6 w-6"
+                              onClick={() => removeGalleryImage(index)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
