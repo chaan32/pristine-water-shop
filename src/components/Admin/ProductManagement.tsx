@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Plus, ChevronDown } from 'lucide-react';
+import { Save, Plus, ChevronDown, Check, Search } from 'lucide-react';
 
 const ProductManagement = () => {
   const { toast } = useToast();
@@ -28,6 +29,8 @@ const ProductManagement = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [categorySearchOpen, setCategorySearchOpen] = useState(false);
+  const [categorySearchValue, setCategorySearchValue] = useState('');
 
   const fetchCategories = async () => {
     try {
@@ -111,12 +114,69 @@ const ProductManagement = () => {
         setCategories(prev => [...prev, newCategory]);
         setNewCategoryName('');
         setIsAddCategoryOpen(false);
+        setCategorySearchOpen(false);
         fetchCategories(); // 카테고리 목록 새로고침
+        
+        toast({
+          title: "카테고리 추가 성공",
+          description: `"${newCategoryName.trim()}" 카테고리가 추가되었습니다.`,
+        });
       }
     } catch (error) {
       console.error('카테고리 추가 실패:', error);
+      toast({
+        title: "카테고리 추가 실패",
+        description: "카테고리 추가 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
     }
   };
+
+  const handleAddCategoryFromSearch = async () => {
+    if (!categorySearchValue.trim()) return;
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:8080/api/admin/categories/add', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: categorySearchValue.trim() }),
+      });
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        const newCategory = { 
+          id: responseData.id || responseData.categoryId || Date.now().toString(),
+          name: categorySearchValue.trim() 
+        };
+        setCategories(prev => [...prev, newCategory]);
+        handleInputChange('categoryId', newCategory.id);
+        setSelectedCategoryName(newCategory.name);
+        setCategorySearchValue('');
+        setCategorySearchOpen(false);
+        fetchCategories();
+        
+        toast({
+          title: "카테고리 추가 성공",
+          description: `"${categorySearchValue.trim()}" 카테고리가 추가되고 선택되었습니다.`,
+        });
+      }
+    } catch (error) {
+      console.error('카테고리 추가 실패:', error);
+      toast({
+        title: "카테고리 추가 실패",
+        description: "카테고리 추가 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(categorySearchValue.toLowerCase())
+  );
 
   useEffect(() => {
     fetchCategories();
@@ -240,40 +300,63 @@ const ProductManagement = () => {
             <div className="space-y-2">
               <Label htmlFor="category">카테고리</Label>
               <div className="flex gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                <Popover open={categorySearchOpen} onOpenChange={setCategorySearchOpen}>
+                  <PopoverTrigger asChild>
                     <Button variant="outline" className="flex-1 justify-between">
-                      {selectedCategoryName || "카테고리를 선택하세요"}
+                      {selectedCategoryName || "카테고리를 검색하고 선택하세요"}
                       <ChevronDown className="h-4 w-4" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                    {categories.length === 0 ? (
-                      <DropdownMenuItem disabled className="text-gray-500">
-                        카테고리가 없습니다
-                      </DropdownMenuItem>
-                    ) : (
-                      categories.map((category, index) => (
-                        <DropdownMenuItem 
-                          key={`${category.id}-${index}`}
-                           onClick={() => {
-                            handleInputChange('categoryId', category.id);
-                            setSelectedCategoryName(category.name);
-                          }}
-                          className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
-                        >
-                          <span className="text-sm font-medium">{category.name}</span>
-                        </DropdownMenuItem>
-                      ))
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0" side="bottom" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="카테고리 검색..." 
+                        value={categorySearchValue}
+                        onValueChange={setCategorySearchValue}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          <div className="p-4 text-center">
+                            <p className="text-sm text-muted-foreground mb-2">
+                              "{categorySearchValue}"에 대한 결과가 없습니다.
+                            </p>
+                            {categorySearchValue.trim() && (
+                              <Button 
+                                size="sm" 
+                                onClick={handleAddCategoryFromSearch}
+                                className="w-full"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                "{categorySearchValue}" 카테고리 추가
+                              </Button>
+                            )}
+                          </div>
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {filteredCategories.map((category, index) => (
+                            <CommandItem
+                              key={`${category.id}-${index}`}
+                              value={category.name}
+                              onSelect={() => {
+                                handleInputChange('categoryId', category.id);
+                                setSelectedCategoryName(category.name);
+                                setCategorySearchOpen(false);
+                                setCategorySearchValue('');
+                              }}
+                            >
+                              <Check className={`mr-2 h-4 w-4 ${formData.categoryId === category.id ? "opacity-100" : "opacity-0"}`} />
+                              {category.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </DialogTrigger>
+                  <Button variant="outline" size="icon" onClick={() => setIsAddCategoryOpen(true)}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>새 카테고리 추가</DialogTitle>
