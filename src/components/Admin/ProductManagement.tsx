@@ -185,16 +185,10 @@ const ProductManagement = () => {
         toast({
           title: "상품 등록 성공",
           description: "상품이 등록되었습니다.",
-          action: (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate(`/admin?tab=product-content&productId=${createdProduct.id || createdProduct.productId}`)}
-            >
-              상세 컨텐츠 작성
-            </Button>
-          ),
         });
+        
+        // 자동으로 상품 상세 페이지로 이동
+        navigate(`/admin?tab=product-content&productId=${createdProduct.id || createdProduct.productId}`);
         
         // 폼 초기화
         setFormData({
