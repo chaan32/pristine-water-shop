@@ -125,13 +125,17 @@ const ProductManagement = () => {
       });
       
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('카테고리 추가 응답:', responseData);
+        
         const newCategory = { 
-          id: Date.now().toString(),
+          id: responseData.id || responseData.categoryId || Date.now().toString(),
           name: newCategoryName.trim() 
         };
         setCategories(prev => [...prev, newCategory]);
         setNewCategoryName('');
         setIsAddCategoryOpen(false);
+        fetchCategories(); // 카테고리 목록 새로고침
       }
     } catch (error) {
       console.error('카테고리 추가 실패:', error);
@@ -194,7 +198,11 @@ const ProductManagement = () => {
         // 상품 상세 페이지로 이동
         const targetUrl = `/admin?tab=product-content&productId=${productId}`;
         console.log('이동할 경로:', targetUrl);
-        navigate(targetUrl);
+        
+        // 토스트 표시 후 잠시 기다린 다음 이동
+        setTimeout(() => {
+          navigate(targetUrl);
+        }, 1000);
         
         // 폼 초기화
         setFormData({
