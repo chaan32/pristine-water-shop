@@ -239,8 +239,8 @@ const ProductEdit = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
+                {filteredProducts.map((product, index) => (
+                  <TableRow key={product.id || `product-${index}`}>
                     <TableCell className="font-medium">{product.name || '-'}</TableCell>
                     <TableCell>{product.category || '-'}</TableCell>
                     <TableCell>₩{(product.customerPrice || 0).toLocaleString()}</TableCell>
