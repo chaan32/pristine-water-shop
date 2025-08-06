@@ -41,17 +41,38 @@ const ProductManagement = () => {
       });
       
       if (response.ok) {
-        const data = await response.json();
-        if (data && Array.isArray(data) && data.length > 0) {
-          const normalizedCategories = data.map((item: any, index: number) => ({
-            id: item.id || item.categoryId || (index + 100).toString(),
-            name: item.name || item.categoryName || item.category || 'Unknown'
-          }));
-          setCategories(normalizedCategories);
+        const responseText = await response.text();
+        console.log('카테고리 응답:', responseText);
+        
+        if (responseText.trim()) {
+          try {
+            const data = JSON.parse(responseText);
+            if (data && Array.isArray(data) && data.length > 0) {
+              const normalizedCategories = data.map((item: any, index: number) => ({
+                id: item.id || item.categoryId || (index + 100).toString(),
+                name: item.name || item.categoryName || item.category || 'Unknown'
+              }));
+              setCategories(normalizedCategories);
+            } else {
+              console.log('카테고리 데이터가 없습니다:', data);
+              setCategories([]);
+            }
+          } catch (parseError) {
+            console.error('JSON 파싱 실패:', parseError);
+            console.log('서버 응답 내용:', responseText);
+            setCategories([]);
+          }
+        } else {
+          console.log('빈 응답 받음');
+          setCategories([]);
         }
+      } else {
+        console.error('카테고리 요청 실패:', response.status, response.statusText);
+        setCategories([]);
       }
     } catch (error) {
       console.error('카테고리 가져오기 실패:', error);
+      setCategories([]);
     }
   };
 
