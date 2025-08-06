@@ -129,7 +129,16 @@ const ProductManagement = () => {
         
         toast({
           title: "상품 등록 성공",
-          description: "상품이 등록되었습니다. 상세 컨텐츠를 작성하시겠습니까?",
+          description: "상품이 등록되었습니다.",
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate(`/admin?tab=product-content&productId=${createdProduct.id || createdProduct.productId}`)}
+            >
+              상세 컨텐츠 작성
+            </Button>
+          ),
         });
         
         // 폼 초기화
@@ -143,11 +152,6 @@ const ProductManagement = () => {
           categoryId: ''
         });
         setSelectedCategoryName('');
-
-        // 상세 컨텐츠 관리 페이지로 이동 (등록된 상품 ID 전달)
-        setTimeout(() => {
-          navigate(`/admin?tab=product-content&productId=${createdProduct.id || createdProduct.productId}`);
-        }, 1000);
         
       } else {
         const errorData = await response.json();
