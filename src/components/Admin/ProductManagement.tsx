@@ -276,7 +276,7 @@ const ProductManagement = () => {
                   type="number"
                   value={formData.businessPrice}
                   onChange={(e) => handleInputChange('businessPrice', e.target.value)}
-                  placeholder="법인 대상 가격 (선택사항)"
+                  placeholder="법인 대상 가격"
                 />
               </div>
             </div>
