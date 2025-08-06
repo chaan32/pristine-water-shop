@@ -193,15 +193,16 @@ const ProductManagement = () => {
         toast({
           title: "상품 등록 성공",
           description: "상품이 등록되었습니다.",
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate(`/admin/products/content?productId=${productId}`)}
+            >
+              상품 설정하기
+            </Button>
+          ),
         });
-        
-        // 상품 컨텐츠 관리 페이지로 이동
-        console.log('이동 시작 - productId:', productId);
-        const targetUrl = `/admin/products/content?productId=${productId}`;
-        console.log('이동할 URL:', targetUrl);
-        
-        // 상품 컨텐츠 페이지로 이동
-        navigate(targetUrl, { replace: true });
         
         // 폼 초기화
         setFormData({
