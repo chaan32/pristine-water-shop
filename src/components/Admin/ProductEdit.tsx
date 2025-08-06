@@ -110,7 +110,7 @@ const ProductEdit = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/admin/products/edit/${selectedProduct.id}`, {
+      const response = await fetch(`http://localhost:8080/api/products/${selectedProduct.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
