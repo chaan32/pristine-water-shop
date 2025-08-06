@@ -24,10 +24,10 @@ const ProductEdit = () => {
   const [editForm, setEditForm] = useState({
     name: '',
     category: '',
-    price: '',
+    customerPrice: '',
+    businessPrice: '',
     stock: '',
-    status: '',
-    description: ''
+    status: ''
   });
   const { toast } = useToast();
   
@@ -36,41 +36,41 @@ const ProductEdit = () => {
       id: 1, 
       name: '샤워 정수 필터', 
       category: '샤워 필터', 
-      price: 89000, 
+      customerPrice: 89000,
+      businessPrice: 79000,
       stock: 50, 
       status: '판매중',
-      createdAt: '2024-01-15',
-      description: '고품질 샤워 정수 필터입니다.'
+      createdAt: '2024-01-15'
     },
     { 
       id: 2, 
       name: '주방 정수 필터', 
       category: '주방 필터', 
-      price: 120000, 
+      customerPrice: 120000,
+      businessPrice: 108000,
       stock: 30, 
       status: '판매중',
-      createdAt: '2024-01-10',
-      description: '주방용 직수형 정수 필터입니다.'
+      createdAt: '2024-01-10'
     },
     { 
       id: 3, 
       name: '산업용 대용량 필터', 
       category: '산업용', 
-      price: 350000, 
+      customerPrice: 350000,
+      businessPrice: 315000,
       stock: 0, 
       status: '품절',
-      createdAt: '2024-01-05',
-      description: '산업용 대용량 정수 필터입니다.'
+      createdAt: '2024-01-05'
     },
     { 
       id: 4, 
       name: '휴대용 소형 필터', 
       category: '휴대용', 
-      price: 45000, 
+      customerPrice: 45000,
+      businessPrice: 40500,
       stock: 100, 
       status: '판매중',
-      createdAt: '2024-01-01',
-      description: '휴대용 소형 정수 필터입니다.'
+      createdAt: '2024-01-01'
     }
   ];
 
@@ -84,10 +84,10 @@ const ProductEdit = () => {
     setEditForm({
       name: product.name,
       category: product.category,
-      price: product.price.toString(),
+      customerPrice: product.customerPrice.toString(),
+      businessPrice: product.businessPrice.toString(),
       stock: product.stock.toString(),
-      status: product.status,
-      description: product.description
+      status: product.status
     });
     setIsEditOpen(true);
   };
@@ -141,7 +141,8 @@ const ProductEdit = () => {
               <TableRow>
                 <TableHead>상품명</TableHead>
                 <TableHead>카테고리</TableHead>
-                <TableHead>가격</TableHead>
+                <TableHead>일반가격</TableHead>
+                <TableHead>사업자가격</TableHead>
                 <TableHead>재고</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead>등록일</TableHead>
@@ -153,7 +154,8 @@ const ProductEdit = () => {
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.category}</TableCell>
-                  <TableCell>₩{product.price.toLocaleString()}</TableCell>
+                  <TableCell>₩{product.customerPrice.toLocaleString()}</TableCell>
+                  <TableCell>₩{product.businessPrice.toLocaleString()}</TableCell>
                   <TableCell>
                     <span className={product.stock === 0 ? 'text-destructive' : ''}>
                       {product.stock}개
@@ -225,25 +227,36 @@ const ProductEdit = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="edit-price">가격 (원)</Label>
+                      <Label htmlFor="edit-customer-price">일반 가격 (원)</Label>
                       <Input
-                        id="edit-price"
+                        id="edit-customer-price"
                         type="number"
-                        value={editForm.price}
-                        onChange={(e) => handleInputChange('price', e.target.value)}
-                        placeholder="가격"
+                        value={editForm.customerPrice}
+                        onChange={(e) => handleInputChange('customerPrice', e.target.value)}
+                        placeholder="일반 가격"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="edit-stock">재고 수량</Label>
+                      <Label htmlFor="edit-business-price">사업자 가격 (원)</Label>
                       <Input
-                        id="edit-stock"
+                        id="edit-business-price"
                         type="number"
-                        value={editForm.stock}
-                        onChange={(e) => handleInputChange('stock', e.target.value)}
-                        placeholder="재고"
+                        value={editForm.businessPrice}
+                        onChange={(e) => handleInputChange('businessPrice', e.target.value)}
+                        placeholder="사업자 가격"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-stock">재고 수량</Label>
+                    <Input
+                      id="edit-stock"
+                      type="number"
+                      value={editForm.stock}
+                      onChange={(e) => handleInputChange('stock', e.target.value)}
+                      placeholder="재고"
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -260,16 +273,6 @@ const ProductEdit = () => {
                     </select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-description">상품 설명</Label>
-                    <Textarea
-                      id="edit-description"
-                      value={editForm.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
-                      placeholder="상품 설명을 입력하세요"
-                      rows={4}
-                    />
-                  </div>
                 </div>
 
                 {/* 이미지 업로드 */}
