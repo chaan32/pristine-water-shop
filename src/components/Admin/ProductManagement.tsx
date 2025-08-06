@@ -20,8 +20,10 @@ const ProductManagement = () => {
     discountPercent: '',
     discountPrice: '',
     stock: '',
-    category: ''
+    categoryId: ''
   });
+
+  const [selectedCategoryName, setSelectedCategoryName] = useState('');
 
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -91,7 +93,7 @@ const ProductManagement = () => {
 
   const handleSave = async () => {
     // 필수 필드 검증
-    if (!formData.name || !formData.customerPrice || !formData.businessPrice || !formData.stock || !formData.category || !formData.discountPercent || !formData.discountPrice) {
+    if (!formData.name || !formData.customerPrice || !formData.businessPrice || !formData.stock || !formData.categoryId || !formData.discountPercent || !formData.discountPrice) {
       toast({
         title: "입력 오류",
         description: "모든 필드는 필수 입력 항목입니다.",
@@ -110,7 +112,7 @@ const ProductManagement = () => {
         discountPercent: formData.discountPercent ? parseInt(formData.discountPercent) : null,
         discountPrice: formData.discountPrice ? parseInt(formData.discountPrice) : null,
         stock: parseInt(formData.stock),
-        category: formData.category
+        categoryId: formData.categoryId
       };
 
       const response = await fetch('http://localhost:8080/api/admin/products', {
@@ -138,8 +140,9 @@ const ProductManagement = () => {
           discountPercent: '',
           discountPrice: '',
           stock: '',
-          category: ''
+          categoryId: ''
         });
+        setSelectedCategoryName('');
 
         // 상세 컨텐츠 관리 페이지로 이동 (등록된 상품 ID 전달)
         setTimeout(() => {
@@ -202,7 +205,7 @@ const ProductManagement = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="flex-1 justify-between">
-                      {formData.category || "카테고리를 선택하세요"}
+                      {selectedCategoryName || "카테고리를 선택하세요"}
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -215,7 +218,10 @@ const ProductManagement = () => {
                       categories.map((category, index) => (
                         <DropdownMenuItem 
                           key={`${category.id}-${index}`}
-                          onClick={() => handleInputChange('category', category.name)}
+                           onClick={() => {
+                            handleInputChange('categoryId', category.id);
+                            setSelectedCategoryName(category.name);
+                          }}
                           className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
                         >
                           <span className="text-sm font-medium">{category.name}</span>
