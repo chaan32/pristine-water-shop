@@ -48,7 +48,7 @@ const ProductEdit = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/products', {
+      const response = await fetch('http://localhost:8080/api/products/edit', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
