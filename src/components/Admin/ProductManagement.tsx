@@ -16,10 +16,14 @@ const ProductManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
+    businessPrice: '',
+    customerPrice: '',
+    discountPercent: '',
+    discountPrice: '',
     stock: '',
     category: '',
     description: '',
-    image: ''
+    images: [] as File[]
   });
 
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -88,6 +92,19 @@ const ProductManagement = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 5) {
+      toast({
+        title: "이미지 업로드 제한",
+        description: "최대 5개의 이미지만 업로드할 수 있습니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setFormData(prev => ({ ...prev, images: files }));
+  };
+
   const handleSave = async () => {
     // 필수 필드 검증
     if (!formData.name || !formData.price || !formData.stock || !formData.category) {
@@ -102,22 +119,29 @@ const ProductManagement = () => {
     try {
       const token = localStorage.getItem('accessToken');
       
-      const productData = {
-        name: formData.name,
-        price: parseInt(formData.price),
-        stock: parseInt(formData.stock),
-        category: formData.category,
-        description: formData.description,
-        image: formData.image
-      };
+      // FormData 생성 (multipart/form-data)
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('price', formData.price);
+      formDataToSend.append('businessPrice', formData.businessPrice);
+      formDataToSend.append('customerPrice', formData.customerPrice);
+      formDataToSend.append('discountPercent', formData.discountPercent);
+      formDataToSend.append('discountPrice', formData.discountPrice);
+      formDataToSend.append('stock', formData.stock);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('description', formData.description);
+      
+      // 이미지 파일들 추가
+      formData.images.forEach((image, index) => {
+        formDataToSend.append(`images`, image);
+      });
 
       const response = await fetch('http://localhost:8080/api/admin/products', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(productData),
+        body: formDataToSend,
       });
 
       if (response.ok) {
@@ -130,10 +154,14 @@ const ProductManagement = () => {
         setFormData({
           name: '',
           price: '',
+          businessPrice: '',
+          customerPrice: '',
+          discountPercent: '',
+          discountPrice: '',
           stock: '',
           category: '',
           description: '',
-          image: ''
+          images: []
         });
       } else {
         const errorData = await response.json();
@@ -187,13 +215,13 @@ const ProductManagement = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">가격 (원)</Label>
+                <Label htmlFor="price">기본 가격 (원)</Label>
                 <Input
                   id="price"
                   type="number"
                   value={formData.price}
                   onChange={(e) => handleInputChange('price', e.target.value)}
-                  placeholder="가격"
+                  placeholder="기본 가격"
                 />
               </div>
               <div className="space-y-2">
@@ -204,6 +232,52 @@ const ProductManagement = () => {
                   value={formData.stock}
                   onChange={(e) => handleInputChange('stock', e.target.value)}
                   placeholder="재고"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="businessPrice">법인 가격 (원)</Label>
+                <Input
+                  id="businessPrice"
+                  type="number"
+                  value={formData.businessPrice}
+                  onChange={(e) => handleInputChange('businessPrice', e.target.value)}
+                  placeholder="법인 대상 가격"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="customerPrice">개인 가격 (원)</Label>
+                <Input
+                  id="customerPrice"
+                  type="number"
+                  value={formData.customerPrice}
+                  onChange={(e) => handleInputChange('customerPrice', e.target.value)}
+                  placeholder="개인 대상 가격"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="discountPercent">할인율 (%)</Label>
+                <Input
+                  id="discountPercent"
+                  type="number"
+                  value={formData.discountPercent}
+                  onChange={(e) => handleInputChange('discountPercent', e.target.value)}
+                  placeholder="할인 비율 (정수)"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="discountPrice">할인 금액 (원)</Label>
+                <Input
+                  id="discountPrice"
+                  type="number"
+                  value={formData.discountPrice}
+                  onChange={(e) => handleInputChange('discountPrice', e.target.value)}
+                  placeholder="할인 금액"
                 />
               </div>
             </div>
@@ -282,15 +356,37 @@ const ProductManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>상품 이미지</Label>
+              <Label>상품 이미지 (최대 5개)</Label>
               <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
                 <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  이미지를 업로드하거나 드래그하세요
+                <p className="text-sm text-muted-foreground mb-2">
+                  이미지를 업로드하거나 드래그하세요 (최대 5개)
                 </p>
-                <Button variant="outline" size="sm" className="mt-2">
-                  파일 선택
+                <input
+                  type="file"
+                  id="images"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <Button variant="outline" size="sm" asChild>
+                  <label htmlFor="images" className="cursor-pointer">
+                    파일 선택
+                  </label>
                 </Button>
+                {formData.images.length > 0 && (
+                  <div className="mt-4 text-left">
+                    <p className="text-sm font-medium mb-2">선택된 이미지 ({formData.images.length}/5):</p>
+                    <div className="space-y-1">
+                      {formData.images.map((file, index) => (
+                        <div key={index} className="text-xs text-muted-foreground">
+                          {file.name}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
