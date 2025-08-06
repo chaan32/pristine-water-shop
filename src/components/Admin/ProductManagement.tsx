@@ -195,12 +195,12 @@ const ProductManagement = () => {
           description: "상품이 등록되었습니다.",
         });
         
-        // 상품 등록 성공 즉시 이동
+        // 상품 컨텐츠 관리 페이지로 이동
         console.log('이동 시작 - productId:', productId);
-        const targetUrl = `/admin?tab=product-content&productId=${productId}`;
+        const targetUrl = `/admin/products/content?productId=${productId}`;
         console.log('이동할 URL:', targetUrl);
         
-        // 바로 이동
+        // 상품 컨텐츠 페이지로 이동
         navigate(targetUrl, { replace: true });
         
         // 폼 초기화
