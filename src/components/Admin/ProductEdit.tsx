@@ -79,21 +79,21 @@ const ProductEdit = () => {
   }, []);
 
   const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.category || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleEdit = (product: any) => {
     setSelectedProduct(product);
     setEditForm({
-      name: product.name,
-      category: product.category,
-      customerPrice: product.customerPrice.toString(),
-      businessPrice: product.businessPrice.toString(),
-      discountPrice: product.discountPrice.toString(),
-      discountPercent: product.discountPercent.toString(),
-      stock: product.stock.toString(),
-      status: product.status
+      name: product.name || '',
+      category: product.category || '',
+      customerPrice: (product.customerPrice || 0).toString(),
+      businessPrice: (product.businessPrice || 0).toString(),
+      discountPrice: (product.discountPrice || 0).toString(),
+      discountPercent: (product.discountPercent || 0).toString(),
+      stock: (product.stock || 0).toString(),
+      status: product.status || '판매중'
     });
     setIsEditOpen(true);
   };
@@ -241,23 +241,23 @@ const ProductEdit = () => {
               <TableBody>
                 {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.category}</TableCell>
-                    <TableCell>₩{product.customerPrice.toLocaleString()}</TableCell>
-                    <TableCell>₩{product.businessPrice.toLocaleString()}</TableCell>
-                    <TableCell>₩{product.discountPrice.toLocaleString()}</TableCell>
-                    <TableCell>{product.discountPercent}%</TableCell>
+                    <TableCell className="font-medium">{product.name || '-'}</TableCell>
+                    <TableCell>{product.category || '-'}</TableCell>
+                    <TableCell>₩{(product.customerPrice || 0).toLocaleString()}</TableCell>
+                    <TableCell>₩{(product.businessPrice || 0).toLocaleString()}</TableCell>
+                    <TableCell>₩{(product.discountPrice || 0).toLocaleString()}</TableCell>
+                    <TableCell>{product.discountPercent || 0}%</TableCell>
                     <TableCell>
-                      <span className={product.stock === 0 ? 'text-destructive' : ''}>
-                        {product.stock}개
+                      <span className={(product.stock || 0) === 0 ? 'text-destructive' : ''}>
+                        {product.stock || 0}개
                       </span>
                     </TableCell>
                     <TableCell>
                       <Badge variant={product.status === '판매중' ? 'default' : 'secondary'}>
-                        {product.status}
+                        {product.status || '상태미정'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{product.createdAt}</TableCell>
+                    <TableCell className="text-muted-foreground">{product.createdAt || '-'}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
