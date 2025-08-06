@@ -91,10 +91,10 @@ const ProductManagement = () => {
 
   const handleSave = async () => {
     // 필수 필드 검증
-    if (!formData.name || !formData.customerPrice || !formData.stock || !formData.category) {
+    if (!formData.name || !formData.customerPrice || !formData.businessPrice || !formData.stock || !formData.category || !formData.discountPercent || !formData.discountPrice) {
       toast({
         title: "입력 오류",
-        description: "제품명, 개인 가격, 재고, 카테고리는 필수 입력 항목입니다.",
+        description: "모든 필드는 필수 입력 항목입니다.",
         variant: "destructive",
       });
       return;
