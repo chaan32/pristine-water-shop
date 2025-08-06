@@ -42,7 +42,27 @@ const ProductManagement = () => {
       
       if (response.ok) {
         const responseText = await response.text();
-        console.log('카테고리 응답:', responseText);
+        
+        // 응답 크기 체크 (순환 참조로 인한 거대한 JSON 방지)
+        if (responseText.length > 100000) {
+          console.warn('응답이 너무 큽니다. 순환 참조 가능성이 있습니다.');
+          
+          // JSON 시작 부분에서 카테고리 정보만 추출 시도
+          try {
+            const jsonStart = responseText.substring(0, 1000);
+            const match = jsonStart.match(/\[{"id":(\d+),"category":"([^"]+)"/);
+            if (match) {
+              const [, id, name] = match;
+              setCategories([{ id, name }]);
+              return;
+            }
+          } catch (extractError) {
+            console.error('카테고리 추출 실패:', extractError);
+          }
+          
+          setCategories([]);
+          return;
+        }
         
         if (responseText.trim()) {
           try {
@@ -59,7 +79,25 @@ const ProductManagement = () => {
             }
           } catch (parseError) {
             console.error('JSON 파싱 실패:', parseError);
-            console.log('서버 응답 내용:', responseText);
+            
+            // 순환 참조로 인한 파싱 실패 시 패턴 매칭으로 카테고리 추출 시도
+            try {
+              const categoryMatches = responseText.match(/{"id":(\d+),"category":"([^"]+)"/g);
+              if (categoryMatches) {
+                const extractedCategories = categoryMatches.slice(0, 10).map((match, index) => {
+                  const [, id, name] = match.match(/{"id":(\d+),"category":"([^"]+)"/) || [];
+                  return {
+                    id: id || (index + 1).toString(),
+                    name: name || `카테고리${index + 1}`
+                  };
+                });
+                setCategories(extractedCategories);
+                return;
+              }
+            } catch (extractError) {
+              console.error('카테고리 추출 실패:', extractError);
+            }
+            
             setCategories([]);
           }
         } else {
