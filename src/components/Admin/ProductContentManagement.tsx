@@ -10,119 +10,114 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Upload, Save, Eye, Plus, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface Product {
+  id: string;
+  name: string;
+  customerPrice: number;
+  businessPrice: number;
+  stock: number;
+  category?: {
+    id: string;
+    name: string;
+  };
+}
 
 const ProductContentManagement = () => {
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [selectedProduct, setSelectedProduct] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [contentData, setContentData] = useState({
     title: '',
     thumbnailImage: '',
     gallery: [] as string[],
-    overview: '프리미엄 샤워 필터 SF-100은 최신 다층 필터링 기술을 적용하여 개발된 고성능 샤워용 정수 필터입니다. 일반 수돗물에 포함된 염소, 중금속, 세균 등의 유해물질을 효과적으로 제거하여 깨끗하고 건강한 샤워 환경을 제공합니다.\n\n특허받은 5단계 필터링 시스템을 통해 물의 순도를 높이면서도 필수 미네랄은 보존하여, 피부와 모발 건강에 도움을 주는 최적의 샤워 워터를 만들어냅니다.',
+    overview: '',
     coretech: {
       title: '핵심 기술',
-      content: [
-        {
-          title: '5단계 필터링 시스템',
-          description: 'PP 필터, 활성탄 필터, KDF 필터, 세라믹볼, 비타민C 필터가 순차적으로 작동하여 최대 99.9%의 염소 제거 효과를 달성합니다.'
-        },
-        {
-          title: '중금속 차단 기술',
-          description: '특수 KDF 필터를 통해 납, 수은, 카드뮴 등의 중금속을 효과적으로 제거하여 안전한 샤워 환경을 조성합니다.'
-        },
-        {
-          title: '미네랄 보존 기술',
-          description: '유해물질은 제거하면서도 칼슘, 마그네슘 등 피부에 유익한 미네랄은 그대로 보존하는 선택적 필터링을 구현했습니다.'
-        },
-        {
-          title: '비타민C 인퓨전',
-          description: '천연 비타민C가 용해되어 피부에 영양을 공급하고 염소로 인한 자극과 건조를 완화시켜줍니다.'
-        }
-      ]
+      content: [] as { title: string; description: string }[]
     },
     keyfeatures: {
       title: '주요 특징 및 효과',
-      content: [
-        {
-          title: '염소 제거율 99.9%',
-          description: '염소 냄새와 자극을 완전히 제거하여 쾌적한 샤워 환경을 제공합니다.'
-        },
-        {
-          title: '중금속 차단 기능',
-          description: '납, 수은, 카드뮴 등 유해 중금속을 효과적으로 차단합니다.'
-        },
-        {
-          title: '6개월 장기 사용',
-          description: '한 번 설치로 최대 6개월까지 지속적인 필터링 효과를 유지합니다.'
-        },
-        {
-          title: '간편한 설치 및 교체',
-          description: '공구 없이 누구나 쉽게 설치하고 교체할 수 있도록 설계되었습니다.'
-        },
-        {
-          title: 'NSF 인증 획득',
-          description: '국제적으로 인정받은 NSF 인증을 획득하여 안전성이 검증되었습니다.'
-        },
-        {
-          title: '환경친화적 소재',
-          description: '재활용 가능한 친환경 소재를 사용하여 환경 보호에 기여합니다.'
-        }
-      ]
+      content: [] as { title: string; description: string }[]
     },
     specs: {
       title: '제품 사양',
-      content: {
-        '크기': '15cm x 8cm x 8cm',
-        '무게': '350g',
-        '필터 수명': '6개월 (약 15,000L)',
-        '적용 수압': '1~6kgf/cm²',
-        '사용 온도': '5~40°C',
-        '소재': 'ABS, 스테인리스 스틸'
-      } as Record<string, string>
+      content: {} as Record<string, string>
     },
     installation: {
       title: '설치 및 사용법',
-      content: [
-        {
-          step: '1',
-          title: '기존 샤워헤드 분리',
-          description: '기존 샤워헤드를 시계 반대 방향으로 돌려 분리합니다.'
-        },
-        {
-          step: '2',
-          title: '필터 연결',
-          description: '샤워 필터를 샤워 호스에 시계 방향으로 돌려 연결합니다.'
-        },
-        {
-          step: '3',
-          title: '샤워헤드 재연결',
-          description: '샤워헤드를 필터에 연결하고 물이 새지 않는지 확인합니다.'
-        }
-      ]
+      content: [] as { step: string; title: string; description: string }[]
     },
     maintenance: {
       title: '관리 및 유지보수',
-      content: [
-        '필터 교체 주기: 6개월 또는 약 15,000L 사용 시',
-        '외관 청소: 중성세제로 월 1회 청소 권장',
-        '보관 방법: 직사광선을 피하고 서늘한 곳에 보관',
-        '교체 알림: 물의 맛이나 냄새 변화 시 즉시 교체'
-      ]
+      content: [] as string[]
     },
     faq: [] as { question: string; answer: string }[],
     warranty: '',
     certifications: ''
   });
 
-  const products = [
-    { id: 'sf-100', name: '프리미엄 샤워 필터 SF-100' },
-    { id: 'sf-50', name: '기본형 샤워 필터 SF-50' },
-    { id: 'kf-200', name: '주방용 직수 정수기 KF-200' },
-    { id: 'if-1000', name: '산업용 대용량 필터 IF-1000' }
-  ];
+  // API에서 상품 목록 가져오기
+  const fetchProducts = async () => {
+    try {
+      setLoadingProducts(true);
+      const token = localStorage.getItem('accessToken');
+      
+      const response = await fetch('http://localhost:8080/api/admin/products', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('상품 목록 응답:', data);
+        
+        // 응답 데이터 정규화
+        const normalizedProducts = data.map((item: any) => ({
+          id: item.id || item.productId,
+          name: item.name || item.productName,
+          customerPrice: item.customerPrice || 0,
+          businessPrice: item.businessPrice || 0,
+          stock: item.stock || 0,
+          category: item.category ? {
+            id: item.category.id || item.category.categoryId,
+            name: item.category.name || item.category.categoryName
+          } : undefined
+        }));
+        
+        setProducts(normalizedProducts);
+      } else {
+        console.error('상품 목록 요청 실패:', response.status);
+        toast({
+          title: "오류",
+          description: "상품 목록을 불러오는데 실패했습니다.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('상품 목록 가져오기 실패:', error);
+      toast({
+        title: "네트워크 오류",
+        description: "서버와의 연결에 문제가 발생했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   const [newFaq, setNewFaq] = useState({ question: '', answer: '' });
+
+  // 컴포넌트 마운트 시 상품 목록 가져오기
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   // URL 파라미터에서 productId를 받아 자동 선택
   useEffect(() => {
@@ -176,6 +171,15 @@ const ProductContentManagement = () => {
   };
 
   const handleGalleryImageUpload = (file: File) => {
+    if (contentData.gallery.length >= 5) {
+      toast({
+        title: "이미지 제한",
+        description: "갤러리 이미지는 최대 5장까지 업로드 가능합니다.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
@@ -187,9 +191,28 @@ const ProductContentManagement = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
+  const removeGalleryImage = (index: number) => {
+    setContentData(prev => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!selectedProduct) {
+      toast({
+        title: "선택 오류",
+        description: "상품을 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     console.log('저장된 상품 컨텐츠:', { product: selectedProduct, content: contentData });
-    alert('상품 상세 컨텐츠가 저장되었습니다.');
+    toast({
+      title: "저장 완료",
+      description: "상품 상세 컨텐츠가 저장되었습니다.",
+    });
   };
 
   const handlePreview = () => {
@@ -409,23 +432,30 @@ const ProductContentManagement = () => {
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="product-select">상품 선택</Label>
-              <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+              <Select value={selectedProduct} onValueChange={setSelectedProduct} disabled={loadingProducts}>
                 <SelectTrigger>
-                  <SelectValue placeholder="컨텐츠를 작성할 상품을 선택하세요" />
+                  <SelectValue placeholder={loadingProducts ? "상품 목록을 불러오는 중..." : "컨텐츠를 작성할 상품을 선택하세요"} />
                 </SelectTrigger>
                 <SelectContent>
                   {products.map(product => (
                     <SelectItem key={product.id} value={product.id}>
-                      {product.name}
+                      {product.name} {product.category && `(${product.category.name})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             {selectedProduct && (
-              <Badge variant="secondary" className="w-fit">
-                선택된 상품: {products.find(p => p.id === selectedProduct)?.name}
-              </Badge>
+              <div className="flex gap-2">
+                <Badge variant="secondary" className="w-fit">
+                  선택된 상품: {products.find(p => p.id === selectedProduct)?.name}
+                </Badge>
+                {products.find(p => p.id === selectedProduct)?.category && (
+                  <Badge variant="outline" className="w-fit">
+                    {products.find(p => p.id === selectedProduct)?.category?.name}
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
         </CardContent>
@@ -569,32 +599,30 @@ const ProductContentManagement = () => {
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
-                  {contentData.gallery.length > 0 && (
-                    <div className="grid grid-cols-3 gap-4 mt-4">
-                      {contentData.gallery.map((image, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={image}
-                            alt={`갤러리 이미지 ${index + 1}`}
-                            className="w-full h-24 object-cover rounded-md border"
-                          />
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-1 right-1 h-6 w-6"
-                            onClick={() => {
-                              setContentData(prev => ({
-                                ...prev,
-                                gallery: prev.gallery.filter((_, i) => i !== index)
-                              }));
-                            }}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                   {contentData.gallery.length > 0 && (
+                     <div className="mt-4">
+                       <p className="text-sm text-muted-foreground mb-2">갤러리 이미지 ({contentData.gallery.length}/5)</p>
+                       <div className="grid grid-cols-3 gap-4">
+                         {contentData.gallery.map((image, index) => (
+                           <div key={index} className="relative">
+                             <img
+                               src={image}
+                               alt={`갤러리 이미지 ${index + 1}`}
+                               className="w-full h-24 object-cover rounded-md border"
+                             />
+                             <Button
+                               variant="destructive"
+                               size="icon"
+                               className="absolute top-1 right-1 h-6 w-6"
+                               onClick={() => removeGalleryImage(index)}
+                             >
+                               <Trash2 className="w-3 h-3" />
+                             </Button>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   )}
                 </div>
               </CardContent>
             </Card>

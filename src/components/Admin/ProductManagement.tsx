@@ -52,14 +52,8 @@ const ProductManagement = () => {
           (responseText.match(/{"id":/g) || []).length > 20;
         
         if (hasCircularRef) {
-          console.warn('순환 참조 감지 - 기본 카테고리 사용');
-          // 기본 카테고리로 설정
-          setCategories([
-            { id: '1', name: '샤워 필터' },
-            { id: '2', name: '주방 필터' },
-            { id: '3', name: '산업용 필터' },
-            { id: '4', name: '일반 필터' }
-          ]);
+          console.warn('순환 참조 감지 - API에서만 가져오기');
+          setCategories([]);
           return;
         }
         
@@ -76,37 +70,19 @@ const ProductManagement = () => {
               return;
             }
           } catch (parseError) {
-            console.error('JSON 파싱 실패 - 기본 카테고리 사용');
+            console.error('JSON 파싱 실패');
           }
         }
         
-        // 기본 카테고리로 폴백
-        setCategories([
-          { id: '1', name: '샤워 필터' },
-          { id: '2', name: '주방 필터' },
-          { id: '3', name: '산업용 필터' },
-          { id: '4', name: '일반 필터' }
-        ]);
+        setCategories([]);
         
       } else {
         console.error('카테고리 요청 실패:', response.status);
-        // 기본 카테고리로 설정
-        setCategories([
-          { id: '1', name: '샤워 필터' },
-          { id: '2', name: '주방 필터' },
-          { id: '3', name: '산업용 필터' },
-          { id: '4', name: '일반 필터' }
-        ]);
+        setCategories([]);
       }
     } catch (error) {
       console.error('카테고리 가져오기 실패:', error);
-      // 에러 시 기본 카테고리로 설정
-      setCategories([
-        { id: '1', name: '샤워 필터' },
-        { id: '2', name: '주방 필터' },
-        { id: '3', name: '산업용 필터' },
-        { id: '4', name: '일반 필터' }
-      ]);
+      setCategories([]);
     }
   };
 
@@ -233,17 +209,12 @@ const ProductManagement = () => {
     }
   };
 
-  const recentProducts = [
-    { id: 1, name: '샤워 정수 필터', category: '샤워 필터', price: 89000, stock: 50, status: '판매중' },
-    { id: 2, name: '주방 정수 필터', category: '주방 필터', price: 120000, stock: 30, status: '판매중' },
-    { id: 3, name: '산업용 대용량 필터', category: '산업용', price: 350000, stock: 5, status: '품절' }
-  ];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">상품 등록</h1>
-        <Badge variant="secondary">총 {recentProducts.length}개 상품</Badge>
+        <Badge variant="secondary">카테고리 관리</Badge>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -394,28 +365,27 @@ const ProductManagement = () => {
           </CardContent>
         </Card>
 
-        {/* 최근 등록 상품 목록 */}
+        {/* 카테고리 관리 */}
         <Card>
           <CardHeader>
-            <CardTitle>최근 등록 상품</CardTitle>
+            <CardTitle>카테고리 관리</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentProducts.map((product) => (
-                <div key={product.id} className="border border-border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold">{product.name}</h3>
-                    <Badge variant={product.status === '판매중' ? 'default' : 'secondary'}>
-                      {product.status}
-                    </Badge>
+              {categories.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  등록된 카테고리가 없습니다.
+                </p>
+              ) : (
+                categories.map((category, index) => (
+                  <div key={`${category.id}-${index}`} className="border border-border rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-semibold">{category.name}</h3>
+                      <Badge variant="outline">ID: {category.id}</Badge>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">{product.category}</p>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-medium">₩{product.price.toLocaleString()}</span>
-                    <span className="text-muted-foreground">재고: {product.stock}개</span>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
