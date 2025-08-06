@@ -226,9 +226,13 @@ const ProductContentManagement = () => {
       formData.append('thumbnailImage', thumbnailFile);
     }
     
-    // 갤러리 이미지 파일들 추가
-    galleryFiles.forEach((file, index) => {
-      formData.append(`galleryImage_${index}`, file);
+    // // 갤러리 이미지 파일들 추가
+    // galleryFiles.forEach((file, index) => {
+    //   formData.append(`galleryImage_${index}`, file);
+    // });
+
+    galleryFiles.forEach(file=>{
+      formData.append('galleryImages', file);
     });
 
     try {
