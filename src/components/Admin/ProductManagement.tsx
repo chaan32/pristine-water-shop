@@ -15,7 +15,6 @@ const ProductManagement = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
-    price: '',
     businessPrice: '',
     customerPrice: '',
     discountPercent: '',
@@ -92,10 +91,10 @@ const ProductManagement = () => {
 
   const handleSave = async () => {
     // 필수 필드 검증
-    if (!formData.name || !formData.price || !formData.stock || !formData.category) {
+    if (!formData.name || !formData.customerPrice || !formData.stock || !formData.category) {
       toast({
         title: "입력 오류",
-        description: "제품명, 가격, 재고, 카테고리는 필수 입력 항목입니다.",
+        description: "제품명, 개인 가격, 재고, 카테고리는 필수 입력 항목입니다.",
         variant: "destructive",
       });
       return;
@@ -106,9 +105,8 @@ const ProductManagement = () => {
       
       const productData = {
         name: formData.name,
-        price: parseInt(formData.price),
         businessPrice: formData.businessPrice ? parseInt(formData.businessPrice) : null,
-        customerPrice: formData.customerPrice ? parseInt(formData.customerPrice) : null,
+        customerPrice: parseInt(formData.customerPrice),
         discountPercent: formData.discountPercent ? parseInt(formData.discountPercent) : null,
         discountPrice: formData.discountPrice ? parseInt(formData.discountPrice) : null,
         stock: parseInt(formData.stock),
@@ -135,7 +133,6 @@ const ProductManagement = () => {
         // 폼 초기화
         setFormData({
           name: '',
-          price: '',
           businessPrice: '',
           customerPrice: '',
           discountPercent: '',
@@ -201,13 +198,13 @@ const ProductManagement = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">기본 가격 (원)</Label>
+                <Label htmlFor="customerPrice">개인 가격 (원)</Label>
                 <Input
-                  id="price"
+                  id="customerPrice"
                   type="number"
-                  value={formData.price}
-                  onChange={(e) => handleInputChange('price', e.target.value)}
-                  placeholder="기본 가격"
+                  value={formData.customerPrice}
+                  onChange={(e) => handleInputChange('customerPrice', e.target.value)}
+                  placeholder="개인 대상 가격"
                 />
               </div>
               <div className="space-y-2">
@@ -222,7 +219,7 @@ const ProductManagement = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="businessPrice">법인 가격 (원)</Label>
                 <Input
@@ -230,17 +227,7 @@ const ProductManagement = () => {
                   type="number"
                   value={formData.businessPrice}
                   onChange={(e) => handleInputChange('businessPrice', e.target.value)}
-                  placeholder="법인 대상 가격"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="customerPrice">개인 가격 (원)</Label>
-                <Input
-                  id="customerPrice"
-                  type="number"
-                  value={formData.customerPrice}
-                  onChange={(e) => handleInputChange('customerPrice', e.target.value)}
-                  placeholder="개인 대상 가격"
+                  placeholder="법인 대상 가격 (선택사항)"
                 />
               </div>
             </div>
