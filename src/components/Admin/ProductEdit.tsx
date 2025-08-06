@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,8 @@ const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editForm, setEditForm] = useState({
     name: '',
     category: '',
@@ -32,57 +34,49 @@ const ProductEdit = () => {
     status: ''
   });
   const { toast } = useToast();
-  
-  const products = [
-    { 
-      id: 1, 
-      name: '샤워 정수 필터', 
-      category: '샤워 필터', 
-      customerPrice: 89000,
-      businessPrice: 79000,
-      discountPrice: 75000,
-      discountPercent: 15,
-      stock: 50, 
-      status: '판매중',
-      createdAt: '2024-01-15'
-    },
-    { 
-      id: 2, 
-      name: '주방 정수 필터', 
-      category: '주방 필터', 
-      customerPrice: 120000,
-      businessPrice: 108000,
-      discountPrice: 100000,
-      discountPercent: 17,
-      stock: 30, 
-      status: '판매중',
-      createdAt: '2024-01-10'
-    },
-    { 
-      id: 3, 
-      name: '산업용 대용량 필터', 
-      category: '산업용', 
-      customerPrice: 350000,
-      businessPrice: 315000,
-      discountPrice: 280000,
-      discountPercent: 20,
-      stock: 0, 
-      status: '품절',
-      createdAt: '2024-01-05'
-    },
-    { 
-      id: 4, 
-      name: '휴대용 소형 필터', 
-      category: '휴대용', 
-      customerPrice: 45000,
-      businessPrice: 40500,
-      discountPrice: 38000,
-      discountPercent: 16,
-      stock: 100, 
-      status: '판매중',
-      createdAt: '2024-01-01'
+
+  // 상품 목록 조회
+  const fetchProducts = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        toast({
+          title: "인증 오류",
+          description: "로그인이 필요합니다.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch('http://localhost:8080/api/products', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('상품 목록을 가져오는데 실패했습니다.');
+      }
+
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "상품 목록을 가져오는데 실패했습니다.",
+        variant: "destructive"
+      });
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -104,21 +98,97 @@ const ProductEdit = () => {
     setIsEditOpen(true);
   };
 
-  const handleSaveEdit = () => {
-    toast({
-      title: "상품 수정 완료",
-      description: `${editForm.name} 상품이 수정되었습니다.`,
-    });
-    setIsEditOpen(false);
-    setSelectedProduct(null);
+  const handleSaveEdit = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        toast({
+          title: "인증 오류",
+          description: "로그인이 필요합니다.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8080/api/products/${selectedProduct.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: editForm.name,
+          category: editForm.category,
+          customerPrice: parseInt(editForm.customerPrice),
+          businessPrice: parseInt(editForm.businessPrice),
+          discountPrice: parseInt(editForm.discountPrice),
+          discountPercent: parseInt(editForm.discountPercent),
+          stock: parseInt(editForm.stock),
+          status: editForm.status
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('상품 수정에 실패했습니다.');
+      }
+
+      toast({
+        title: "상품 수정 완료",
+        description: `${editForm.name} 상품이 수정되었습니다.`,
+      });
+      
+      setIsEditOpen(false);
+      setSelectedProduct(null);
+      fetchProducts(); // 목록 새로고침
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "상품 수정에 실패했습니다.",
+        variant: "destructive"
+      });
+      console.error('Error updating product:', error);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    toast({
-      title: "상품 삭제",
-      description: "상품이 삭제되었습니다.",
-      variant: "destructive"
-    });
+  const handleDelete = async (id: number) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        toast({
+          title: "인증 오류",
+          description: "로그인이 필요합니다.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8080/api/products/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('상품 삭제에 실패했습니다.');
+      }
+
+      toast({
+        title: "상품 삭제",
+        description: "상품이 삭제되었습니다.",
+        variant: "destructive"
+      });
+      
+      fetchProducts(); // 목록 새로고침
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "상품 삭제에 실패했습니다.",
+        variant: "destructive"
+      });
+      console.error('Error deleting product:', error);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -148,64 +218,70 @@ const ProductEdit = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>상품명</TableHead>
-                <TableHead>카테고리</TableHead>
-                <TableHead>일반가격</TableHead>
-                <TableHead>사업자가격</TableHead>
-                <TableHead>할인가격</TableHead>
-                <TableHead>할인율</TableHead>
-                <TableHead>재고</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead>등록일</TableHead>
-                <TableHead className="text-right">관리</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>₩{product.customerPrice.toLocaleString()}</TableCell>
-                  <TableCell>₩{product.businessPrice.toLocaleString()}</TableCell>
-                  <TableCell>₩{product.discountPrice.toLocaleString()}</TableCell>
-                  <TableCell>{product.discountPercent}%</TableCell>
-                  <TableCell>
-                    <span className={product.stock === 0 ? 'text-destructive' : ''}>
-                      {product.stock}개
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={product.status === '판매중' ? 'default' : 'secondary'}>
-                      {product.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{product.createdAt}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(product)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(product.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="text-muted-foreground">상품 목록을 불러오는 중...</div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>상품명</TableHead>
+                  <TableHead>카테고리</TableHead>
+                  <TableHead>일반가격</TableHead>
+                  <TableHead>사업자가격</TableHead>
+                  <TableHead>할인가격</TableHead>
+                  <TableHead>할인율</TableHead>
+                  <TableHead>재고</TableHead>
+                  <TableHead>상태</TableHead>
+                  <TableHead>등록일</TableHead>
+                  <TableHead className="text-right">관리</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell>₩{product.customerPrice.toLocaleString()}</TableCell>
+                    <TableCell>₩{product.businessPrice.toLocaleString()}</TableCell>
+                    <TableCell>₩{product.discountPrice.toLocaleString()}</TableCell>
+                    <TableCell>{product.discountPercent}%</TableCell>
+                    <TableCell>
+                      <span className={product.stock === 0 ? 'text-destructive' : ''}>
+                        {product.stock}개
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={product.status === '판매중' ? 'default' : 'secondary'}>
+                        {product.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{product.createdAt}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(product)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(product.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
