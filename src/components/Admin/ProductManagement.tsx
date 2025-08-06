@@ -43,16 +43,33 @@ const ProductManagement = () => {
       if (response.ok) {
         const responseText = await response.text();
         
-        // 응답 크기 체크 (순환 참조로 인한 거대한 JSON 방지)
-        if (responseText.length > 100000) {
-          console.warn('응답이 너무 큽니다. 순환 참조 가능성이 있습니다.');
+        // 순환 참조 패턴 감지 (JSON.parse 시도 전에 체크)
+        const hasCircularRef = responseText.includes('{"id":1,"category":{"id":1,"category"') || 
+                              responseText.length > 50000 ||
+                              responseText.includes('}]}}]}}]}}"');
+        
+        if (hasCircularRef) {
+          console.warn('순환 참조 감지됨. 패턴 매칭으로 카테고리 추출');
           
-          // JSON 시작 부분에서 카테고리 정보만 추출 시도
+          // 패턴 매칭으로 카테고리 추출
           try {
-            const jsonStart = responseText.substring(0, 1000);
-            const match = jsonStart.match(/\[{"id":(\d+),"category":"([^"]+)"/);
-            if (match) {
-              const [, id, name] = match;
+            const categoryMatches = responseText.match(/\[{"id":(\d+),"category":"([^"]+)"/g);
+            if (categoryMatches && categoryMatches.length > 0) {
+              const extractedCategories = categoryMatches.slice(0, 5).map((match, index) => {
+                const [, id, name] = match.match(/\[{"id":(\d+),"category":"([^"]+)"/) || [];
+                return {
+                  id: id || (index + 1).toString(),
+                  name: name || `카테고리${index + 1}`
+                };
+              });
+              setCategories(extractedCategories);
+              return;
+            }
+            
+            // 대안 패턴 시도
+            const simpleMatch = responseText.match(/"id":(\d+),"category":"([^"]+)"/);
+            if (simpleMatch) {
+              const [, id, name] = simpleMatch;
               setCategories([{ id, name }]);
               return;
             }
@@ -64,6 +81,7 @@ const ProductManagement = () => {
           return;
         }
         
+        // 정상적인 JSON 파싱 시도
         if (responseText.trim()) {
           try {
             const data = JSON.parse(responseText);
@@ -79,25 +97,6 @@ const ProductManagement = () => {
             }
           } catch (parseError) {
             console.error('JSON 파싱 실패:', parseError);
-            
-            // 순환 참조로 인한 파싱 실패 시 패턴 매칭으로 카테고리 추출 시도
-            try {
-              const categoryMatches = responseText.match(/{"id":(\d+),"category":"([^"]+)"/g);
-              if (categoryMatches) {
-                const extractedCategories = categoryMatches.slice(0, 10).map((match, index) => {
-                  const [, id, name] = match.match(/{"id":(\d+),"category":"([^"]+)"/) || [];
-                  return {
-                    id: id || (index + 1).toString(),
-                    name: name || `카테고리${index + 1}`
-                  };
-                });
-                setCategories(extractedCategories);
-                return;
-              }
-            } catch (extractError) {
-              console.error('카테고리 추출 실패:', extractError);
-            }
-            
             setCategories([]);
           }
         } else {
