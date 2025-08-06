@@ -11,13 +11,13 @@ import InquiryManagement from '@/components/Admin/InquiryManagement';
 import RefundExchangeManagement from '@/components/Admin/RefundExchangeManagement';
 
 const Admin = () => {
-  // 실제 관리자 로그인 상태 체크
-  const userType = localStorage.getItem('userType');
-  const accessToken = localStorage.getItem('accessToken');
+  // 임시로 인증 체크 비활성화
+  // const userType = localStorage.getItem('userType');
+  // const accessToken = localStorage.getItem('accessToken');
   
-  if (!accessToken || userType !== 'admin') {
-    return <Navigate to="/login" replace />;
-  }
+  // if (!accessToken || userType !== 'admin') {
+  //   return <Navigate to="/login" replace />;
+  // }
 
   return (
     <AdminLayout>
