@@ -196,65 +196,6 @@ const ProductManagement = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="customerPrice">개인 가격 (원)</Label>
-                <Input
-                  id="customerPrice"
-                  type="number"
-                  value={formData.customerPrice}
-                  onChange={(e) => handleInputChange('customerPrice', e.target.value)}
-                  placeholder="개인 대상 가격"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stock">재고 수량</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  value={formData.stock}
-                  onChange={(e) => handleInputChange('stock', e.target.value)}
-                  placeholder="재고"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="businessPrice">법인 가격 (원)</Label>
-                <Input
-                  id="businessPrice"
-                  type="number"
-                  value={formData.businessPrice}
-                  onChange={(e) => handleInputChange('businessPrice', e.target.value)}
-                  placeholder="법인 대상 가격 (선택사항)"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="discountPercent">할인율 (%)</Label>
-                <Input
-                  id="discountPercent"
-                  type="number"
-                  value={formData.discountPercent}
-                  onChange={(e) => handleInputChange('discountPercent', e.target.value)}
-                  placeholder="할인 비율 (정수)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="discountPrice">할인 금액 (원)</Label>
-                <Input
-                  id="discountPrice"
-                  type="number"
-                  value={formData.discountPrice}
-                  onChange={(e) => handleInputChange('discountPrice', e.target.value)}
-                  placeholder="할인 금액"
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="category">카테고리</Label>
               <div className="flex gap-2">
@@ -314,6 +255,62 @@ const ProductManagement = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="customerPrice">개인 가격 (원)</Label>
+                <Input
+                  id="customerPrice"
+                  type="number"
+                  value={formData.customerPrice}
+                  onChange={(e) => handleInputChange('customerPrice', e.target.value)}
+                  placeholder="개인 대상 가격"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="businessPrice">법인 가격 (원)</Label>
+                <Input
+                  id="businessPrice"
+                  type="number"
+                  value={formData.businessPrice}
+                  onChange={(e) => handleInputChange('businessPrice', e.target.value)}
+                  placeholder="법인 대상 가격 (선택사항)"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="stock">재고 수량</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  value={formData.stock}
+                  onChange={(e) => handleInputChange('stock', e.target.value)}
+                  placeholder="재고"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="discountPrice">할인 금액 (원)</Label>
+                <Input
+                  id="discountPrice"
+                  type="number"
+                  value={formData.discountPrice}
+                  onChange={(e) => handleInputChange('discountPrice', e.target.value)}
+                  placeholder="할인 금액"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="discountPercent">할인율 (%)</Label>
+                <Input
+                  id="discountPercent"
+                  type="number"
+                  value={formData.discountPercent}
+                  onChange={(e) => handleInputChange('discountPercent', e.target.value)}
+                  placeholder="할인 비율"
+                />
               </div>
             </div>
 
