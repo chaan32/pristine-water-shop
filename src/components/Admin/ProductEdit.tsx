@@ -26,6 +26,8 @@ const ProductEdit = () => {
     category: '',
     customerPrice: '',
     businessPrice: '',
+    discountPrice: '',
+    discountPercent: '',
     stock: '',
     status: ''
   });
@@ -38,6 +40,8 @@ const ProductEdit = () => {
       category: '샤워 필터', 
       customerPrice: 89000,
       businessPrice: 79000,
+      discountPrice: 75000,
+      discountPercent: 15,
       stock: 50, 
       status: '판매중',
       createdAt: '2024-01-15'
@@ -48,6 +52,8 @@ const ProductEdit = () => {
       category: '주방 필터', 
       customerPrice: 120000,
       businessPrice: 108000,
+      discountPrice: 100000,
+      discountPercent: 17,
       stock: 30, 
       status: '판매중',
       createdAt: '2024-01-10'
@@ -58,6 +64,8 @@ const ProductEdit = () => {
       category: '산업용', 
       customerPrice: 350000,
       businessPrice: 315000,
+      discountPrice: 280000,
+      discountPercent: 20,
       stock: 0, 
       status: '품절',
       createdAt: '2024-01-05'
@@ -68,6 +76,8 @@ const ProductEdit = () => {
       category: '휴대용', 
       customerPrice: 45000,
       businessPrice: 40500,
+      discountPrice: 38000,
+      discountPercent: 16,
       stock: 100, 
       status: '판매중',
       createdAt: '2024-01-01'
@@ -86,6 +96,8 @@ const ProductEdit = () => {
       category: product.category,
       customerPrice: product.customerPrice.toString(),
       businessPrice: product.businessPrice.toString(),
+      discountPrice: product.discountPrice.toString(),
+      discountPercent: product.discountPercent.toString(),
       stock: product.stock.toString(),
       status: product.status
     });
@@ -143,6 +155,8 @@ const ProductEdit = () => {
                 <TableHead>카테고리</TableHead>
                 <TableHead>일반가격</TableHead>
                 <TableHead>사업자가격</TableHead>
+                <TableHead>할인가격</TableHead>
+                <TableHead>할인율</TableHead>
                 <TableHead>재고</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead>등록일</TableHead>
@@ -156,6 +170,8 @@ const ProductEdit = () => {
                   <TableCell>{product.category}</TableCell>
                   <TableCell>₩{product.customerPrice.toLocaleString()}</TableCell>
                   <TableCell>₩{product.businessPrice.toLocaleString()}</TableCell>
+                  <TableCell>₩{product.discountPrice.toLocaleString()}</TableCell>
+                  <TableCell>{product.discountPercent}%</TableCell>
                   <TableCell>
                     <span className={product.stock === 0 ? 'text-destructive' : ''}>
                       {product.stock}개
@@ -244,6 +260,31 @@ const ProductEdit = () => {
                         value={editForm.businessPrice}
                         onChange={(e) => handleInputChange('businessPrice', e.target.value)}
                         placeholder="사업자 가격"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-discount-price">할인 가격 (원)</Label>
+                      <Input
+                        id="edit-discount-price"
+                        type="number"
+                        value={editForm.discountPrice}
+                        onChange={(e) => handleInputChange('discountPrice', e.target.value)}
+                        placeholder="할인 가격"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-discount-percent">할인율 (%)</Label>
+                      <Input
+                        id="edit-discount-percent"
+                        type="number"
+                        value={editForm.discountPercent}
+                        onChange={(e) => handleInputChange('discountPercent', e.target.value)}
+                        placeholder="할인율"
+                        max="100"
+                        min="0"
                       />
                     </div>
                   </div>
