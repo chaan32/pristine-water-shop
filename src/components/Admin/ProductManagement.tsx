@@ -181,14 +181,20 @@ const ProductManagement = () => {
 
       if (response.ok) {
         const createdProduct = await response.json();
+        console.log('생성된 상품 데이터:', createdProduct);
+        
+        const productId = createdProduct.id || createdProduct.productId;
+        console.log('추출된 productId:', productId);
         
         toast({
           title: "상품 등록 성공",
           description: "상품이 등록되었습니다.",
         });
         
-        // 자동으로 상품 상세 페이지로 이동
-        navigate(`/admin?tab=product-content&productId=${createdProduct.id || createdProduct.productId}`);
+        // 상품 상세 페이지로 이동
+        const targetUrl = `/admin?tab=product-content&productId=${productId}`;
+        console.log('이동할 경로:', targetUrl);
+        navigate(targetUrl);
         
         // 폼 초기화
         setFormData({
