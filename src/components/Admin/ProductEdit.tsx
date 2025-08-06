@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   Table,
   TableBody,
@@ -14,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Search, Save, Upload } from 'lucide-react';
+import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const ProductEdit = () => {
@@ -26,6 +27,7 @@ const ProductEdit = () => {
   const [editForm, setEditForm] = useState({
     name: '',
     category: '',
+    categoryId: '',
     customerPrice: '',
     businessPrice: '',
     discountPrice: '',
@@ -33,6 +35,12 @@ const ProductEdit = () => {
     stock: '',
     status: ''
   });
+  
+  // 카테고리 관련 상태
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCategoryName, setSelectedCategoryName] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const { toast } = useToast();
 
   // 상품 목록 조회
@@ -74,8 +82,92 @@ const ProductEdit = () => {
     }
   };
 
+  // 카테고리 목록 조회
+  const fetchCategories = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+
+      const response = await fetch('http://localhost:8080/api/admin/categories', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const responseText = await response.text();
+        
+        // 순환 참조 패턴 감지
+        const hasCircularRef = 
+          responseText.includes('{"id":1,"category":{"id":1,"category"') ||
+          responseText.includes('}]}}]}}]}}"') ||
+          responseText.length > 50000 ||
+          (responseText.match(/{"id":/g) || []).length > 20;
+        
+        if (hasCircularRef) {
+          setCategories([]);
+          return;
+        }
+        
+        if (responseText.trim() && responseText.length < 10000) {
+          try {
+            const data = JSON.parse(responseText);
+            if (data && Array.isArray(data) && data.length > 0) {
+              const normalizedCategories = data.map((item: any, index: number) => ({
+                id: item.id || item.categoryId || (index + 100).toString(),
+                name: item.name || item.categoryName || item.category || 'Unknown'
+              }));
+              setCategories(normalizedCategories);
+              return;
+            }
+          } catch (parseError) {
+            console.error('JSON 파싱 실패');
+          }
+        }
+        
+        setCategories([]);
+      }
+    } catch (error) {
+      console.error('카테고리 가져오기 실패:', error);
+      setCategories([]);
+    }
+  };
+
+  // 카테고리 추가
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:8080/api/admin/categories/add', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newCategoryName.trim() }),
+      });
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        const newCategory = { 
+          id: responseData.id || responseData.categoryId || Date.now().toString(),
+          name: newCategoryName.trim() 
+        };
+        setCategories(prev => [...prev, newCategory]);
+        setNewCategoryName('');
+        setIsAddCategoryOpen(false);
+        fetchCategories(); // 카테고리 목록 새로고침
+      }
+    } catch (error) {
+      console.error('카테고리 추가 실패:', error);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const filteredProducts = products.filter(product =>
@@ -88,6 +180,7 @@ const ProductEdit = () => {
     setEditForm({
       name: product.name || '',
       category: product.category || '',
+      categoryId: product.categoryId || '',
       customerPrice: (product.customerPrice || 0).toString(),
       businessPrice: (product.businessPrice || 0).toString(),
       discountPrice: (product.discountPrice || 0).toString(),
@@ -95,6 +188,7 @@ const ProductEdit = () => {
       stock: (product.stock || 0).toString(),
       status: product.status || '판매중'
     });
+    setSelectedCategoryName(product.category || '');
     setIsEditOpen(true);
   };
 
@@ -119,6 +213,7 @@ const ProductEdit = () => {
         body: JSON.stringify({
           name: editForm.name,
           category: editForm.category,
+          categoryId: editForm.categoryId,
           customerPrice: parseInt(editForm.customerPrice),
           businessPrice: parseInt(editForm.businessPrice),
           discountPrice: parseInt(editForm.discountPrice),
@@ -309,12 +404,66 @@ const ProductEdit = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="edit-category">카테고리</Label>
-                    <Input
-                      id="edit-category"
-                      value={editForm.category}
-                      onChange={(e) => handleInputChange('category', e.target.value)}
-                      placeholder="카테고리"
-                    />
+                    <div className="flex gap-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="flex-1 justify-between">
+                            {selectedCategoryName || "카테고리를 선택하세요"}
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                          {categories.length === 0 ? (
+                            <DropdownMenuItem disabled className="text-gray-500">
+                              카테고리가 없습니다
+                            </DropdownMenuItem>
+                          ) : (
+                            categories.map((category, index) => (
+                              <DropdownMenuItem 
+                                key={`${category.id}-${index}`}
+                                onClick={() => {
+                                  handleInputChange('categoryId', category.id);
+                                  handleInputChange('category', category.name);
+                                  setSelectedCategoryName(category.name);
+                                }}
+                                className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
+                              >
+                                <span className="text-sm font-medium">{category.name}</span>
+                              </DropdownMenuItem>
+                            ))
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
+                        <Button variant="outline" size="icon" onClick={() => setIsAddCategoryOpen(true)}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>새 카테고리 추가</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="newCategory">카테고리명</Label>
+                              <Input
+                                id="newCategory"
+                                value={newCategoryName}
+                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                placeholder="카테고리명을 입력하세요"
+                              />
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                              <Button variant="outline" onClick={() => setIsAddCategoryOpen(false)}>
+                                취소
+                              </Button>
+                              <Button onClick={handleAddCategory}>
+                                추가
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
