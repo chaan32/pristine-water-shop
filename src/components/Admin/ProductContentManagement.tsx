@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Upload, Save, Eye, Plus, Trash2 } from 'lucide-react';
 
 const ProductContentManagement = () => {
+  const [searchParams] = useSearchParams();
   const [selectedProduct, setSelectedProduct] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [contentData, setContentData] = useState({
@@ -121,6 +123,14 @@ const ProductContentManagement = () => {
   ];
 
   const [newFaq, setNewFaq] = useState({ question: '', answer: '' });
+
+  // URL 파라미터에서 productId를 받아 자동 선택
+  useEffect(() => {
+    const productId = searchParams.get('productId');
+    if (productId) {
+      setSelectedProduct(productId);
+    }
+  }, [searchParams]);
 
   const handleInputChange = (field: string, value: string) => {
     setContentData(prev => ({

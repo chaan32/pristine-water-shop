@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Save, Plus, ChevronDown } from 'lucide-react';
+import { Save, Plus, ChevronDown } from 'lucide-react';
 
 const ProductManagement = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -21,9 +21,7 @@ const ProductManagement = () => {
     discountPercent: '',
     discountPrice: '',
     stock: '',
-    category: '',
-    description: '',
-    images: [] as File[]
+    category: ''
   });
 
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -92,19 +90,6 @@ const ProductManagement = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 5) {
-      toast({
-        title: "이미지 업로드 제한",
-        description: "최대 5개의 이미지만 업로드할 수 있습니다.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setFormData(prev => ({ ...prev, images: files }));
-  };
-
   const handleSave = async () => {
     // 필수 필드 검증
     if (!formData.name || !formData.price || !formData.stock || !formData.category) {
@@ -119,35 +104,32 @@ const ProductManagement = () => {
     try {
       const token = localStorage.getItem('accessToken');
       
-      // FormData 생성 (multipart/form-data)
-      const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('price', formData.price);
-      formDataToSend.append('businessPrice', formData.businessPrice);
-      formDataToSend.append('customerPrice', formData.customerPrice);
-      formDataToSend.append('discountPercent', formData.discountPercent);
-      formDataToSend.append('discountPrice', formData.discountPrice);
-      formDataToSend.append('stock', formData.stock);
-      formDataToSend.append('category', formData.category);
-      formDataToSend.append('description', formData.description);
-      
-      // 이미지 파일들 추가
-      formData.images.forEach((image, index) => {
-        formDataToSend.append(`images`, image);
-      });
+      const productData = {
+        name: formData.name,
+        price: parseInt(formData.price),
+        businessPrice: formData.businessPrice ? parseInt(formData.businessPrice) : null,
+        customerPrice: formData.customerPrice ? parseInt(formData.customerPrice) : null,
+        discountPercent: formData.discountPercent ? parseInt(formData.discountPercent) : null,
+        discountPrice: formData.discountPrice ? parseInt(formData.discountPrice) : null,
+        stock: parseInt(formData.stock),
+        category: formData.category
+      };
 
       const response = await fetch('http://localhost:8080/api/admin/products', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: formDataToSend,
+        body: JSON.stringify(productData),
       });
 
       if (response.ok) {
+        const createdProduct = await response.json();
+        
         toast({
           title: "상품 등록 성공",
-          description: "새 상품이 성공적으로 등록되었습니다.",
+          description: "상품이 등록되었습니다. 상세 컨텐츠를 작성하시겠습니까?",
         });
         
         // 폼 초기화
@@ -159,10 +141,14 @@ const ProductManagement = () => {
           discountPercent: '',
           discountPrice: '',
           stock: '',
-          category: '',
-          description: '',
-          images: []
+          category: ''
         });
+
+        // 상세 컨텐츠 관리 페이지로 이동 (등록된 상품 ID 전달)
+        setTimeout(() => {
+          navigate(`/admin?tab=product-content&productId=${createdProduct.id || createdProduct.productId}`);
+        }, 1000);
+        
       } else {
         const errorData = await response.json();
         toast({
@@ -341,52 +327,6 @@ const ProductManagement = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">상품 설명</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="상품 설명을 입력하세요"
-                rows={4}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>상품 이미지 (최대 5개)</Label>
-              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mb-2">
-                  이미지를 업로드하거나 드래그하세요 (최대 5개)
-                </p>
-                <input
-                  type="file"
-                  id="images"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-                <Button variant="outline" size="sm" asChild>
-                  <label htmlFor="images" className="cursor-pointer">
-                    파일 선택
-                  </label>
-                </Button>
-                {formData.images.length > 0 && (
-                  <div className="mt-4 text-left">
-                    <p className="text-sm font-medium mb-2">선택된 이미지 ({formData.images.length}/5):</p>
-                    <div className="space-y-1">
-                      {formData.images.map((file, index) => (
-                        <div key={index} className="text-xs text-muted-foreground">
-                          {file.name}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
