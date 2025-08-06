@@ -136,7 +136,7 @@ const ProductManagement = () => {
         categoryId: formData.categoryId
       };
 
-      const response = await fetch('http://localhost:8080/api/admin/products', {
+      const response = await fetch('http://localhost:8080/api/admin/products/add', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
