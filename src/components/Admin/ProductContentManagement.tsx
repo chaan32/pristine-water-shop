@@ -15,13 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 interface Product {
   id: string;
   name: string;
-  customerPrice: number;
-  businessPrice: number;
-  stock: number;
-  category?: {
-    id: string;
-    name: string;
-  };
 }
 
 const ProductContentManagement = () => {
@@ -78,17 +71,10 @@ const ProductContentManagement = () => {
         const data = await response.json();
         console.log('상품 목록 응답:', data);
         
-        // 응답 데이터 정규화
+        // 응답 데이터 정규화 (id, name만)
         const normalizedProducts = data.map((item: any) => ({
           id: item.id || item.productId,
-          name: item.name || item.productName,
-          customerPrice: item.customerPrice || 0,
-          businessPrice: item.businessPrice || 0,
-          stock: item.stock || 0,
-          category: item.category ? {
-            id: item.category.id || item.category.categoryId,
-            name: item.category.name || item.category.categoryName
-          } : undefined
+          name: item.name || item.productName
         }));
         
         setProducts(normalizedProducts);
@@ -439,23 +425,16 @@ const ProductContentManagement = () => {
                 <SelectContent>
                   {products.map(product => (
                     <SelectItem key={product.id} value={product.id}>
-                      {product.name} {product.category && `(${product.category.name})`}
+                      {product.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             {selectedProduct && (
-              <div className="flex gap-2">
-                <Badge variant="secondary" className="w-fit">
-                  선택된 상품: {products.find(p => p.id === selectedProduct)?.name}
-                </Badge>
-                {products.find(p => p.id === selectedProduct)?.category && (
-                  <Badge variant="outline" className="w-fit">
-                    {products.find(p => p.id === selectedProduct)?.category?.name}
-                  </Badge>
-                )}
-              </div>
+              <Badge variant="secondary" className="w-fit">
+                선택된 상품: {products.find(p => p.id === selectedProduct)?.name}
+              </Badge>
             )}
           </div>
         </CardContent>
