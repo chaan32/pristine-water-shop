@@ -16,6 +16,8 @@ const Shop = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // 사용자 role 정보 가져오기
   useEffect(() => {
@@ -37,41 +39,19 @@ const Shop = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setLoading(true);
         const response = await fetch('/api/products');
+        if (!response.ok) {
+          throw new Error('상품 데이터를 가져오는데 실패했습니다.');
+        }
         const data = await response.json();
         setProducts(data);
+        setError(null);
       } catch (error) {
         console.error('상품 데이터 가져오기 오류:', error);
-        // 임시 데이터 (개발용)
-        setProducts([
-          {
-            productId: "1",
-            productName: "프리미엄 샤워 필터 SF-100",
-            customerPrice: "89000",
-            businessPrice: "75000",
-            thumbnailImageUrl: "/placeholder.svg",
-            categoryName: "샤워 필터",
-            categoryId: "shower"
-          },
-          {
-            productId: "2",
-            productName: "주방용 직수 정수기 KF-200",
-            customerPrice: "195000",
-            businessPrice: "165000",
-            thumbnailImageUrl: "/placeholder.svg",
-            categoryName: "주방 정수기",
-            categoryId: "kitchen"
-          },
-          {
-            productId: "3",
-            productName: "산업용 대용량 필터 IF-1000",
-            customerPrice: "450000",
-            businessPrice: "380000",
-            thumbnailImageUrl: "/placeholder.svg",
-            categoryName: "산업용 필터",
-            categoryId: "industrial"
-          }
-        ]);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -83,16 +63,14 @@ const Shop = () => {
     const fetchCategories = async () => {
       try {
         const response = await fetch('/api/categories');
+        if (!response.ok) {
+          throw new Error('카테고리 데이터를 가져오는데 실패했습니다.');
+        }
         const data = await response.json();
         setCategories(data);
       } catch (error) {
         console.error('카테고리 데이터 가져오기 오류:', error);
-        // 임시 데이터 (개발용)
-        setCategories([
-          { categoryId: "shower", categoryName: "샤워 필터" },
-          { categoryId: "kitchen", categoryName: "주방 정수기" },
-          { categoryId: "industrial", categoryName: "산업용 필터" }
-        ]);
+        setError(error.message);
       }
     };
 
@@ -144,127 +122,150 @@ const Shop = () => {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8 mb-8">
-          {/* 카테고리 필터 (좌측) */}
-          <div className="lg:w-64 flex-shrink-0">
-            <Card className="p-4">
-              <h3 className="font-semibold text-foreground mb-4">카테고리</h3>
-              <div className="space-y-2">
-                <Button
-                  variant={filterCategory === 'all' ? 'default' : 'ghost'}
-                  className="w-full justify-start"
-                  onClick={() => setFilterCategory('all')}
-                >
-                  전체 제품
-                </Button>
-                {categories.map((category) => (
+        {/* 로딩 상태 */}
+        {loading && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg">상품 정보를 불러오는 중...</p>
+          </div>
+        )}
+
+        {/* 에러 상태 */}
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-destructive text-lg">오류가 발생했습니다: {error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4"
+            >
+              다시 시도
+            </Button>
+          </div>
+        )}
+
+        {/* 메인 콘텐츠 */}
+        {!loading && !error && (
+          <div className="flex flex-col lg:flex-row gap-8 mb-8">
+            {/* 카테고리 필터 (좌측) */}
+            <div className="lg:w-64 flex-shrink-0">
+              <Card className="p-4">
+                <h3 className="font-semibold text-foreground mb-4">카테고리</h3>
+                <div className="space-y-2">
                   <Button
-                    key={category.categoryId}
-                    variant={filterCategory === category.categoryId ? 'default' : 'ghost'}
+                    variant={filterCategory === 'all' ? 'default' : 'ghost'}
                     className="w-full justify-start"
-                    onClick={() => setFilterCategory(category.categoryId)}
+                    onClick={() => setFilterCategory('all')}
                   >
-                    {category.categoryName}
+                    전체 제품
                   </Button>
+                  {categories.map((category) => (
+                    <Button
+                      key={category.categoryId}
+                      variant={filterCategory === category.categoryId ? 'default' : 'ghost'}
+                      className="w-full justify-start"
+                      onClick={() => setFilterCategory(category.categoryId)}
+                    >
+                      {category.categoryName}
+                    </Button>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
+            {/* 메인 콘텐츠 영역 */}
+            <div className="flex-1">
+              {/* 검색 및 정렬 */}
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="제품명을 검색하세요..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full md:w-48">
+                    <SelectValue placeholder="정렬" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="popular">기본순</SelectItem>
+                    <SelectItem value="price-low">가격 낮은순</SelectItem>
+                    <SelectItem value="price-high">가격 높은순</SelectItem>
+                    <SelectItem value="name">이름순</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Product Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sortedProducts.map((product) => (
+                  <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
+                    <CardHeader className="p-0 relative">
+                      {/* Product Image */}
+                      <div className="aspect-square bg-secondary overflow-hidden">
+                        <img
+                          src={product.thumbnailImageUrl}
+                          alt={product.productName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
+                        />
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="p-6">
+                      {/* Product Name */}
+                      <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-smooth">
+                        {product.productName}
+                      </h3>
+
+                      {/* Category */}
+                      <div className="text-sm text-muted-foreground mb-3">
+                        {product.categoryName}
+                      </div>
+
+                      {/* Price */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-2xl font-bold text-primary">
+                          {getDisplayPrice(product).toLocaleString()}원
+                        </span>
+                        {userRole === 'HEADQUARTERS' || userRole === 'BRANCH' ? (
+                          <Badge variant="secondary" className="text-xs">
+                            법인가
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            개인가
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        <Link to={`/product/${product.productId}`} className="flex-1">
+                          <Button className="w-full water-drop">
+                            자세히 보기
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="water-drop"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            </Card>
-          </div>
-
-          {/* 메인 콘텐츠 영역 */}
-          <div className="flex-1">
-            {/* 검색 및 정렬 */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="제품명을 검색하세요..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="정렬" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="popular">기본순</SelectItem>
-                  <SelectItem value="price-low">가격 낮은순</SelectItem>
-                  <SelectItem value="price-high">가격 높은순</SelectItem>
-                  <SelectItem value="name">이름순</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Product Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedProducts.map((product) => (
-                <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
-                  <CardHeader className="p-0 relative">
-                    {/* Product Image */}
-                    <div className="aspect-square bg-secondary overflow-hidden">
-                      <img
-                        src={product.thumbnailImageUrl}
-                        alt={product.productName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
-                      />
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="p-6">
-                    {/* Product Name */}
-                    <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-smooth">
-                      {product.productName}
-                    </h3>
-
-                    {/* Category */}
-                    <div className="text-sm text-muted-foreground mb-3">
-                      {product.categoryName}
-                    </div>
-
-                    {/* Price */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-2xl font-bold text-primary">
-                        {getDisplayPrice(product).toLocaleString()}원
-                      </span>
-                      {userRole === 'HEADQUARTERS' || userRole === 'BRANCH' ? (
-                        <Badge variant="secondary" className="text-xs">
-                          법인가
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-xs">
-                          개인가
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <Link to={`/product/${product.productId}`} className="flex-1">
-                        <Button className="w-full water-drop">
-                          자세히 보기
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="water-drop"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           </div>
-        </div>
+        )}
 
         {/* No Results */}
-        {sortedProducts.length === 0 && (
+        {!loading && !error && sortedProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">검색 결과가 없습니다.</p>
             <p className="text-muted-foreground">다른 검색어나 카테고리를 시도해보세요.</p>
