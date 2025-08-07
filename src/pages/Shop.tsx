@@ -5,136 +5,114 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, Star, Search, Filter, Heart, ShoppingCart } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowRight, Star, Search, Filter, ShoppingCart } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const Shop = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('popular');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [userRole, setUserRole] = useState(null);
 
-  const products = [
-    {
-      id: 1,
-      name: '프리미엄 샤워 필터 SF-100',
-      price: 89000,
-      originalPrice: 120000,
-      image: '/placeholder.svg',
-      rating: 4.8,
-      reviews: 234,
-      badge: 'BEST',
-      category: 'shower',
-      status: 'available'
-    },
-    {
-      id: 2,
-      name: '주방용 직수 정수기 KF-200',
-      price: 195000,
-      originalPrice: null,
-      image: '/placeholder.svg',
-      rating: 4.9,
-      reviews: 156,
-      badge: 'NEW',
-      category: 'kitchen',
-      status: 'available'
-    },
-    {
-      id: 3,
-      name: '산업용 대용량 필터 IF-1000',
-      price: 450000,
-      originalPrice: null,
-      image: '/placeholder.svg',
-      rating: 4.7,
-      reviews: 89,
-      badge: null,
-      category: 'industrial',
-      status: 'available'
-    },
-    {
-      id: 4,
-      name: '기본형 샤워 필터 SF-50',
-      price: 45000,
-      originalPrice: 65000,
-      image: '/placeholder.svg',
-      rating: 4.5,
-      reviews: 187,
-      badge: 'SALE',
-      category: 'shower',
-      status: 'available'
-    },
-    {
-      id: 5,
-      name: '언더싱크 정수기 KF-300',
-      price: 320000,
-      originalPrice: 380000,
-      image: '/placeholder.svg',
-      rating: 4.7,
-      reviews: 98,
-      badge: 'SALE',
-      category: 'kitchen',
-      status: 'soldout'
-    },
-    {
-      id: 6,
-      name: '업무용 정수기 IF-500',
-      price: 280000,
-      originalPrice: null,
-      image: '/placeholder.svg',
-      rating: 4.6,
-      reviews: 67,
-      badge: null,
-      category: 'industrial',
-      status: 'available'
-    },
-    {
-      id: 7,
-      name: '휴대용 정수 보틀 PF-100',
-      price: 25000,
-      originalPrice: null,
-      image: '/placeholder.svg',
-      rating: 4.3,
-      reviews: 312,
-      badge: 'NEW',
-      category: 'portable',
-      status: 'available'
-    },
-    {
-      id: 8,
-      name: '전체 주택용 정수 시스템 HF-2000',
-      price: 890000,
-      originalPrice: 1200000,
-      image: '/placeholder.svg',
-      rating: 4.9,
-      reviews: 45,
-      badge: 'BEST',
-      category: 'whole-house',
-      status: 'available'
-    },
-    {
-      id: 9,
-      name: '교체용 필터 카트리지 세트',
-      price: 35000,
-      originalPrice: null,
-      image: '/placeholder.svg',
-      rating: 4.4,
-      reviews: 523,
-      badge: null,
-      category: 'accessory',
-      status: 'available'
+  // 사용자 role 정보 가져오기
+  useEffect(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const parsedUser = JSON.parse(userInfo);
+        setUserRole(parsedUser.role || 'INDIVIDUAL');
+      } catch (error) {
+        console.error('사용자 정보 파싱 오류:', error);
+        setUserRole('INDIVIDUAL');
+      }
+    } else {
+      setUserRole('INDIVIDUAL'); // 비로그인 시 기본값
     }
-  ];
+  }, []);
+
+  // 상품 데이터 가져오기
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error('상품 데이터 가져오기 오류:', error);
+        // 임시 데이터 (개발용)
+        setProducts([
+          {
+            productId: "1",
+            productName: "프리미엄 샤워 필터 SF-100",
+            customerPrice: "89000",
+            businessPrice: "75000",
+            thumbnailImageUrl: "/placeholder.svg",
+            categoryName: "샤워 필터",
+            categoryId: "shower"
+          },
+          {
+            productId: "2",
+            productName: "주방용 직수 정수기 KF-200",
+            customerPrice: "195000",
+            businessPrice: "165000",
+            thumbnailImageUrl: "/placeholder.svg",
+            categoryName: "주방 정수기",
+            categoryId: "kitchen"
+          },
+          {
+            productId: "3",
+            productName: "산업용 대용량 필터 IF-1000",
+            customerPrice: "450000",
+            businessPrice: "380000",
+            thumbnailImageUrl: "/placeholder.svg",
+            categoryName: "산업용 필터",
+            categoryId: "industrial"
+          }
+        ]);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // 카테고리 데이터 가져오기
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('카테고리 데이터 가져오기 오류:', error);
+        // 임시 데이터 (개발용)
+        setCategories([
+          { categoryId: "shower", categoryName: "샤워 필터" },
+          { categoryId: "kitchen", categoryName: "주방 정수기" },
+          { categoryId: "industrial", categoryName: "산업용 필터" }
+        ]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // 회원 유형에 따른 가격 계산
+  const getDisplayPrice = (product) => {
+    if (userRole === 'HEADQUARTERS' || userRole === 'BRANCH') {
+      return parseInt(product.businessPrice);
+    }
+    return parseInt(product.customerPrice);
+  };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
     let matchesCategory = true;
     
-    if (filterCategory === 'best') {
-      matchesCategory = product.badge === 'BEST';
-    } else if (filterCategory === 'new') {
-      matchesCategory = product.badge === 'NEW';
-    } else if (filterCategory !== 'all') {
-      matchesCategory = product.category === filterCategory;
+    if (filterCategory !== 'all') {
+      matchesCategory = product.categoryId === filterCategory;
     }
     
     return matchesSearch && matchesCategory;
@@ -143,14 +121,14 @@ const Shop = () => {
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case 'price-low':
-        return a.price - b.price;
+        return getDisplayPrice(a) - getDisplayPrice(b);
       case 'price-high':
-        return b.price - a.price;
-      case 'rating':
-        return b.rating - a.rating;
+        return getDisplayPrice(b) - getDisplayPrice(a);
+      case 'name':
+        return a.productName.localeCompare(b.productName);
       case 'popular':
       default:
-        return b.reviews - a.reviews;
+        return 0; // 기본 순서 유지
     }
   });
 
@@ -166,151 +144,130 @@ const Shop = () => {
           </p>
         </div>
 
-        {/* Search and Filter */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="제품명을 검색하세요..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-full md:w-48">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="카테고리" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체</SelectItem>
-              <SelectItem value="best">Best</SelectItem>
-              <SelectItem value="new">New</SelectItem>
-              <SelectItem value="shower">샤워 필터</SelectItem>
-              <SelectItem value="kitchen">주방 정수기</SelectItem>
-              <SelectItem value="industrial">산업용 필터</SelectItem>
-              <SelectItem value="portable">휴대용</SelectItem>
-              <SelectItem value="whole-house">전체 주택용</SelectItem>
-              <SelectItem value="accessory">부속품</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="정렬" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="popular">인기순</SelectItem>
-              <SelectItem value="price-low">가격 낮은순</SelectItem>
-              <SelectItem value="price-high">가격 높은순</SelectItem>
-              <SelectItem value="rating">평점순</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedProducts.map((product) => (
-            <Card key={product.id} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
-              <CardHeader className="p-0 relative">
-                {/* Badge */}
-                {product.badge && (
-                  <Badge 
-                    className={`absolute top-4 left-4 z-10 ${
-                      product.badge === 'BEST' 
-                        ? 'bg-destructive text-destructive-foreground' 
-                        : product.badge === 'NEW'
-                        ? 'bg-accent text-accent-foreground'
-                        : 'bg-primary text-primary-foreground'
-                    }`}
-                  >
-                    {product.badge}
-                  </Badge>
-                )}
-
-                {/* Status Badge */}
-                {product.status === 'soldout' && (
-                  <Badge 
-                    variant="secondary"
-                    className="absolute top-4 right-4 z-10"
-                  >
-                    SOLDOUT
-                  </Badge>
-                )}
-
-
-                {/* Product Image */}
-                <div className="aspect-square bg-secondary overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className={`w-full h-full object-cover group-hover:scale-105 transition-smooth ${
-                      product.status === 'soldout' ? 'grayscale opacity-60' : ''
-                    }`}
-                  />
-                </div>
-              </CardHeader>
-
-              <CardContent className="p-6">
-                {/* Rating */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{product.rating}</span>
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    ({product.reviews}개 리뷰)
-                  </span>
-                </div>
-
-                {/* Product Name */}
-                <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-smooth">
-                  {product.name}
-                </h3>
-
-                {/* Price */}
-                <div className="flex items-center gap-2 mb-4">
-                  {product.originalPrice && (
-                    <span className="text-sm text-muted-foreground line-through">
-                      {product.originalPrice.toLocaleString()}원
-                    </span>
-                  )}
-                  <span className="text-2xl font-bold text-primary">
-                    {product.price.toLocaleString()}원
-                  </span>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Link to={`/product/${product.id}`} className="flex-1">
-                    <Button 
-                      className="w-full water-drop"
-                      disabled={product.status === 'soldout'}
-                    >
-                      {product.status === 'soldout' ? '품절' : '자세히 보기'}
-                      {product.status !== 'soldout' && <ArrowRight className="w-4 h-4 ml-2" />}
-                    </Button>
-                  </Link>
+        <div className="flex flex-col lg:flex-row gap-8 mb-8">
+          {/* 카테고리 필터 (좌측) */}
+          <div className="lg:w-64 flex-shrink-0">
+            <Card className="p-4">
+              <h3 className="font-semibold text-foreground mb-4">카테고리</h3>
+              <div className="space-y-2">
+                <Button
+                  variant={filterCategory === 'all' ? 'default' : 'ghost'}
+                  className="w-full justify-start"
+                  onClick={() => setFilterCategory('all')}
+                >
+                  전체 제품
+                </Button>
+                {categories.map((category) => (
                   <Button
-                    variant="outline"
-                    size="icon"
-                    disabled={product.status === 'soldout'}
-                    className="water-drop"
+                    key={category.categoryId}
+                    variant={filterCategory === category.categoryId ? 'default' : 'ghost'}
+                    className="w-full justify-start"
+                    onClick={() => setFilterCategory(category.categoryId)}
                   >
-                    <ShoppingCart className="w-4 h-4" />
+                    {category.categoryName}
                   </Button>
-                </div>
-              </CardContent>
+                ))}
+              </div>
             </Card>
-          ))}
+          </div>
+
+          {/* 메인 콘텐츠 영역 */}
+          <div className="flex-1">
+            {/* 검색 및 정렬 */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="제품명을 검색하세요..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="정렬" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popular">기본순</SelectItem>
+                  <SelectItem value="price-low">가격 낮은순</SelectItem>
+                  <SelectItem value="price-high">가격 높은순</SelectItem>
+                  <SelectItem value="name">이름순</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Product Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedProducts.map((product) => (
+                <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
+                  <CardHeader className="p-0 relative">
+                    {/* Product Image */}
+                    <div className="aspect-square bg-secondary overflow-hidden">
+                      <img
+                        src={product.thumbnailImageUrl}
+                        alt={product.productName}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
+                      />
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="p-6">
+                    {/* Product Name */}
+                    <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-smooth">
+                      {product.productName}
+                    </h3>
+
+                    {/* Category */}
+                    <div className="text-sm text-muted-foreground mb-3">
+                      {product.categoryName}
+                    </div>
+
+                    {/* Price */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-2xl font-bold text-primary">
+                        {getDisplayPrice(product).toLocaleString()}원
+                      </span>
+                      {userRole === 'HEADQUARTERS' || userRole === 'BRANCH' ? (
+                        <Badge variant="secondary" className="text-xs">
+                          법인가
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          개인가
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Link to={`/product/${product.productId}`} className="flex-1">
+                        <Button className="w-full water-drop">
+                          자세히 보기
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="water-drop"
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* No Results */}
         {sortedProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">검색 결과가 없습니다.</p>
-            <p className="text-muted-foreground">다른 검색어나 필터를 시도해보세요.</p>
+            <p className="text-muted-foreground">다른 검색어나 카테고리를 시도해보세요.</p>
           </div>
         )}
       </main>
