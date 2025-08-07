@@ -21,20 +21,33 @@ const Shop = () => {
 
   // 사용자 role 정보 가져오기
   useEffect(() => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      try {
-        const parsedUser = JSON.parse(userInfo);
-        console.log('현재 사용자 정보:', parsedUser);
-        console.log('사용자 role:', parsedUser.role);
-        setUserRole(parsedUser.role || 'INDIVIDUAL');
-      } catch (error) {
-        console.error('사용자 정보 파싱 오류:', error);
-        setUserRole('INDIVIDUAL');
+    const fetchUserInfo = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await fetch('http://localhost:8080/api/auth/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const userData = await response.json();
+            console.log('현재 사용자 정보:', userData);
+            console.log('사용자 role:', userData.role);
+            setUserRole(userData.role || 'INDIVIDUAL');
+          } else {
+            setUserRole('INDIVIDUAL');
+          }
+        } catch (error) {
+          console.error('사용자 정보 가져오기 오류:', error);
+          setUserRole('INDIVIDUAL');
+        }
+      } else {
+        setUserRole('INDIVIDUAL'); // 비로그인 시 기본값
       }
-    } else {
-      setUserRole('INDIVIDUAL'); // 비로그인 시 기본값
-    }
+    };
+
+    fetchUserInfo();
   }, []);
 
   // 상품 데이터 가져오기
