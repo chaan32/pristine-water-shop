@@ -196,7 +196,7 @@ const ProductContentManagement = () => {
       const token = localStorage.getItem('accessToken');
       
       // 백엔드 API로 이미지 업로드
-      const response = await fetch('http://localhost:8080/api/admin/upload/image', {
+      const response = await fetch('http://localhost:8080/api/admin/products/upload/image', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
