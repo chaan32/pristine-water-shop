@@ -396,16 +396,21 @@ const ProductContentManagement = () => {
 
     const formData = new FormData();
     
+    // 수정 모드인지 신규 등록 모드인지 구분
+    const isEditMode = contentData.title || contentData.htmlContent || thumbnailPreview || galleryPreviews.length > 0;
+    
     // 기본 데이터 추가
     formData.append('productId', selectedProduct);
     formData.append('title', contentData.title);
     formData.append('htmlContent', contentData.htmlContent);
+    formData.append('mode', isEditMode ? 'edit' : 'create');
     
-    // 썸네일 이미지 파일 추가 (새로운 파일이 있는 경우)
+    // 썸네일 이미지 처리
     if (thumbnailFile) {
+      // 새로운 파일이 선택된 경우 (신규 등록 또는 수정 시 새 이미지)
       formData.append('thumbnailImage', thumbnailFile);
-    } else if (thumbnailPreview && !thumbnailFile) {
-      // 기존 썸네일이 있지만 새로운 파일이 없는 경우 기존 URL 유지
+    } else if (isEditMode && thumbnailPreview) {
+      // 수정 모드에서 기존 썸네일 유지
       formData.append('thumbnailImageUrl', thumbnailPreview);
     }
     
