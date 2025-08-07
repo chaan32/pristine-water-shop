@@ -12,6 +12,10 @@ import { Upload, Save, Eye, Trash2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
+import Image from '@tiptap/extension-image';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
 
 // TipTap 에디터 컴포넌트
 
@@ -34,7 +38,19 @@ const ProductContentManagement = () => {
 
   // TipTap 에디터 설정
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: 'rounded-lg max-w-full h-auto',
+        },
+      }),
+      TextStyle,
+      Color.configure({ types: [TextStyle.name] }),
+    ],
     content: contentData.htmlContent,
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
@@ -498,6 +514,7 @@ const ProductContentManagement = () => {
                   <div className="border rounded-md overflow-hidden min-h-[400px]">
                     {/* 툴바 */}
                     <div className="border-b p-2 flex flex-wrap gap-1 bg-muted/30">
+                      {/* 기본 서식 */}
                       <Button
                         type="button"
                         variant="ghost"
@@ -516,6 +533,8 @@ const ProductContentManagement = () => {
                       >
                         <em>I</em>
                       </Button>
+
+                      {/* 헤딩 */}
                       <Button
                         type="button"
                         variant="ghost"
@@ -538,6 +557,46 @@ const ProductContentManagement = () => {
                         type="button"
                         variant="ghost"
                         size="sm"
+                        onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                        className={editor?.isActive('heading', { level: 3 }) ? 'bg-muted' : ''}
+                      >
+                        H3
+                      </Button>
+
+                      {/* 텍스트 정렬 */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                        className={editor?.isActive({ textAlign: 'left' }) ? 'bg-muted' : ''}
+                      >
+                        왼쪽
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                        className={editor?.isActive({ textAlign: 'center' }) ? 'bg-muted' : ''}
+                      >
+                        가운데
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                        className={editor?.isActive({ textAlign: 'right' }) ? 'bg-muted' : ''}
+                      >
+                        오른쪽
+                      </Button>
+
+                      {/* 리스트 */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => editor?.chain().focus().toggleBulletList().run()}
                         className={editor?.isActive('bulletList') ? 'bg-muted' : ''}
                       >
@@ -552,6 +611,8 @@ const ProductContentManagement = () => {
                       >
                         1. List
                       </Button>
+
+                      {/* 기타 */}
                       <Button
                         type="button"
                         variant="ghost"
@@ -561,6 +622,32 @@ const ProductContentManagement = () => {
                       >
                         Quote
                       </Button>
+
+                      {/* 색상 */}
+                      <div className="flex gap-1">
+                        <input
+                          type="color"
+                          onInput={(e) => editor?.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
+                          value={editor?.getAttributes('textStyle').color || '#000000'}
+                          className="w-8 h-8 rounded cursor-pointer"
+                          title="텍스트 색상"
+                        />
+                      </div>
+
+                      {/* 이미지 삽입 */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const url = window.prompt('이미지 URL을 입력하세요:');
+                          if (url) {
+                            editor?.chain().focus().setImage({ src: url }).run();
+                          }
+                        }}
+                      >
+                        이미지
+                      </Button>
                     </div>
                     
                     {/* 에디터 */}
@@ -568,10 +655,11 @@ const ProductContentManagement = () => {
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
                     <p>💡 <strong>TipTap 에디터 사용 팁:</strong></p>
-                    <p>• 툴바의 버튼을 클릭하여 텍스트 서식을 적용하세요</p>
-                    <p>• 텍스트를 선택한 후 버튼을 클릭하면 해당 서식이 적용됩니다</p>
-                    <p>• 헤딩, 리스트, 인용문 등을 사용하여 구조화된 문서를 작성하세요</p>
-                    <p>• HTML로 저장되어 깔끔한 출력이 보장됩니다</p>
+                    <p>• 텍스트 서식: 볼드, 이탤릭, H1-H3 헤딩 사용 가능</p>
+                    <p>• 텍스트 정렬: 왼쪽, 가운데, 오른쪽 정렬 지원</p>
+                    <p>• 색상: 컬러 피커로 텍스트 색상 변경 가능</p>
+                    <p>• 이미지: URL을 입력하여 이미지 삽입 가능</p>
+                    <p>• 리스트와 인용문으로 구조화된 문서 작성</p>
                   </div>
                 </div>
               </CardContent>
