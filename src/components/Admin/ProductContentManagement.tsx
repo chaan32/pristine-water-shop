@@ -401,9 +401,12 @@ const ProductContentManagement = () => {
     formData.append('title', contentData.title);
     formData.append('htmlContent', contentData.htmlContent);
     
-    // 썸네일 이미지 파일 추가
+    // 썸네일 이미지 파일 추가 (새로운 파일이 있는 경우)
     if (thumbnailFile) {
       formData.append('thumbnailImage', thumbnailFile);
+    } else if (thumbnailPreview && !thumbnailFile) {
+      // 기존 썸네일이 있지만 새로운 파일이 없는 경우 기존 URL 유지
+      formData.append('thumbnailImageUrl', thumbnailPreview);
     }
     
     // 갤러리 이미지 파일들 추가
