@@ -176,11 +176,22 @@ const ProductEdit = () => {
   );
 
   const handleEdit = (product: any) => {
+    console.log('=== Product Object Debug ===');
+    console.log('Full product object:', product);
+    console.log('product.categoryId:', product.categoryId);
+    console.log('product.category_id:', product.category_id);
+    console.log('All product keys:', Object.keys(product));
+    
     setSelectedProduct(product);
+    
+    // categoryId 찾기 - 여러 가능한 필드명 확인
+    let categoryId = product.categoryId || product.category_id || product.id_category || '';
+    console.log('Found categoryId:', categoryId);
+    
     setEditForm({
       name: product.name || '',
       category: product.category || '',
-      categoryId: product.categoryId || '',
+      categoryId: categoryId,
       customerPrice: (product.customerPrice || 0).toString(),
       businessPrice: (product.businessPrice || 0).toString(),
       discountPrice: (product.discountPrice || 0).toString(),
