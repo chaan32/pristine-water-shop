@@ -146,8 +146,19 @@ const ProductContentManagement = () => {
       });
       
       if (response.ok) {
-        const data = await response.json();
-        console.log('기존 콘텐츠 응답:', data);
+        const text = await response.text();
+        console.log('응답 텍스트:', text);
+        
+        if (!text) {
+          console.log('빈 응답 - 새로 작성 모드');
+          setContentData({ title: '', htmlContent: '' });
+          if (editor) editor.commands.setContent('');
+          setThumbnailPreview('');
+          setGalleryPreviews([]);
+          return;
+        }
+        
+        const data = JSON.parse(text);
         
         // 기존 데이터로 상태 업데이트 (안전하게 처리)
         setContentData({
