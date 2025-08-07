@@ -15,14 +15,14 @@ const Shop = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [userRole, setUserRole] = useState(null);
+  const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 사용자 role 정보 가져오기
+  // 사용자 type 정보 가져오기
   useEffect(() => {
-    const userType = localStorage.getItem('userType');
-    setUserRole(userType || 'INDIVIDUAL');
+    const storedUserType = localStorage.getItem('userType');
+    setUserType(storedUserType); // null이면 비로그인 상태
   }, []);
 
   // 상품 데이터 가져오기
@@ -69,16 +69,24 @@ const Shop = () => {
 
   // 회원 유형에 따른 가격 계산
   const getDisplayPrice = (product) => {
-    if (userRole === 'HEADQUARTERS' || userRole === 'BRANCH') {
+    // 비로그인 상태: customerPrice
+    if (!userType) {
+      return parseInt(product.customerPrice);
+    }
+    
+    // headquarters, branch: businessPrice
+    if (userType === 'headquarters' || userType === 'branch') {
       return parseInt(product.businessPrice);
     }
+    
+    // individual: customerPrice
     return parseInt(product.customerPrice);
   };
 
-  // 관리자용 가격 표시 함수
+  // 가격 표시 함수
   const renderPriceSection = (product) => {
-    if (userRole === 'ADMIN') {
-      // 관리자: 개인가와 법인가 모두 표시, 가격 종류 표시 없음
+    // admin: 개인가와 법인가 모두 표시
+    if (userType === 'admin') {
       return (
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
@@ -95,13 +103,13 @@ const Shop = () => {
       );
     }
 
-    // 일반 사용자들: 해당 가격만 표시하고 가격 종류 표시
+    // 나머지: 해당 가격만 표시
     return (
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl font-bold text-primary">
           {getDisplayPrice(product).toLocaleString()}원
         </span>
-        {userRole === 'HEADQUARTERS' || userRole === 'BRANCH' ? (
+        {userType === 'headquarters' || userType === 'branch' ? (
           <Badge variant="secondary" className="text-xs">
             법인가
           </Badge>
