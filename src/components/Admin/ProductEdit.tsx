@@ -204,23 +204,41 @@ const ProductEdit = () => {
         return;
       }
 
+      // 카테고리 ID 디버깅
+      console.log('=== CategoryId Debug ===');
+      console.log('editForm.categoryId:', editForm.categoryId);
+      console.log('selectedProduct.categoryId:', selectedProduct.categoryId);
+      console.log('selectedProduct:', selectedProduct);
+      
+      // categoryId 결정 로직
+      let finalCategoryId = editForm.categoryId;
+      if (!finalCategoryId || finalCategoryId === '') {
+        finalCategoryId = selectedProduct.categoryId;
+      }
+      
+      console.log('finalCategoryId:', finalCategoryId);
+
+      const requestBody = {
+        name: editForm.name,
+        category: editForm.category,
+        categoryId: finalCategoryId,
+        customerPrice: parseInt(editForm.customerPrice),
+        businessPrice: parseInt(editForm.businessPrice),
+        discountPrice: parseInt(editForm.discountPrice),
+        discountPercent: parseInt(editForm.discountPercent),
+        stock: parseInt(editForm.stock),
+        status: editForm.status
+      };
+      
+      console.log('Request body:', requestBody);
+
       const response = await fetch(`http://localhost:8080/api/admin/products/edit/${selectedProduct.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          name: editForm.name,
-          category: editForm.category,
-          categoryId: editForm.categoryId || selectedProduct.categoryId,
-          customerPrice: parseInt(editForm.customerPrice),
-          businessPrice: parseInt(editForm.businessPrice),
-          discountPrice: parseInt(editForm.discountPrice),
-          discountPercent: parseInt(editForm.discountPercent),
-          stock: parseInt(editForm.stock),
-          status: editForm.status
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
