@@ -187,15 +187,52 @@ const ProductContentManagement = () => {
     setThumbnailPreview('');
   };
 
-  // 에디터용 이미지 업로드 처리
-  const handleEditorImageUpload = (file: File) => {
-    const previewUrl = URL.createObjectURL(file);
-    setEditorImageFiles(prev => [...prev, file]);
-    
-    // 에디터에 이미지 삽입
-    editor?.chain().focus().setImage({ src: previewUrl }).run();
-    
-    return previewUrl;
+  // 에디터용 이미지 업로드 처리 (백엔드 API 연동)
+  const handleEditorImageUpload = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const token = localStorage.getItem('accessToken');
+      
+      // 백엔드 API로 이미지 업로드
+      const response = await fetch('http://localhost:8080/api/admin/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const imageUrl = data.imageUrl; // 백엔드에서 반환하는 S3 URL
+        
+        // 에디터에 S3 URL로 이미지 삽입
+        editor?.chain().focus().setImage({ src: imageUrl }).run();
+        
+        toast({
+          title: "이미지 업로드 완료",
+          description: "이미지가 성공적으로 업로드되었습니다.",
+        });
+        
+        return imageUrl;
+      } else {
+        throw new Error('이미지 업로드 실패');
+      }
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      toast({
+        title: "업로드 실패",
+        description: "이미지 업로드 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+      
+      // 실패 시 로컬 프리뷰 URL 사용
+      const previewUrl = URL.createObjectURL(file);
+      editor?.chain().focus().setImage({ src: previewUrl }).run();
+      return previewUrl;
+    }
   };
 
   // FAQ 관련 함수들
