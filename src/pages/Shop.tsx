@@ -40,7 +40,7 @@ const Shop = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/shop/products');
         if (!response.ok) {
           throw new Error('상품 데이터를 가져오는데 실패했습니다.');
         }
@@ -62,7 +62,7 @@ const Shop = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories');
+        const response = await fetch('/api/shop/categories');
         if (!response.ok) {
           throw new Error('카테고리 데이터를 가져오는데 실패했습니다.');
         }
