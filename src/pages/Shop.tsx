@@ -85,6 +85,43 @@ const Shop = () => {
     return parseInt(product.customerPrice);
   };
 
+  // 관리자용 가격 표시 함수
+  const renderPriceSection = (product) => {
+    if (userRole === 'ADMIN') {
+      return (
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg font-bold text-primary">
+              개인가: {parseInt(product.customerPrice).toLocaleString()}원
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-primary">
+              법인가: {parseInt(product.businessPrice).toLocaleString()}원
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-2xl font-bold text-primary">
+          {getDisplayPrice(product).toLocaleString()}원
+        </span>
+        {userRole === 'HEADQUARTERS' || userRole === 'BRANCH' ? (
+          <Badge variant="secondary" className="text-xs">
+            법인가
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-xs">
+            개인가
+          </Badge>
+        )}
+      </div>
+    );
+  };
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
     let matchesCategory = true;
@@ -225,20 +262,7 @@ const Shop = () => {
                       </div>
 
                       {/* Price */}
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="text-2xl font-bold text-primary">
-                          {getDisplayPrice(product).toLocaleString()}원
-                        </span>
-                        {userRole === 'HEADQUARTERS' || userRole === 'BRANCH' ? (
-                          <Badge variant="secondary" className="text-xs">
-                            법인가
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs">
-                            개인가
-                          </Badge>
-                        )}
-                      </div>
+                      {renderPriceSection(product)}
 
                       {/* Action Buttons */}
                       <div className="flex gap-2">
