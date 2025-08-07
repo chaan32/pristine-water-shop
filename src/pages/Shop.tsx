@@ -25,6 +25,8 @@ const Shop = () => {
     if (userInfo) {
       try {
         const parsedUser = JSON.parse(userInfo);
+        console.log('현재 사용자 정보:', parsedUser);
+        console.log('사용자 role:', parsedUser.role);
         setUserRole(parsedUser.role || 'INDIVIDUAL');
       } catch (error) {
         console.error('사용자 정보 파싱 오류:', error);
