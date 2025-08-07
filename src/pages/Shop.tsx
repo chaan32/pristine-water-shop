@@ -35,55 +35,46 @@ const Shop = () => {
     }
   }, []);
 
-  // 임시 상품 데이터 (API 준비될 때까지)
+  // 상품 데이터 가져오기
   useEffect(() => {
-    const loadMockData = () => {
-      setLoading(true);
-      
-      // 임시 카테고리 데이터
-      const mockCategories = [
-        { categoryId: 'shower', categoryName: '샤워필터' },
-        { categoryId: 'kitchen', categoryName: '정수기' },
-        { categoryId: 'water', categoryName: '생수' }
-      ];
-      
-      // 임시 상품 데이터
-      const mockProducts = [
-        {
-          productId: '1',
-          thumbnailImageUrl: '/src/assets/shower-filter.jpg',
-          productName: 'AquaPure 샤워 필터',
-          customerPrice: '89000',
-          businessPrice: '75000',
-          categoryName: '샤워필터',
-          categoryId: 'shower'
-        },
-        {
-          productId: '2',
-          thumbnailImageUrl: '/src/assets/kitchen-filter.jpg',
-          productName: 'AquaPure 주방 정수기',
-          customerPrice: '150000',
-          businessPrice: '120000',
-          categoryName: '정수기',
-          categoryId: 'kitchen'
-        },
-        {
-          productId: '3',
-          thumbnailImageUrl: '/src/assets/hero-water-filter.jpg',
-          productName: 'AquaPure 생수',
-          customerPrice: '15000',
-          businessPrice: '12000',
-          categoryName: '생수',
-          categoryId: 'water'
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/shop/products');
+        if (!response.ok) {
+          throw new Error('상품 데이터를 가져오는데 실패했습니다.');
         }
-      ];
-      
-      setCategories(mockCategories);
-      setProducts(mockProducts);
-      setLoading(false);
+        const data = await response.json();
+        setProducts(data);
+        setError(null);
+      } catch (error) {
+        console.error('상품 데이터 가져오기 오류:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadMockData();
+    fetchProducts();
+  }, []);
+
+  // 카테고리 데이터 가져오기
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/shop/categories');
+        if (!response.ok) {
+          throw new Error('카테고리 데이터를 가져오는데 실패했습니다.');
+        }
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('카테고리 데이터 가져오기 오류:', error);
+        setError(error.message);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   // 회원 유형에 따른 가격 계산
