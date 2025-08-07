@@ -176,22 +176,11 @@ const ProductEdit = () => {
   );
 
   const handleEdit = (product: any) => {
-    console.log('=== Product Object Debug ===');
-    console.log('Full product object:', product);
-    console.log('product.categoryId:', product.categoryId);
-    console.log('product.category_id:', product.category_id);
-    console.log('All product keys:', Object.keys(product));
-    
     setSelectedProduct(product);
-    
-    // categoryId 찾기 - 여러 가능한 필드명 확인
-    let categoryId = product.categoryId || product.category_id || product.id_category || '';
-    console.log('Found categoryId:', categoryId);
-    
     setEditForm({
       name: product.name || '',
-      category: product.category || '',
-      categoryId: categoryId,
+      category: product.categoryName || product.category || '',
+      categoryId: product.categoryId || '',
       customerPrice: (product.customerPrice || 0).toString(),
       businessPrice: (product.businessPrice || 0).toString(),
       discountPrice: (product.discountPrice || 0).toString(),
@@ -199,7 +188,7 @@ const ProductEdit = () => {
       stock: (product.stock || 0).toString(),
       status: product.status || '판매 중'
     });
-    setSelectedCategoryName(product.category || '');
+    setSelectedCategoryName(product.categoryName || product.category || '');
     setIsEditOpen(true);
   };
 
@@ -215,41 +204,23 @@ const ProductEdit = () => {
         return;
       }
 
-      // 카테고리 ID 디버깅
-      console.log('=== CategoryId Debug ===');
-      console.log('editForm.categoryId:', editForm.categoryId);
-      console.log('selectedProduct.categoryId:', selectedProduct.categoryId);
-      console.log('selectedProduct:', selectedProduct);
-      
-      // categoryId 결정 로직
-      let finalCategoryId = editForm.categoryId;
-      if (!finalCategoryId || finalCategoryId === '') {
-        finalCategoryId = selectedProduct.categoryId;
-      }
-      
-      console.log('finalCategoryId:', finalCategoryId);
-
-      const requestBody = {
-        name: editForm.name,
-        category: editForm.category,
-        categoryId: finalCategoryId,
-        customerPrice: parseInt(editForm.customerPrice),
-        businessPrice: parseInt(editForm.businessPrice),
-        discountPrice: parseInt(editForm.discountPrice),
-        discountPercent: parseInt(editForm.discountPercent),
-        stock: parseInt(editForm.stock),
-        status: editForm.status
-      };
-      
-      console.log('Request body:', requestBody);
-
       const response = await fetch(`http://localhost:8080/api/admin/products/edit/${selectedProduct.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          name: editForm.name,
+          category: editForm.category,
+          categoryId: editForm.categoryId,
+          customerPrice: parseInt(editForm.customerPrice),
+          businessPrice: parseInt(editForm.businessPrice),
+          discountPrice: parseInt(editForm.discountPrice),
+          discountPercent: parseInt(editForm.discountPercent),
+          stock: parseInt(editForm.stock),
+          status: editForm.status
+        })
       });
 
       if (!response.ok) {
@@ -366,7 +337,7 @@ const ProductEdit = () => {
                 {filteredProducts.map((product, index) => (
                   <TableRow key={product.id || `product-${index}`}>
                     <TableCell className="font-medium">{product.name || '-'}</TableCell>
-                    <TableCell>{product.category || '-'}</TableCell>
+                    <TableCell>{product.categoryName || product.category || '-'}</TableCell>
                     <TableCell>₩{(product.customerPrice || 0).toLocaleString()}</TableCell>
                     <TableCell>₩{(product.businessPrice || 0).toLocaleString()}</TableCell>
                     <TableCell>₩{(product.discountPrice || 0).toLocaleString()}</TableCell>
