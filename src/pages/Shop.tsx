@@ -27,7 +27,8 @@ const Shop = () => {
         const parsedUser = JSON.parse(userInfo);
         console.log('현재 사용자 정보:', parsedUser);
         console.log('사용자 userType:', parsedUser.userType);
-        setUserRole(parsedUser.userType || 'INDIVIDUAL');
+        // userType을 대문자로 변환하여 설정
+        setUserRole(parsedUser.userType ? parsedUser.userType.toUpperCase() : 'INDIVIDUAL');
       } catch (error) {
         console.error('사용자 정보 파싱 오류:', error);
         setUserRole('INDIVIDUAL');
