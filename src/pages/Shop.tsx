@@ -90,6 +90,7 @@ const Shop = () => {
   // 관리자용 가격 표시 함수
   const renderPriceSection = (product) => {
     if (userRole === 'ADMIN') {
+      // 관리자: 개인가와 법인가 모두 표시, 가격 종류 표시 없음
       return (
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
@@ -106,6 +107,7 @@ const Shop = () => {
       );
     }
 
+    // 일반 사용자들: 해당 가격만 표시하고 가격 종류 표시
     return (
       <div className="flex items-center gap-2 mb-4">
         <span className="text-2xl font-bold text-primary">
