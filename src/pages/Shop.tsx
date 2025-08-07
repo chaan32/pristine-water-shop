@@ -21,21 +21,8 @@ const Shop = () => {
 
   // 사용자 role 정보 가져오기
   useEffect(() => {
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      try {
-        const parsedUser = JSON.parse(userInfo);
-        console.log('현재 사용자 정보:', parsedUser);
-        console.log('사용자 userType:', parsedUser.userType);
-        // userType을 대문자로 변환하여 설정
-        setUserRole(parsedUser.userType ? parsedUser.userType.toUpperCase() : 'INDIVIDUAL');
-      } catch (error) {
-        console.error('사용자 정보 파싱 오류:', error);
-        setUserRole('INDIVIDUAL');
-      }
-    } else {
-      setUserRole('INDIVIDUAL'); // 비로그인 시 기본값
-    }
+    const userType = localStorage.getItem('userType');
+    setUserRole(userType || 'INDIVIDUAL');
   }, []);
 
   // 상품 데이터 가져오기
