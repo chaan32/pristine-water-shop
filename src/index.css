@@ -2,6 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
+/* React Quill Editor Styling */
+.ql-editor {
+  min-height: 300px !important;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ql-toolbar {
+  border-top: 1px solid hsl(var(--border)) !important;
+  border-left: 1px solid hsl(var(--border)) !important;
+  border-right: 1px solid hsl(var(--border)) !important;
+  border-bottom: none !important;
+  background: hsl(var(--background));
+}
+
+.ql-container {
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  border-left: 1px solid hsl(var(--border)) !important;
+  border-right: 1px solid hsl(var(--border)) !important;
+  border-top: none !important;
+  font-family: inherit;
+}
+
+.ql-editor.ql-blank::before {
+  color: hsl(var(--muted-foreground));
+  font-style: normal;
+}
+
+.ql-snow .ql-picker {
+  color: hsl(var(--foreground));
+}
+
+.ql-snow .ql-stroke {
+  stroke: hsl(var(--foreground));
+}
+
+.ql-snow .ql-fill {
+  fill: hsl(var(--foreground));
+}
+
+.ql-snow .ql-tooltip {
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--popover-foreground));
+}
+
+.ql-snow .ql-tooltip input[type="text"] {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--input));
+  color: hsl(var(--foreground));
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Dark mode adjustments */
+.dark .ql-toolbar {
+  background: hsl(var(--card));
+}
+
+.dark .ql-editor {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+}
+
 @layer base {
   :root {
     /* Water Brand Color Palette */
