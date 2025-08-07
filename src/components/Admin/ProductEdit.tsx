@@ -186,7 +186,7 @@ const ProductEdit = () => {
       discountPrice: (product.discountPrice || 0).toString(),
       discountPercent: (product.discountPercent || 0).toString(),
       stock: (product.stock || 0).toString(),
-      status: product.status || '판매중'
+      status: product.status || '판매 중'
     });
     setSelectedCategoryName(product.category || '');
     setIsEditOpen(true);
@@ -213,7 +213,7 @@ const ProductEdit = () => {
         body: JSON.stringify({
           name: editForm.name,
           category: editForm.category,
-          categoryId: editForm.categoryId,
+          categoryId: editForm.categoryId || selectedProduct.categoryId,
           customerPrice: parseInt(editForm.customerPrice),
           businessPrice: parseInt(editForm.businessPrice),
           discountPrice: parseInt(editForm.discountPrice),
@@ -348,7 +348,11 @@ const ProductEdit = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={product.status === '판매중' ? 'default' : 'secondary'}>
+                      <Badge variant={
+                        product.status === '판매 중' ? 'default' : 
+                        product.status === '품절' ? 'destructive' : 
+                        product.status === '판매 중단' ? 'secondary' : 'secondary'
+                      }>
                         {product.status || '상태미정'}
                       </Badge>
                     </TableCell>
@@ -572,7 +576,11 @@ const ProductEdit = () => {
                       </div>
                       <div>
                         <span className="font-medium">현재 상태:</span>
-                        <Badge className="ml-2" variant={selectedProduct.status === '판매중' ? 'default' : 'secondary'}>
+                        <Badge className="ml-2" variant={
+                          selectedProduct.status === '판매 중' ? 'default' : 
+                          selectedProduct.status === '품절' ? 'destructive' : 
+                          selectedProduct.status === '판매 중단' ? 'secondary' : 'secondary'
+                        }>
                           {selectedProduct.status}
                         </Badge>
                       </div>
