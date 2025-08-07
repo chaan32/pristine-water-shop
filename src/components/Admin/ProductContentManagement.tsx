@@ -80,6 +80,10 @@ const ProductContentManagement = () => {
   // 에디터 이미지 업로드를 위한 상태
   const [editorImageFiles, setEditorImageFiles] = useState<File[]>([]);
 
+  // FAQ 관리를 위한 상태
+  const [faqList, setFaqList] = useState<{question: string, answer: string}[]>([]);
+  const [newFaq, setNewFaq] = useState({question: '', answer: ''});
+
 
   // API에서 상품 목록 가져오기
   const fetchProducts = async () => {
@@ -192,6 +196,62 @@ const ProductContentManagement = () => {
     editor?.chain().focus().setImage({ src: previewUrl }).run();
     
     return previewUrl;
+  };
+
+  // FAQ 관련 함수들
+  const addFaq = () => {
+    if (!newFaq.question.trim() || !newFaq.answer.trim()) {
+      toast({
+        title: "입력 오류",
+        description: "질문과 답변을 모두 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFaqList(prev => [...prev, { ...newFaq }]);
+    setNewFaq({ question: '', answer: '' });
+    
+    toast({
+      title: "FAQ 추가됨",
+      description: "새로운 FAQ가 추가되었습니다.",
+    });
+  };
+
+  const removeFaq = (index: number) => {
+    setFaqList(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const insertFaqToEditor = () => {
+    if (faqList.length === 0) {
+      toast({
+        title: "FAQ 없음",
+        description: "먼저 FAQ를 추가해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // FAQ를 HTML로 변환
+    const faqHtml = `
+      <h2>자주 묻는 질문 (FAQ)</h2>
+      <div class="faq-section">
+        ${faqList.map((faq, index) => `
+          <div class="faq-item" style="margin-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem;">
+            <h3 style="color: #1f2937; font-weight: 600; margin-bottom: 0.5rem;">Q${index + 1}. ${faq.question}</h3>
+            <p style="color: #6b7280; line-height: 1.6;">${faq.answer}</p>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    // 에디터에 HTML 삽입
+    editor?.chain().focus().insertContent(faqHtml).run();
+    
+    toast({
+      title: "FAQ 삽입 완료",
+      description: "FAQ가 에디터에 삽입되었습니다.",
+    });
   };
 
   const handleSave = async () => {
@@ -610,6 +670,81 @@ const ProductContentManagement = () => {
                     {/* 에디터 영역 */}
                     <div className="border rounded-b-md min-h-[400px]">
                       <EditorContent editor={editor} />
+                    </div>
+                  </div>
+                  
+                  {/* FAQ 관리 섹션 */}
+                  <div className="grid gap-4 border-t pt-6">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-semibold">FAQ 관리</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={insertFaqToEditor}
+                        disabled={faqList.length === 0}
+                      >
+                        FAQ 에디터에 추가
+                      </Button>
+                    </div>
+                    
+                    {/* FAQ 추가 폼 */}
+                    <div className="grid gap-4 p-4 border rounded-lg bg-muted/30">
+                      <div className="grid gap-2">
+                        <Label htmlFor="faq-question">질문</Label>
+                        <Input
+                          id="faq-question"
+                          value={newFaq.question}
+                          onChange={(e) => setNewFaq(prev => ({ ...prev, question: e.target.value }))}
+                          placeholder="자주 묻는 질문을 입력하세요"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="faq-answer">답변</Label>
+                        <Input
+                          id="faq-answer"
+                          value={newFaq.answer}
+                          onChange={(e) => setNewFaq(prev => ({ ...prev, answer: e.target.value }))}
+                          placeholder="질문에 대한 답변을 입력하세요"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={addFaq}
+                        className="w-fit"
+                      >
+                        FAQ 추가
+                      </Button>
+                    </div>
+                    
+                    {/* FAQ 목록 */}
+                    {faqList.length > 0 && (
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">추가된 FAQ 목록 ({faqList.length}개)</Label>
+                        {faqList.map((faq, index) => (
+                          <div key={index} className="p-3 border rounded-lg bg-background">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 space-y-1">
+                                <p className="font-medium text-sm">Q{index + 1}. {faq.question}</p>
+                                <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                              </div>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removeFaq(index)}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div className="text-xs text-muted-foreground p-2 bg-blue-50 rounded border-l-4 border-blue-200">
+                      <p><strong>💡 FAQ 사용 팁:</strong></p>
+                      <p>• 질문과 답변을 추가한 후 "FAQ 에디터에 추가" 버튼을 클릭하여 상세 설명에 삽입</p>
+                      <p>• 미리 만들어둔 FAQ는 언제든지 에디터에 추가할 수 있습니다</p>
+                      <p>• FAQ는 깔끔한 레이아웃으로 자동 formatting됩니다</p>
                     </div>
                   </div>
                 </div>
