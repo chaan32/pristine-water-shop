@@ -43,6 +43,12 @@ const ProductContentManagement = () => {
         heading: {
           levels: [1, 2, 3],
         },
+        bulletList: {
+          keepMarks: true,
+        },
+        orderedList: {
+          keepMarks: true,
+        },
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
@@ -53,7 +59,7 @@ const ProductContentManagement = () => {
         },
       }),
       TextStyle,
-      Color.configure({ types: [TextStyle.name] }),
+      Color.configure({ types: [TextStyle.name, 'heading'] }),
     ],
     content: contentData.htmlContent,
     onUpdate: ({ editor }) => {
@@ -62,7 +68,7 @@ const ProductContentManagement = () => {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1',
       },
     },
   });
