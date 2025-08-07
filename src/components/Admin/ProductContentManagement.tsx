@@ -149,25 +149,21 @@ const ProductContentManagement = () => {
         const data = await response.json();
         console.log('기존 콘텐츠 응답:', data);
         
-        // 기존 데이터로 상태 업데이트
+        // 기존 데이터로 상태 업데이트 (안전하게 처리)
         setContentData({
-          title: data.title || '',
-          htmlContent: data.htmlContent || '',
+          title: data?.title || '',
+          htmlContent: data?.htmlContent || '',
         });
         
         // 에디터에도 기존 내용 설정
-        if (editor && data.htmlContent) {
-          editor.commands.setContent(data.htmlContent);
+        if (editor) {
+          const content = data?.htmlContent || '';
+          editor.commands.setContent(content);
         }
         
         // 기존 이미지들 처리
-        if (data.thumbnailImageUrl) {
-          setThumbnailPreview(data.thumbnailImageUrl);
-        }
-        
-        if (data.galleryImageUrls && data.galleryImageUrls.length > 0) {
-          setGalleryPreviews(data.galleryImageUrls);
-        }
+        setThumbnailPreview(data?.thumbnailImageUrl || '');
+        setGalleryPreviews(data?.galleryImageUrls || []);
         
         toast({
           title: "콘텐츠 불러오기 완료",
