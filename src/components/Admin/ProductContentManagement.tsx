@@ -405,27 +405,213 @@ const ProductContentManagement = () => {
       </Card>
 
       {selectedProduct && (
-        <Tabs defaultValue="basic" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="basic">기본 정보</TabsTrigger>
-            <TabsTrigger value="images">이미지 관리</TabsTrigger>
+        <Tabs defaultValue="content" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="content">상세 콘텐츠</TabsTrigger>
+            <TabsTrigger value="images">이미지 관리</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="basic">
+          <TabsContent value="content">
             <Card>
               <CardHeader>
-                <CardTitle>기본 정보</CardTitle>
+                <CardTitle>상세 콘텐츠 작성</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  리치 텍스트 에디터를 사용하여 제품의 상세 설명을 작성하세요.
+                </p>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="title">제품 제목</Label>
-                  <Input
-                    id="title"
-                    value={contentData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="제품의 메인 제목을 입력하세요"
-                  />
+              <CardContent>
+                <div className="space-y-4">
+                  {/* 제품 제목 */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="title">제품 제목</Label>
+                    <Input
+                      id="title"
+                      value={contentData.title}
+                      onChange={(e) => handleInputChange('title', e.target.value)}
+                      placeholder="제품의 메인 제목을 입력하세요"
+                    />
+                  </div>
+                  
+                  {/* 리치 텍스트 에디터 */}
+                  <div className="grid gap-2">
+                    <Label>상세 설명</Label>
+                    
+                    {/* 에디터 툴바 */}
+                    <div className="border rounded-t-md p-2 bg-muted">
+                      <div className="flex flex-wrap gap-1">
+                        {/* 헤딩 */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                          className={editor?.isActive('heading', { level: 1 }) ? 'bg-muted' : ''}
+                        >
+                          H1
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                          className={editor?.isActive('heading', { level: 2 }) ? 'bg-muted' : ''}
+                        >
+                          H2
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                          className={editor?.isActive('heading', { level: 3 }) ? 'bg-muted' : ''}
+                        >
+                          H3
+                        </Button>
+
+                        {/* 텍스트 서식 */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().toggleBold().run()}
+                          className={editor?.isActive('bold') ? 'bg-muted' : ''}
+                        >
+                          B
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().toggleItalic().run()}
+                          className={editor?.isActive('italic') ? 'bg-muted' : ''}
+                        >
+                          I
+                        </Button>
+
+                        {/* 텍스트 정렬 */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                          className={editor?.isActive({ textAlign: 'left' }) ? 'bg-muted' : ''}
+                        >
+                          왼쪽
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                          className={editor?.isActive({ textAlign: 'center' }) ? 'bg-muted' : ''}
+                        >
+                          가운데
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                          className={editor?.isActive({ textAlign: 'right' }) ? 'bg-muted' : ''}
+                        >
+                          오른쪽
+                        </Button>
+
+                        {/* 리스트 */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                          className={editor?.isActive('bulletList') ? 'bg-muted' : ''}
+                        >
+                          • List
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                          className={editor?.isActive('orderedList') ? 'bg-muted' : ''}
+                        >
+                          1. List
+                        </Button>
+
+                        {/* 기타 */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                          className={editor?.isActive('blockquote') ? 'bg-muted' : ''}
+                        >
+                          Quote
+                        </Button>
+
+                        {/* 색상 */}
+                        <div className="flex gap-1">
+                          <input
+                            type="color"
+                            onInput={(e) => editor?.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
+                            value={editor?.getAttributes('textStyle').color || '#000000'}
+                            className="w-8 h-8 rounded cursor-pointer"
+                            title="텍스트 색상"
+                          />
+                        </div>
+
+                        {/* 이미지 삽입 */}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleEditorImageUpload(file);
+                            }
+                          }}
+                          className="hidden"
+                          id="editor-image-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => document.getElementById('editor-image-upload')?.click()}
+                        >
+                          📷 이미지
+                        </Button>
+                        
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const url = window.prompt('외부 이미지 URL을 입력하세요:');
+                            if (url) {
+                              editor?.chain().focus().setImage({ src: url }).run();
+                            }
+                          }}
+                        >
+                          🔗 URL 이미지
+                        </Button>
+                      </div>
+                      
+                      {/* 에디터 사용법 */}
+                      <div className="mt-2 p-2 bg-background rounded text-xs text-muted-foreground">
+                        <p><strong>사용법:</strong></p>
+                        <p>• 텍스트 서식: 볼드, 이탤릭, H1-H3 헤딩 사용 가능</p>
+                        <p>• 텍스트 정렬: 왼쪽, 가운데, 오른쪽 정렬 지원</p>
+                        <p>• 색상: 컬러 피커로 텍스트 색상 변경 가능</p>
+                        <p>• 이미지: 로컬 파일 업로드 또는 URL 입력으로 이미지 삽입</p>
+                        <p>• 리스트와 인용문으로 구조화된 문서 작성</p>
+                      </div>
+                    </div>
+                    
+                    {/* 에디터 영역 */}
+                    <div className="border rounded-b-md min-h-[400px]">
+                      <EditorContent editor={editor} />
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -442,9 +628,9 @@ const ProductContentManagement = () => {
               <CardContent className="space-y-6">
                 {/* 썸네일 업로드 */}
                 <div className="grid gap-2">
-                  <Label htmlFor="thumbnail">제품 썸네일 (대표 이미지)</Label>
-                  <div className="flex items-center gap-4">
-                    <Input
+                  <Label>제품 썸네일 (대표 이미지)</Label>
+                  <div className="flex gap-2">
+                    <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => {
@@ -453,10 +639,19 @@ const ProductContentManagement = () => {
                           handleImageUpload(file);
                         }
                       }}
-                      className="flex-1"
+                      className="hidden"
+                      id="thumbnail-file"
                     />
+                    <Button 
+                      variant="outline" 
+                      onClick={() => document.getElementById('thumbnail-file')?.click()}
+                      disabled={!!thumbnailFile}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      썸네일 업로드
+                    </Button>
                     {thumbnailPreview && (
-                      <div className="relative">
+                      <div className="flex items-center gap-2">
                         <img 
                           src={thumbnailPreview} 
                           alt="썸네일 미리보기" 
@@ -464,11 +659,10 @@ const ProductContentManagement = () => {
                         />
                         <Button
                           variant="destructive"
-                          size="icon"
-                          className="absolute -top-2 -right-2 h-6 w-6"
+                          size="sm"
                           onClick={removeThumbnail}
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     )}
@@ -529,192 +723,6 @@ const ProductContentManagement = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="content">
-            <Card>
-              <CardHeader>
-                <CardTitle>상세 콘텐츠 (리치 텍스트 에디터)</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  제품의 상세 설명을 자유롭게 작성하세요. 텍스트 서식, 이미지, 링크 등을 자유롭게 추가할 수 있습니다.
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="html-content">제품 상세 설명</Label>
-                  <div className="border rounded-md overflow-hidden min-h-[400px]">
-                    {/* 툴바 */}
-                    <div className="border-b p-2 flex flex-wrap gap-1 bg-muted/30">
-                      {/* 기본 서식 */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleBold().run()}
-                        className={editor?.isActive('bold') ? 'bg-muted' : ''}
-                      >
-                        <strong>B</strong>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleItalic().run()}
-                        className={editor?.isActive('italic') ? 'bg-muted' : ''}
-                      >
-                        <em>I</em>
-                      </Button>
-
-                      {/* 헤딩 */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                        className={editor?.isActive('heading', { level: 1 }) ? 'bg-muted' : ''}
-                      >
-                        H1
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                        className={editor?.isActive('heading', { level: 2 }) ? 'bg-muted' : ''}
-                      >
-                        H2
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-                        className={editor?.isActive('heading', { level: 3 }) ? 'bg-muted' : ''}
-                      >
-                        H3
-                      </Button>
-
-                      {/* 텍스트 정렬 */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-                        className={editor?.isActive({ textAlign: 'left' }) ? 'bg-muted' : ''}
-                      >
-                        왼쪽
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-                        className={editor?.isActive({ textAlign: 'center' }) ? 'bg-muted' : ''}
-                      >
-                        가운데
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().setTextAlign('right').run()}
-                        className={editor?.isActive({ textAlign: 'right' }) ? 'bg-muted' : ''}
-                      >
-                        오른쪽
-                      </Button>
-
-                      {/* 리스트 */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                        className={editor?.isActive('bulletList') ? 'bg-muted' : ''}
-                      >
-                        • List
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                        className={editor?.isActive('orderedList') ? 'bg-muted' : ''}
-                      >
-                        1. List
-                      </Button>
-
-                      {/* 기타 */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-                        className={editor?.isActive('blockquote') ? 'bg-muted' : ''}
-                      >
-                        Quote
-                      </Button>
-
-                      {/* 색상 */}
-                      <div className="flex gap-1">
-                        <input
-                          type="color"
-                          onInput={(e) => editor?.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
-                          value={editor?.getAttributes('textStyle').color || '#000000'}
-                          className="w-8 h-8 rounded cursor-pointer"
-                          title="텍스트 색상"
-                        />
-                      </div>
-
-                      {/* 이미지 삽입 */}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handleEditorImageUpload(file);
-                          }
-                        }}
-                        className="hidden"
-                        id="editor-image-upload"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => document.getElementById('editor-image-upload')?.click()}
-                      >
-                        📷 이미지
-                      </Button>
-                      
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const url = window.prompt('외부 이미지 URL을 입력하세요:');
-                          if (url) {
-                            editor?.chain().focus().setImage({ src: url }).run();
-                          }
-                        }}
-                      >
-                        🔗 URL 이미지
-                      </Button>
-                    </div>
-                    
-                    {/* 에디터 */}
-                    <EditorContent editor={editor} className="min-h-[400px]" />
-                  </div>
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <p>💡 <strong>TipTap 에디터 사용 팁:</strong></p>
-                    <p>• 텍스트 서식: 볼드, 이탤릭, H1-H3 헤딩 사용 가능</p>
-                    <p>• 텍스트 정렬: 왼쪽, 가운데, 오른쪽 정렬 지원</p>
-                    <p>• 색상: 컬러 피커로 텍스트 색상 변경 가능</p>
-                    <p>• 이미지: 로컬 파일 업로드 또는 URL 입력으로 이미지 삽입</p>
-                    <p>• 리스트와 인용문으로 구조화된 문서 작성</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       )}
     </div>
