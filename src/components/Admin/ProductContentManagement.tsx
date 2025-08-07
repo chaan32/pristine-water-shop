@@ -39,7 +39,11 @@ const ProductContentManagement = () => {
   // TipTap 에디터 설정
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
@@ -66,6 +70,9 @@ const ProductContentManagement = () => {
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+
+  // 에디터 이미지 업로드를 위한 상태
+  const [editorImageFiles, setEditorImageFiles] = useState<File[]>([]);
 
 
   // API에서 상품 목록 가져오기
@@ -170,6 +177,17 @@ const ProductContentManagement = () => {
     setThumbnailPreview('');
   };
 
+  // 에디터용 이미지 업로드 처리
+  const handleEditorImageUpload = (file: File) => {
+    const previewUrl = URL.createObjectURL(file);
+    setEditorImageFiles(prev => [...prev, file]);
+    
+    // 에디터에 이미지 삽입
+    editor?.chain().focus().setImage({ src: previewUrl }).run();
+    
+    return previewUrl;
+  };
+
   const handleSave = async () => {
     if (!selectedProduct) {
       toast({
@@ -213,6 +231,11 @@ const ProductContentManagement = () => {
     // 갤러리 이미지 파일들 추가
     galleryFiles.forEach(file => {
       formData.append('galleryImages', file);
+    });
+
+    // 에디터 이미지 파일들 추가
+    editorImageFiles.forEach(file => {
+      formData.append('editorImages', file);
     });
 
     try {
@@ -635,18 +658,39 @@ const ProductContentManagement = () => {
                       </div>
 
                       {/* 이미지 삽입 */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleEditorImageUpload(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="editor-image-upload"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => document.getElementById('editor-image-upload')?.click()}
+                      >
+                        📷 이미지
+                      </Button>
+                      
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          const url = window.prompt('이미지 URL을 입력하세요:');
+                          const url = window.prompt('외부 이미지 URL을 입력하세요:');
                           if (url) {
                             editor?.chain().focus().setImage({ src: url }).run();
                           }
                         }}
                       >
-                        이미지
+                        🔗 URL 이미지
                       </Button>
                     </div>
                     
@@ -658,7 +702,7 @@ const ProductContentManagement = () => {
                     <p>• 텍스트 서식: 볼드, 이탤릭, H1-H3 헤딩 사용 가능</p>
                     <p>• 텍스트 정렬: 왼쪽, 가운데, 오른쪽 정렬 지원</p>
                     <p>• 색상: 컬러 피커로 텍스트 색상 변경 가능</p>
-                    <p>• 이미지: URL을 입력하여 이미지 삽입 가능</p>
+                    <p>• 이미지: 로컬 파일 업로드 또는 URL 입력으로 이미지 삽입</p>
                     <p>• 리스트와 인용문으로 구조화된 문서 작성</p>
                   </div>
                 </div>
