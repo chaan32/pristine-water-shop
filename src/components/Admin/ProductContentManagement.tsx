@@ -417,7 +417,7 @@ const ProductContentManagement = () => {
                     </CardHeader>
                     <CardContent>
                       <div 
-                        className="prose prose-sm max-w-none"
+                        className="prose prose-sm max-w-none [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:text-gray-900 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:text-gray-800 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_h3]:text-gray-700 [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p]:mb-3 [&_p]:leading-relaxed [&_.faq-section]:mt-6 [&_.faq-item]:mb-4 [&_.faq-item]:pb-4 [&_.faq-item]:border-b [&_.faq-item]:border-gray-200"
                         dangerouslySetInnerHTML={{ __html: contentData.htmlContent }}
                       />
                     </CardContent>
