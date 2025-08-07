@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
+// TipTap 에디터 컴포넌트
+
 interface Product {
   id: string;
   name: string;
