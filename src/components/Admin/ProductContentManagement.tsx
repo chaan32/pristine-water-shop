@@ -10,8 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Upload, Save, Eye, Trash2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 
 interface Product {
   id: string;
@@ -29,35 +29,26 @@ const ProductContentManagement = () => {
     title: '',
     htmlContent: '',
   });
+
+  // TipTap 에디터 설정
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: contentData.htmlContent,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      handleHtmlContentChange(html);
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4',
+      },
+    },
+  });
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
-  // React Quill 설정
-  const quillModules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      ['blockquote', 'code-block'],
-      ['link', 'image'],
-      ['clean']
-    ],
-  };
-
-  const quillFormats = [
-    'header', 'size',
-    'bold', 'italic', 'underline', 'strike',
-    'color', 'background',
-    'align',
-    'list', 'bullet',
-    'blockquote', 'code-block',
-    'link', 'image'
-  ];
 
   // API에서 상품 목록 가져오기
   const fetchProducts = async () => {
@@ -502,23 +493,83 @@ const ProductContentManagement = () => {
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
                   <Label htmlFor="html-content">제품 상세 설명</Label>
-                  <div className="border rounded-md overflow-hidden">
-                    <ReactQuill
-                      theme="snow"
-                      value={contentData.htmlContent}
-                      onChange={handleHtmlContentChange}
-                      modules={quillModules}
-                      formats={quillFormats}
-                      placeholder="제품의 상세한 설명을 작성하세요..."
-                      style={{ minHeight: '400px' }}
-                    />
+                  <div className="border rounded-md overflow-hidden min-h-[400px]">
+                    {/* 툴바 */}
+                    <div className="border-b p-2 flex flex-wrap gap-1 bg-muted/30">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleBold().run()}
+                        className={editor?.isActive('bold') ? 'bg-muted' : ''}
+                      >
+                        <strong>B</strong>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleItalic().run()}
+                        className={editor?.isActive('italic') ? 'bg-muted' : ''}
+                      >
+                        <em>I</em>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                        className={editor?.isActive('heading', { level: 1 }) ? 'bg-muted' : ''}
+                      >
+                        H1
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                        className={editor?.isActive('heading', { level: 2 }) ? 'bg-muted' : ''}
+                      >
+                        H2
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                        className={editor?.isActive('bulletList') ? 'bg-muted' : ''}
+                      >
+                        • List
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                        className={editor?.isActive('orderedList') ? 'bg-muted' : ''}
+                      >
+                        1. List
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                        className={editor?.isActive('blockquote') ? 'bg-muted' : ''}
+                      >
+                        Quote
+                      </Button>
+                    </div>
+                    
+                    {/* 에디터 */}
+                    <EditorContent editor={editor} className="min-h-[400px]" />
                   </div>
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p>💡 <strong>에디터 사용 팁:</strong></p>
-                    <p>• 이미지를 삽입하려면 툴바의 이미지 버튼을 클릭하고 이미지 URL을 입력하세요.</p>
-                    <p>• 제목은 Header 드롭다운에서 H1~H6을 선택하세요.</p>
-                    <p>• 텍스트 색상과 배경색을 변경할 수 있습니다.</p>
-                    <p>• 링크를 추가하려면 텍스트를 선택 후 링크 버튼을 클릭하세요.</p>
+                    <p>💡 <strong>TipTap 에디터 사용 팁:</strong></p>
+                    <p>• 툴바의 버튼을 클릭하여 텍스트 서식을 적용하세요</p>
+                    <p>• 텍스트를 선택한 후 버튼을 클릭하면 해당 서식이 적용됩니다</p>
+                    <p>• 헤딩, 리스트, 인용문 등을 사용하여 구조화된 문서를 작성하세요</p>
+                    <p>• HTML로 저장되어 깔끔한 출력이 보장됩니다</p>
                   </div>
                 </div>
               </CardContent>
