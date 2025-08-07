@@ -303,7 +303,10 @@ const ProductContentManagement = () => {
     editorImageFiles.forEach(file => {
       formData.append('editorImages', file);
     });
-
+    console.log("백엔드로 전송될 데이터 확인:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
     try {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('http://localhost:8080/api/admin/products/content', {
