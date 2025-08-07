@@ -533,9 +533,9 @@ const ProductEdit = () => {
                       onChange={(e) => handleInputChange('status', e.target.value)}
                       className="w-full p-2 border border-border rounded-md bg-background"
                     >
-                      <option value="판매중">판매중</option>
+                      <option value="판매 중">판매 중</option>
                       <option value="품절">품절</option>
-                      <option value="판매중단">판매중단</option>
+                      <option value="판매 중단">판매 중단</option>
                     </select>
                   </div>
 
