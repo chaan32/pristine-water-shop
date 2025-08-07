@@ -134,6 +134,67 @@ const ProductContentManagement = () => {
     fetchProducts();
   }, []);
 
+  // 제품의 기존 콘텐츠 불러오기
+  const fetchProductContent = async (productId: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`http://localhost:8080/api/admin/products/${productId}/content`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('기존 콘텐츠 응답:', data);
+        
+        // 기존 데이터로 상태 업데이트
+        setContentData({
+          title: data.title || '',
+          htmlContent: data.htmlContent || '',
+        });
+        
+        // 에디터에도 기존 내용 설정
+        if (editor && data.htmlContent) {
+          editor.commands.setContent(data.htmlContent);
+        }
+        
+        // 기존 이미지들 처리
+        if (data.thumbnailImageUrl) {
+          setThumbnailPreview(data.thumbnailImageUrl);
+        }
+        
+        if (data.galleryImageUrls && data.galleryImageUrls.length > 0) {
+          setGalleryPreviews(data.galleryImageUrls);
+        }
+        
+        toast({
+          title: "콘텐츠 불러오기 완료",
+          description: "기존 콘텐츠를 불러왔습니다.",
+        });
+      } else if (response.status === 404) {
+        // 콘텐츠가 없는 경우 - 새로 작성
+        console.log('콘텐츠가 없음, 새로 작성');
+        setContentData({ title: '', htmlContent: '' });
+        if (editor) {
+          editor.commands.setContent('');
+        }
+        setThumbnailPreview('');
+        setGalleryPreviews([]);
+      } else {
+        throw new Error('콘텐츠 불러오기 실패');
+      }
+    } catch (error) {
+      console.error('콘텐츠 불러오기 오류:', error);
+      toast({
+        title: "불러오기 실패",
+        description: "기존 콘텐츠를 불러오는데 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // URL 파라미터에서 productId를 받아 자동 선택
   useEffect(() => {
     const productId = searchParams.get('productId');
@@ -141,6 +202,13 @@ const ProductContentManagement = () => {
       setSelectedProduct(productId);
     }
   }, [searchParams]);
+
+  // 선택된 제품이 변경될 때 기존 콘텐츠 불러오기
+  useEffect(() => {
+    if (selectedProduct && editor) {
+      fetchProductContent(selectedProduct);
+    }
+  }, [selectedProduct, editor]);
 
   const handleInputChange = (field: string, value: string) => {
     setContentData(prev => ({
