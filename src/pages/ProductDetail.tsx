@@ -25,7 +25,15 @@ interface ProductDetailDTO {
   galleryImageUrls?: string[] | null;
   htmlContent?: string | null;
 }
-
+// 백엔드 DTO Review
+interface ReviewDTO {
+  commentId: number;
+  userId: number;
+  rating: number;
+  comment: string;
+  authorName: string;
+  createdAt: string;
+}
 // 리뷰/문의 간단 타입 (목업 유지)
 interface Review { id: number; user: string; rating: number; date: string; content: string }
 interface Qna { id: number; user: string; question: string; answer: string; date: string }
@@ -43,6 +51,11 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [qnas, setQnas] = useState<Qna[]>([]);
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(5); // 리뷰 표시 개수
+
+  // 리뷰 전용 로딩 및 에러 상태 추가
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
 
   const userType = useMemo(() => localStorage.getItem('userType'), []); // null이면 비로그인
 
@@ -68,8 +81,41 @@ const ProductDetail = () => {
 
   // 제목 SEO
 useEffect(() => {
-    if (product?.productName) document.title = `${product.productName} | AquaPure 제품 상세`;
+    if (product?.productName) document.title = `${product.productName} | 제품 상세`;
   }, [product?.productName]);
+
+// 리뷰 데이터 로드 - DTO 기반
+useEffect(() =>{
+  const fetchReviews = async () => {
+    if (!id) return;
+
+    try{
+      setReviewsLoading(true);
+      const res = await fetch(`http://localhost:8080/api/shop/${id}/comments`);
+      if (!res.ok) throw new Error('리뷰를 불러오지 못했습니다.');
+      const data: ReviewDTO[] = await res.json();
+
+      // 데이터를 변환하기
+      const formattedReviews : Review[] = data.map((dto) => ({
+        id: dto.commentId,
+        user: dto.authorName || '익명',
+        rating: dto.rating,
+        date: dto.createdAt.slice(0, 10),
+        content: dto.comment,
+        }));
+        setReviews(formattedReviews);
+        setReviewsError(null);
+    }
+    catch (e: any){
+      setReviewsError(e?.message || '알 수 없는 오류가 발생했습니다.');
+    }
+    finally {
+      setReviewsLoading(false);
+    }
+  };
+  fetchReviews();
+}, [id]);
+
 
   // 목업: 기존 레이아웃 유지용 데이터 (이미지/리뷰/Q&A 등)
 const images = useMemo(() => {
@@ -79,18 +125,6 @@ const images = useMemo(() => {
     if (arr.length === 0) return ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'];
     return arr;
   }, [product]);
-  useEffect(() => {
-    // 목업 리뷰/문의 채우기 (네트워크 요청 없이 레이아웃만 유지)
-    setReviews([
-      { id: 1, user: '김**', rating: 5, date: '2024.01.15', content: '설치가 간단하고 물이 부드러워졌어요.' },
-      { id: 2, user: '이**', rating: 4, date: '2024.01.10', content: '가격 대비 만족스럽습니다. 염소 냄새가 줄었어요.' },
-      { id: 3, user: '박**', rating: 5, date: '2024.01.08', content: '6개월째 사용 중인데 아직도 효과가 좋아요.' },
-    ]);
-    setQnas([
-      { id: 1, user: '홍**', question: '설치 시 공구가 필요하나요?', answer: '별도 공구 없이 손으로 설치 가능합니다.', date: '2024.01.12' },
-      { id: 2, user: '김**', question: '교체 주기는 언제인가요?', answer: '일반적으로 6개월 또는 15,000L 사용 시 교체 권장합니다.', date: '2024.01.05' },
-    ]);
-  }, []);
 
   // 유틸
   const clampQty = (v: number) => Math.min(10, Math.max(1, v));
@@ -162,6 +196,9 @@ const images = useMemo(() => {
     alert('장바구니에 추가되었습니다.');
   };
 
+  const handleShowMoreReviews = () => {
+    setVisibleReviewsCount(prevCount => prevCount + 5);
+  }
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -222,18 +259,55 @@ const images = useMemo(() => {
               </div>
               <h1 className="text-3xl font-bold text-foreground mb-4">{product.productName}</h1>
 
-              {/* 평점 목업 유지 */}
+              {/* 평점 ㅇㅇ*/}
               <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`w-5 h-5 ${i < 5 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
-                    ))}
-                  </div>
-                  <span className="font-medium">4.8</span>
-                  <span className="text-muted-foreground">({product.reviewCount ?? reviews.length}개 리뷰)</span>
-                </div>
+                {/* 리뷰가 1개 이상 있을 때만 평점을 표시 */}
+                {product.reviewCount && product.reviewCount > 0 ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => {
+                          const ratingValue = product.rating ?? 0;
+                          // 1. 현재 별이 평점보다 작으면 꽉 찬 별을 표시
+                          if (i < Math.floor(ratingValue)) {
+                            return (
+                                <Star
+                                    key={i}
+                                    className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                                />
+                            );
+                          }
+                          // 2. 현재 별이 평점의 정수 부분과 같다면 부분 별을 표시
+                          if (i === Math.floor(ratingValue)) {
+                            // 소수점 부분만 계산 (예: 4.3 -> 0.3)
+                            const fraction = ratingValue - i;
+                            const fillPercentage = fraction * 100;
+
+                            return (
+                                <div key={i} className="relative">
+                                  {/* 배경이 될 빈 별 */}
+                                  <Star className="w-5 h-5 text-gray-300" />
+                                  {/* 채워질 부분 (절대 위치로 겹치기) */}
+                                  <div
+                                      className="absolute top-0 left-0 h-full overflow-hidden"
+                                      style={{ width: `${fillPercentage}%` }}
+                                  >
+                                    <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                                  </div>
+                                </div>
+                            );
+                          }
+                          // 3. 그 외에는 빈 별을 표시
+                          return <Star key={i} className="w-5 h-5 text-gray-300" />;
+                        })}
+                      </div>
+                      <span className="font-medium">{(product.rating ?? 0).toFixed(1)}</span>
+                      <span className="text-muted-foreground">({product.reviewCount}개 리뷰)</span>
+                    </div>
+                ) : (
+                    <div className="text-muted-foreground">아직 작성된 리뷰가 없습니다.</div>
+                )}
               </div>
+
 
               {/* 가격 정보 - 규칙 반영 */}
               <PriceSection p={product} />
@@ -292,85 +366,6 @@ const images = useMemo(() => {
                       dangerouslySetInnerHTML={{ __html: product.htmlContent }}
                   />
               )}
-              {/*목업 데이터
-
-              <div>
-                <h3 className="text-xl font-semibold mb-6">제품 개요</h3>
-                <div className="prose max-w-none text-muted-foreground">
-                  <p className="text-lg leading-relaxed mb-4">
-                    프리미엄 샤워 필터는 특허받은 5단계 필터링 시스템으로 유해 물질을 제거하고 필수 미네랄을 보존합니다.
-                  </p>
-                  <p className="text-lg leading-relaxed mb-4">
-                    염소 제거율 99.9%를 목표로 피부와 모발 건강에 도움을 줍니다.
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-6">핵심 기술</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-secondary/30 rounded-lg p-6">
-                    <h4 className="font-semibold text-lg mb-3 text-primary">5단계 필터링 시스템</h4>
-                    <p className="text-muted-foreground">PP, 활성탄, KDF, 세라믹볼, 비타민C 필터의 조합.</p>
-                  </div>
-                  <div className="bg-secondary/30 rounded-lg p-6">
-                    <h4 className="font-semibold text-lg mb-3 text-primary">중금속 차단</h4>
-                    <p className="text-muted-foreground">납, 수은, 카드뮴 등 중금속 제거에 최적화.</p>
-                  </div>
-                  <div className="bg-secondary/30 rounded-lg p-6">
-                    <h4 className="font-semibold text-lg mb-3 text-primary">미네랄 보존</h4>
-                    <p className="text-muted-foreground">유해 물질 제거와 동시에 유익 미네랄 보존.</p>
-                  </div>
-                  <div className="bg-secondary/30 rounded-lg p-6">
-                    <h4 className="font-semibold text-lg mb-3 text-primary">비타민C 인퓨전</h4>
-                    <p className="text-muted-foreground">피부 자극 완화와 보습에 도움.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-6">제품 사양</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[['크기', '15cm x 8cm x 8cm'], ['무게', '350g'], ['필터 수명', '6개월 (약 15,000L)'], ['적용 수압', '1~6kgf/cm²'], ['사용 온도', '5~40°C'], ['소재', 'ABS, 스테인리스 스틸']].map(([k, v]) => (
-                    <div key={k} className="flex justify-between items-center border-b border-secondary pb-3">
-                      <span className="font-medium text-lg">{k}</span>
-                      <span className="text-muted-foreground text-lg">{v}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-6">설치 및 사용법</h3>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[1,2,3].map((n) => (
-                      <div key={n} className="text-center">
-                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <span className="text-2xl font-bold text-primary">{n}</span>
-                        </div>
-                        <h4 className="font-semibold mb-2">{n === 1 ? '기존 샤워헤드 분리' : n === 2 ? '필터 연결' : '샤워헤드 재연결'}</h4>
-                        <p className="text-sm text-muted-foreground">{n === 1 ? '시계 반대 방향으로 분리합니다.' : n === 2 ? '시계 방향으로 연결합니다.' : '연결 후 누수 여부를 확인합니다.'}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-6">관리 및 유지보수</h3>
-                <div className="bg-secondary/20 rounded-lg p-6">
-                  <ul className="space-y-3">
-                    {['필터 교체 주기: 6개월 또는 약 15,000L 사용 시', '외관 청소: 중성세제로 월 1회 권장', '보관: 직사광선을 피하고 서늘한 곳', '교체 알림: 물의 맛/냄새 변화 시 교체'].map((t, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2" />
-                        <span>{t}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              */}
             </CardContent>
           </Card>
         </div>
@@ -378,31 +373,46 @@ const images = useMemo(() => {
         {/* 리뷰 / Q&A - 기존 탭 레이아웃 유지 */}
         <Tabs defaultValue="reviews" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="reviews">구매후기 ({reviews.length})</TabsTrigger>
+            <TabsTrigger value="reviews">구매후기 ({product.reviewCount})</TabsTrigger>
             <TabsTrigger value="qna">Q&A ({qnas.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="reviews" className="mt-8">
-            <div className="space-y-6">
-              {reviews.map((review) => (
-                <Card key={review.id} className="water-drop">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium">{review.user}</span>
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
-                          ))}
-                        </div>
-                      </div>
-                      <span className="text-sm text-muted-foreground">{review.date}</span>
+            {reviewsLoading ? (
+                <div className="text-center py-8">리뷰를 불러오는 중입니다...</div>
+            ) : reviewsError ? (
+                <div className="text-center py-8 text-destructive">{reviewsError}</div>
+            ) : reviews.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">작성된 구매후기가 없습니다.</div>
+            ) : (
+                <div>
+                    <div className="space-y-6">
+                    {reviews.slice(0, visibleReviewsCount).map((review) => (
+                      <Card key={review.id} className="water-drop">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium">{review.user}</span>
+                              <div className="flex">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                                ))}
+                              </div>
+                            </div>
+                            <span className="text-sm text-muted-foreground">{review.date}</span>
+                          </div>
+                          <p className="text-muted-foreground">{review.content}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
                     </div>
-                    <p className="text-muted-foreground">{review.content}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    {visibleReviewsCount < reviews.length && (
+                        <div className="mt-8 text-center">
+                        <Button variant="outline" onClick={handleShowMoreReviews}>더 보기</Button>
+                        </div>
+                    )}
+                </div>
+            )}
           </TabsContent>
 
           <TabsContent value="qna" className="mt-8">
