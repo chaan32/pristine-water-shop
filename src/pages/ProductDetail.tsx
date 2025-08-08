@@ -286,6 +286,14 @@ const images = useMemo(() => {
               <CardTitle className="text-2xl">제품 상세정보</CardTitle>
             </CardHeader>
             <CardContent className="space-y-8">
+              {product.htmlContent && (
+                  <div
+                      className="prose max-w-none text-muted-foreground"
+                      dangerouslySetInnerHTML={{ __html: product.htmlContent }}
+                  />
+              )}
+              {/*목업 데이터
+
               <div>
                 <h3 className="text-xl font-semibold mb-6">제품 개요</h3>
                 <div className="prose max-w-none text-muted-foreground">
@@ -362,6 +370,7 @@ const images = useMemo(() => {
                   </ul>
                 </div>
               </div>
+              */}
             </CardContent>
           </Card>
         </div>
