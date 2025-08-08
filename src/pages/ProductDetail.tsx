@@ -11,17 +11,19 @@ import { useParams } from 'react-router-dom';
 
 // 백엔드 DTO 타입
 interface ProductDetailDTO {
-  id: number;
-  name: string;
-  category: string;
-  categoryId: number;
+  productId: number;
+  productName: string;
   customerPrice: number;
   businessPrice: number;
   discountPrice?: number | null;
   discountPercent?: number | null;
-  stock: number;
-  status: string;
-  createdAt: string;
+  shippingFee?: number | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  salesStatus?: string | null;
+  thumbnailImageUrl?: string | null;
+  galleryImageUrls?: string[] | null;
+  htmlContent?: string | null;
 }
 
 // 리뷰/문의 간단 타입 (목업 유지)
@@ -65,12 +67,18 @@ const ProductDetail = () => {
   }, [id]);
 
   // 제목 SEO
-  useEffect(() => {
-    if (product?.name) document.title = `${product.name} | AquaPure 제품 상세`;
-  }, [product?.name]);
+useEffect(() => {
+    if (product?.productName) document.title = `${product.productName} | AquaPure 제품 상세`;
+  }, [product?.productName]);
 
   // 목업: 기존 레이아웃 유지용 데이터 (이미지/리뷰/Q&A 등)
-  const images = ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'];
+const images = useMemo(() => {
+    const arr: string[] = [];
+    if (product?.thumbnailImageUrl) arr.push(product.thumbnailImageUrl);
+    if (product?.galleryImageUrls?.length) arr.push(...product.galleryImageUrls);
+    if (arr.length === 0) return ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'];
+    return arr;
+  }, [product]);
   useEffect(() => {
     // 목업 리뷰/문의 채우기 (네트워크 요청 없이 레이아웃만 유지)
     setReviews([
@@ -139,9 +147,9 @@ const ProductDetail = () => {
 
     if (!token) {
       const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
-      const existing = localCart.find((item: any) => item.productId === product.id);
+      const existing = localCart.find((item: any) => item.productId === product.productId);
       if (existing) existing.quantity += quantity;
-      else localCart.push({ id: Date.now(), productId: product.id, name: product.name, price: currentDisplayPrice(product), quantity, image: images[0] });
+      else localCart.push({ id: Date.now(), productId: product.productId, name: product.productName, price: currentDisplayPrice(product), quantity, image: images[0] });
       localStorage.setItem('cart', JSON.stringify(localCart));
       alert('장바구니에 추가되었습니다.');
       return;
@@ -149,7 +157,7 @@ const ProductDetail = () => {
 
     // 서버 연동은 추후 명세 확정 시 적용
     const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    localCart.push({ id: Date.now(), productId: product.id, name: product.name, price: currentDisplayPrice(product), quantity, image: images[0] });
+    localCart.push({ id: Date.now(), productId: product.productId, name: product.productName, price: currentDisplayPrice(product), quantity, image: images[0] });
     localStorage.setItem('cart', JSON.stringify(localCart));
     alert('장바구니에 추가되었습니다.');
   };
@@ -190,7 +198,7 @@ const ProductDetail = () => {
           {/* Product Images - 기존 레이아웃 */}
           <div className="space-y-4">
             <div className="aspect-square bg-secondary rounded-lg overflow-hidden">
-              <img src={images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+              <img src={images[selectedImage]} alt={product.productName} className="w-full h-full object-cover" />
             </div>
             <div className="flex gap-2">
               {images.map((image, index) => (
@@ -199,7 +207,7 @@ const ProductDetail = () => {
                   onClick={() => setSelectedImage(index)}
                   className={`aspect-square w-20 bg-secondary rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}
                 >
-                  <img src={image} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover" />
+                  <img src={image} alt={`${product.productName} ${index + 1}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -210,9 +218,9 @@ const ProductDetail = () => {
             <div>
               {/* 상단 뱃지/제목 */}
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="outline">{product.category}</Badge>
+                <Badge variant="outline">{product.salesStatus || '제품'}</Badge>
               </div>
-              <h1 className="text-3xl font-bold text-foreground mb-4">{product.name}</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-4">{product.productName}</h1>
 
               {/* 평점 목업 유지 */}
               <div className="flex items-center gap-4 mb-6">
@@ -223,7 +231,7 @@ const ProductDetail = () => {
                     ))}
                   </div>
                   <span className="font-medium">4.8</span>
-                  <span className="text-muted-foreground">(234개 리뷰)</span>
+                  <span className="text-muted-foreground">({product.reviewCount ?? reviews.length}개 리뷰)</span>
                 </div>
               </div>
 
