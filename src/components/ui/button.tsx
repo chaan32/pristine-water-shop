@@ -16,6 +16,12 @@ const buttonVariants = cva(
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        pending: "bg-status-pending text-status-pending-foreground hover:bg-status-pending/90",
+        answered: "bg-status-answered text-status-answered-foreground hover:bg-status-answered/90",
+        pendingOutline:
+          "border border-status-pending text-status-pending bg-background hover:bg-status-pending/10",
+        answeredOutline:
+          "border border-status-answered text-status-answered bg-background hover:bg-status-answered/10",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },

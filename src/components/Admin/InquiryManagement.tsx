@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {useToast} from "@/hooks/use-toast.ts";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -237,9 +237,9 @@ const InquiryManagement = () => {
                 </TabsList>
                 <TabsContent value="status" className="pt-2">
                   <div className="flex gap-2">
-                    <Button variant={statusFilter === 'false' ? 'default' : 'outline'} size="sm"
+                    <Button variant={statusFilter === 'false' ? 'pending' : 'pendingOutline'} size="sm"
                             onClick={() => setStatusFilter('false')}>답변 대기</Button>
-                    <Button variant={statusFilter === 'true' ? 'default' : 'outline'} size="sm"
+                    <Button variant={statusFilter === 'true' ? 'answered' : 'answeredOutline'} size="sm"
                             onClick={() => setStatusFilter('true')}>답변 완료</Button>
                   </div>
                 </TabsContent>
@@ -296,26 +296,15 @@ const InquiryManagement = () => {
                         }`}
                       >
                         <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-start gap-3 min-w-0">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback>{inquiry.userName?.slice(0, 2) || '??'}</AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                              <p className="font-semibold text-sm truncate pr-4">{inquiry.question}</p>
-                              <p className="text-xs text-muted-foreground truncate">{inquiry.productName}</p>
-                            </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm truncate pr-4">{inquiry.question}</p>
+                            <p className="text-xs text-muted-foreground truncate">{inquiry.productName}</p>
                           </div>
                           {inquiry.isAnswered ? (
-                            <Badge variant="default" className="shrink-0">답변완료</Badge>
+                            <Badge variant="answered" className="shrink-0">답변완료</Badge>
                           ) : (
-                            <Badge variant="secondary" className="shrink-0">대기중</Badge>
+                            <Badge variant="pending" className="shrink-0">대기중</Badge>
                           )}
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm text-muted-foreground">{inquiry.userName}</p>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(inquiry.createdAt), { addSuffix: true, locale: ko })}
-                          </span>
                         </div>
                       </div>
                     ))}
