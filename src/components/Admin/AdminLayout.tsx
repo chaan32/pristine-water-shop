@@ -9,6 +9,8 @@ import {
   Users, 
   Building2, 
   MessageSquare,
+  Megaphone,
+  HelpCircle,
   Menu,
   X,
   LogOut,
@@ -33,6 +35,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { title: '회원 리스트', path: '/admin/members', icon: Users },
     { title: '법인 등록 요청', path: '/admin/corporate-requests', icon: Building2 },
     { title: '1:1 문의 답변', path: '/admin/inquiries', icon: MessageSquare },
+    { title: '공지사항 관리', path: '/admin/notices', icon: Megaphone },
+    { title: 'FAQ 관리', path: '/admin/faq', icon: HelpCircle },
     { title: '환불/교환 관리', path: '/admin/refund-exchange', icon: RotateCcw }
   ];
 

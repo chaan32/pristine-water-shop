@@ -9,6 +9,8 @@ import MemberList from '@/components/Admin/MemberList';
 import CorporateRequests from '@/components/Admin/CorporateRequests';
 import InquiryManagement from '@/components/Admin/InquiryManagement';
 import RefundExchangeManagement from '@/components/Admin/RefundExchangeManagement';
+import NoticeManagement from '@/components/Admin/NoticeManagement';
+import FAQManagement from '@/components/Admin/FAQManagement';
 
 const Admin = () => {
   // 실제 관리자 로그인 상태 체크
@@ -30,6 +32,8 @@ const Admin = () => {
         <Route path="/members" element={<MemberList />} />
         <Route path="/corporate-requests" element={<CorporateRequests />} />
         <Route path="/inquiries" element={<InquiryManagement />} />
+        <Route path="/notices" element={<NoticeManagement />} />
+        <Route path="/faq" element={<FAQManagement />} />
         <Route path="/refund-exchange" element={<RefundExchangeManagement />} />
       </Routes>
     </AdminLayout>
