@@ -9,6 +9,10 @@ import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {useToast} from "@/hooks/use-toast.ts";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 
 // 문의 목록 백엔드 DTO
 interface AdminSIQnAResDto{
@@ -134,14 +138,20 @@ const InquiryManagement = () => {
         throw new Error('답변 전송에 실패했습니다.');
       }
 
-      alert('답변이 성공적으로 등록되었습니다.');
+      toast({
+        title: "답변 등록 완료",
+        description: "고객에게 답변이 전송되었습니다."
+      });
       setReplyText('');
-      // 답변 등록 후 목록을 새로고침 하여 상태를 업데이트
       const currentFilterType = filterType;
       setFilterType('');
       setTimeout(() => setFilterType(currentFilterType), 0);
     } catch (e: any) {
-      alert(e.message);
+      toast({
+        title: "전송 실패",
+        description: e.message || "답변 전송에 실패했습니다.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -192,10 +202,23 @@ const InquiryManagement = () => {
   return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">1:1 문의 답변</h1>
-          <Badge variant="secondary">
-            미답변: {inquiries.filter(inq => !inq.isAnswered).length}건
-          </Badge>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <MessageSquare className="w-6 h-6" />
+            1:1 문의 답변
+          </h1>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              대기 {inquiries.filter(inq => !inq.isAnswered).length}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4" />
+              완료 {inquiries.filter(inq => inq.isAnswered).length}
+            </Badge>
+            <Badge variant="default" className="flex items-center gap-1">
+              전체 {inquiries.length}
+            </Badge>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[700px]">
@@ -241,37 +264,63 @@ const InquiryManagement = () => {
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="h-[520px]">
-                {loading ? <div className="text-center p-10">불러오는 중...</div> :
-                    error ? <div className="text-center p-10 text-destructive">{error}</div> :
-                        inquiries.length === 0 ?
-                            <div className="text-center p-10 text-muted-foreground">표시할 문의가 없습니다.</div> :
-                            (
-                                <div className="space-y-2 p-4">
-                                  {/* 요구사항 2: 문의 목록 표시 */}
-                                  {inquiries.map((inquiry) => (
-                                      <div
-                                          key={inquiry.inquiriesId}
-                                          onClick={() => setSelectedInquiry(inquiry)}
-                                          className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-secondary ${
-                                              selectedInquiry?.inquiriesId === inquiry.inquiriesId ? 'bg-primary/10 border-primary' : ''
-                                          }`}
-                                      >
-                                        <div className="flex justify-between items-start mb-2">
-                                          <p className="font-semibold text-sm truncate pr-4">{inquiry.question}</p>
-                                          {inquiry.isAnswered
-                                              ? <Badge variant="default" className="bg-green-500 shrink-0">답변완료</Badge>
-                                              : <Badge variant="secondary" className="shrink-0">대기중</Badge>
-                                          }
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                          <p className="text-sm text-muted-foreground">{inquiry.userName}</p>
-                                          <span
-                                              className="text-xs text-muted-foreground">{new Date(inquiry.createdAt).toLocaleString()}</span>
-                                        </div>
-                                      </div>
-                                  ))}
-                                </div>
-                            )}
+                {loading ? (
+                  <div className="space-y-2 p-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="p-4 border border-border rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : error ? (
+                  <div className="text-center p-10 text-destructive">{error}</div>
+                ) : inquiries.length === 0 ? (
+                  <div className="text-center p-10 text-muted-foreground">
+                    <img src="/placeholder.svg" alt="문의 없음 일러스트" className="mx-auto mb-4 h-24 opacity-60" />
+                    표시할 문의가 없습니다.
+                  </div>
+                ) : (
+                  <div className="space-y-2 p-4">
+                    {inquiries.map((inquiry) => (
+                      <div
+                        key={inquiry.inquiriesId}
+                        onClick={() => setSelectedInquiry(inquiry)}
+                        className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-secondary hover-scale ${
+                          selectedInquiry?.inquiriesId === inquiry.inquiriesId ? 'bg-primary/10 border-primary ring-1 ring-primary' : ''
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-start gap-3 min-w-0">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback>{inquiry.userName?.slice(0, 2) || '??'}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm truncate pr-4">{inquiry.question}</p>
+                              <p className="text-xs text-muted-foreground truncate">{inquiry.productName}</p>
+                            </div>
+                          </div>
+                          {inquiry.isAnswered ? (
+                            <Badge variant="default" className="shrink-0">답변완료</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="shrink-0">대기중</Badge>
+                          )}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-muted-foreground">{inquiry.userName}</p>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(inquiry.createdAt), { addSuffix: true, locale: ko })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </ScrollArea>
             </CardContent>
           </Card>
@@ -297,7 +346,7 @@ const InquiryManagement = () => {
                             </div>
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            {new Date(selectedInquiry.createdAt).toLocaleString()}
+                            {formatDistanceToNow(new Date(selectedInquiry.createdAt), { addSuffix: true, locale: ko })}
                           </div>
                         </div>
                         <p className="text-sm leading-relaxed">{selectedInquiry.question}</p>
@@ -312,7 +361,7 @@ const InquiryManagement = () => {
                     </div>
 
                     {!selectedInquiry.isAnswered && (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           <label className="text-sm font-medium mb-2 block">답변 작성</label>
                           <Textarea
                               value={replyText}
@@ -320,6 +369,10 @@ const InquiryManagement = () => {
                               placeholder="답변을 입력하세요..."
                               rows={8}
                           />
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>고객에게 바로 전송됩니다. 신중히 작성해주세요.</span>
+                            <span>{replyText.length}자</span>
+                          </div>
                           <Button onClick={handleSendReply} className="w-full"
                                   disabled={!replyText.trim() || isSubmitting}>
                             <Send className="w-4 h-4 mr-2"/>
