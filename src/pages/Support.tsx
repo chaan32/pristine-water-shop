@@ -183,15 +183,15 @@ const Support = () => {
       const res = await fetch(`http://localhost:8080/api/faq?categoryId=${categoryId}`);
       if (!res.ok) throw new Error('Failed to fetch faqs');
       const data = await res.json();
-      setFaqs(data);
+      const category = faqCategories.find((c) => c.id === categoryId);
+      setFaqs([{ id: categoryId, name: category?.name || '', items: data }]);
     } catch (e) {
       console.error('Failed to fetch FAQs:', e);
-      // API 호출 실패 시 로컬 데이터로 대체
-      if (categoryId === '1') {
-        setFaqs([{ id: 'a', question: '필터 교체 주기는?', answer: '평균 6개월마다 권장합니다.' }]);
-      } else {
-        setFaqs([]);
-      }
+      const category = faqCategories.find((c) => c.id === categoryId);
+      const items = categoryId === '1'
+        ? [{ id: 'a', question: '필터 교체 주기는?', answer: '평균 6개월마다 권장합니다.' }]
+        : [];
+      setFaqs([{ id: categoryId, name: category?.name || '', items }]);
     } finally {
       setFaqsLoading(false);
     }
