@@ -37,6 +37,11 @@ const Support = () => {
     content: ''
   });
 
+  const [faqCategories, setFaqCategories] = useState<any[]>([]);
+  const [selectedFaqCategory, setSelectedFaqCategory] = useState<string>('');
+  const [faqs, setFaqs] = useState<any[]>([]);
+  const [faqsLoading, setFaqsLoading] = useState(false);
+
   const fetchNotices = async () => {
     setNoticesLoading(true);
     try{
@@ -150,47 +155,62 @@ const Support = () => {
     }
   };
 
-  const faqs = [
-    {
-      category: '제품',
-      items: [
-        {
-          question: '필터 교체 주기는 언제인가요?',
-          answer: '일반적으로 6개월 또는 사용량에 따라 15,000L 사용 시 교체를 권장합니다. 물의 상태나 사용 빈도에 따라 차이가 있을 수 있습니다.'
-        },
-        {
-          question: '설치는 어떻게 하나요?',
-          answer: '대부분의 제품은 간단한 나사 결합 방식으로 별도 공구 없이 설치 가능합니다. 상세한 설치 가이드는 제품과 함께 제공됩니다.'
-        }
-      ]
-    },
-    {
-      category: '주문/배송',
-      items: [
-        {
-          question: '배송은 얼마나 걸리나요?',
-          answer: '일반적으로 주문 후 2-3일 내 배송됩니다. 제주도 및 도서산간 지역은 추가 1-2일이 소요될 수 있습니다.'
-        },
-        {
-          question: '배송비는 얼마인가요?',
-          answer: '3만원 이상 주문 시 무료배송이며, 미만 시 3,000원의 배송비가 발생합니다.'
-        }
-      ]
-    },
-    {
-      category: '교환/환불',
-      items: [
-        {
-          question: '교환/환불은 언제까지 가능한가요?',
-          answer: '제품 수령 후 7일 이내에 교환/환불이 가능합니다. 단, 사용하신 제품은 교환/환불이 제한될 수 있습니다.'
-        }
-      ]
+  // fetchNotices 함수 아래에 추가
+  const fetchFaqCategories = async () => {
+    try {
+      const res = await fetch('http://localhost:8080/api/faq/categories');
+      if (!res.ok) throw new Error('Failed to fetch categories');
+      const data = await res.json();
+      setFaqCategories(data);
+      if (data.length > 0) {
+        setSelectedFaqCategory(data[0].id);
+      }
+    } catch (e) {
+      console.error('Failed to fetch FAQ categories:', e);
+      setFaqCategories([
+        { id: '1', name: '제품' },
+        { id: '2', name: '주문/배송' },
+        { id: '3', name: '교환/환불' },
+      ]);
+      setSelectedFaqCategory('1');
     }
-  ];
+  };
+
+  const fetchFaqsByCategory = async (categoryId: string) => {
+    if (!categoryId) return;
+    setFaqsLoading(true);
+    try {
+      const res = await fetch(`http://localhost:8080/api/faq?categoryId=${categoryId}`);
+      if (!res.ok) throw new Error('Failed to fetch faqs');
+      const data = await res.json();
+      setFaqs(data);
+    } catch (e) {
+      console.error('Failed to fetch FAQs:', e);
+      // API 호출 실패 시 로컬 데이터로 대체
+      if (categoryId === '1') {
+        setFaqs([{ id: 'a', question: '필터 교체 주기는?', answer: '평균 6개월마다 권장합니다.' }]);
+      } else {
+        setFaqs([]);
+      }
+    } finally {
+      setFaqsLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     fetchNotices();
   }, []);
+  // 기존 useEffect 아래에 추가
+  useEffect(() => {
+    fetchFaqCategories();
+  }, []);
+
+  useEffect(() => {
+    if (selectedFaqCategory) {
+      fetchFaqsByCategory(selectedFaqCategory);
+    }
+  }, [selectedFaqCategory]);
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -459,30 +479,61 @@ const Support = () => {
 
           <TabsContent value="faq" className="mt-8">
             <div className="space-y-6">
-              {faqs.map((category, categoryIndex) => (
-                <Card key={categoryIndex} className="water-drop">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <HelpCircle className="w-5 h-5" />
-                      {category.category}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
-                      {category.items.map((faq, faqIndex) => (
-                        <AccordionItem key={faqIndex} value={`item-${categoryIndex}-${faqIndex}`}>
-                          <AccordionTrigger className="text-left">
-                            {faq.question}
-                          </AccordionTrigger>
-                          <AccordionContent className="text-muted-foreground">
-                            {faq.answer}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </CardContent>
-                </Card>
-              ))}
+              {faqsLoading ? (
+                  Array.from({ length: 3 }).map((_, categoryIndex) => (
+                      <Card key={categoryIndex} className="water-drop">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Skeleton className="h-6 w-32" />
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                  ))
+              ) : faqs.length > 0 ? (
+                  faqs.map((category) => (
+                      <Card key={category.id} className="water-drop">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <HelpCircle className="w-5 h-5" />
+                            {category.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {category.items && category.items.length > 0 ? (
+                              <Accordion type="single" collapsible className="w-full">
+                                {category.items.map((faq: any, faqIndex: number) => (
+                                    <AccordionItem key={faq.id} value={`item-${faq.id}`}>
+                                      <AccordionTrigger className="text-left">
+                                        {faq.question}
+                                      </AccordionTrigger>
+                                      <AccordionContent className="text-muted-foreground">
+                                        {faq.answer}
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                              </Accordion>
+                          ) : (
+                              <p className="p-4 text-center text-muted-foreground">
+                                등록된 FAQ가 없습니다.
+                              </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                  ))
+              ) : (
+                  <Card>
+                    <CardContent className="p-10 text-center text-muted-foreground">
+                      등록된 FAQ 카테고리가 없습니다.
+                    </CardContent>
+                  </Card>
+              )}
             </div>
           </TabsContent>
         </Tabs>
