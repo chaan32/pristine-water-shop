@@ -29,9 +29,6 @@ const Support = () => {
 
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [inquiryData, setInquiryData] = useState({
-    name: '',
-    phone: '',
-    email: '',
     category: '',
     title: '',
     content: ''
@@ -79,7 +76,7 @@ const Support = () => {
   };
 
   const handleInquirySubmit = async () => {
-    if (!inquiryData.name || !inquiryData.email || !inquiryData.title || !inquiryData.content) {
+    if (!inquiryData.title || !inquiryData.content) {
       alert('필수 항목을 모두 입력해주세요.');
       return;
     }
@@ -90,27 +87,33 @@ const Support = () => {
       let headers: HeadersInit = {};
 
       if (attachedFiles.length > 0) {
-        // 파일 첨부가 있는 경우 FormData 사용
+        // 파일 첨부가 있는 경우: FormData 사용
         const formData = new FormData();
-        formData.append('data', JSON.stringify(inquiryData));
-        
-        attachedFiles.forEach((file, index) => {
+
+        // JSON 데이터를 Blob 객체로 변환하여 Content-Type을 명시
+        const inquiryDataBlob = new Blob([JSON.stringify(inquiryData)], { type: 'application/json' });
+        formData.append('data', inquiryDataBlob);
+
+        attachedFiles.forEach((file) => {
           formData.append(`attachments`, file);
         });
-        
+
         body = formData;
-        // FormData 사용 시 Content-Type 자동 설정
+        // FormData 사용 시 Content-Type 자동 설정되므로 명시적으로 설정하지 않음
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
       } else {
-        // 텍스트만 있는 경우 JSON 사용
+        // 텍스트만 있는 경우: JSON 사용
         headers['Content-Type'] = 'application/json';
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
         body = JSON.stringify(inquiryData);
       }
+
+      console.log('Request Body:', body); // 확인용 로그
+      console.log('Request Headers:', headers); // 확인용 로그
 
       const response = await fetch('http://localhost:8080/api/inquiries', {
         method: 'POST',
@@ -119,15 +122,10 @@ const Support = () => {
       });
 
       const data = await response.json();
-
+      console.log('Response:', data);
       if (response.ok) {
-        alert(`문의가 접수되었습니다!\n\n문의번호: ${data.data.inquiryNumber}\n예상 답변 시간: ${data.data.estimatedResponseTime}\n\n답변은 등록하신 이메일로 발송됩니다.`);
-        
         // 폼 초기화
         setInquiryData({
-          name: '',
-          phone: '',
-          email: '',
           category: '',
           title: '',
           content: ''
@@ -292,35 +290,6 @@ const Support = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">이름</label>
-                      <Input 
-                        placeholder="이름을 입력하세요" 
-                        value={inquiryData.name}
-                        onChange={(e) => setInquiryData({...inquiryData, name: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">연락처</label>
-                      <Input 
-                        placeholder="연락처를 입력하세요" 
-                        value={inquiryData.phone}
-                        onChange={(e) => setInquiryData({...inquiryData, phone: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">이메일</label>
-                    <Input 
-                      type="email" 
-                      placeholder="이메일을 입력하세요" 
-                      value={inquiryData.email}
-                      onChange={(e) => setInquiryData({...inquiryData, email: e.target.value})}
-                    />
-                  </div>
-
                   <div>
                     <label className="text-sm font-medium mb-2 block">문의 유형</label>
                     <Select value={inquiryData.category} onValueChange={(value) => setInquiryData({...inquiryData, category: value})}>
@@ -333,6 +302,7 @@ const Support = () => {
                         <SelectItem value="general">일반문의</SelectItem>
                         <SelectItem value="product">제품 문의</SelectItem>
                         <SelectItem value="order">주문/배송 문의</SelectItem>
+                        <SelectItem value="order">기타</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
