@@ -74,7 +74,30 @@ const [inquiryType, setInquiryType] = useState<'product' | 'general'>('product')
 const [generalInquiries, setGeneralInquiries] = useState<GeneralInquiryDto[]>([]);
 const [selectedGeneralInquiry, setSelectedGeneralInquiry] = useState<GeneralInquiryDto | null>(null);
 const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
+const [categoryFilterGeneral, setCategoryFilterGeneral] = useState<string>('ALL');
 
+const normalizeCategoryKey = (value?: string) => (value || '').toString().toLowerCase().trim();
+
+const CATEGORY_LABELS: Record<string, string> = {
+  shipping: '배송',
+  delivery: '배송',
+  refund: '환불/교환',
+  exchange: '환불/교환',
+  product: '제품 문의',
+  usage: '제품 사용',
+  account: '회원/로그인',
+  login: '회원/로그인',
+  payment: '결제',
+  order: '주문',
+  etc: '기타',
+  other: '기타',
+  general: '일반',
+};
+
+const getCategoryLabel = (value?: string) => {
+  const key = normalizeCategoryKey(value);
+  return CATEGORY_LABELS[key] ?? value ?? '기타';
+};
 
   useEffect(() => {
     if (inquiryType !== 'product') return;
@@ -352,6 +375,25 @@ const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
                       답변 완료
                     </Button>
                   </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                      variant={categoryFilterGeneral === 'ALL' ? 'secondary' : 'outline'}
+                      size="sm"
+                      onClick={() => setCategoryFilterGeneral('ALL')}
+                    >
+                      전체
+                    </Button>
+                    {Array.from(new Set(generalInquiries.map(g => normalizeCategoryKey(g.category)).filter(Boolean))).map((key) => (
+                      <Button
+                        key={key}
+                        variant={categoryFilterGeneral === key ? 'secondary' : 'outline'}
+                        size="sm"
+                        onClick={() => setCategoryFilterGeneral(key)}
+                      >
+                        {getCategoryLabel(key)}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardHeader>
@@ -405,7 +447,7 @@ const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
                           ))
                       ) : (
                           // 일반 문의 렌더링
-                          generalInquiries.map((inquiry) => (
+                          generalInquiries.filter(g => categoryFilterGeneral === 'ALL' ? true : normalizeCategoryKey(g.category) === categoryFilterGeneral).map((inquiry) => (
                               <div
                                   key={inquiry.inquiryId}
                                   onClick={() => setSelectedGeneralInquiry(inquiry)}
@@ -416,9 +458,10 @@ const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
                                 <div className="flex justify-between items-start mb-2">
                                   <div className="min-w-0">
                                     <p className="font-semibold text-sm truncate pr-4">{inquiry.title}</p>
-                                    <p className="text-xs text-muted-foreground truncate">
-                                      {inquiry.category} · {inquiry.userName}
-                                    </p>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground truncate">
+                                      <Badge variant="secondary" className="shrink-0">{getCategoryLabel(inquiry.category)}</Badge>
+                                      <span className="truncate">{inquiry.userName}</span>
+                                    </div>
                                   </div>
                                   {inquiry.isAnswered ? (
                                       <Badge variant="answered" className="shrink-0">답변완료</Badge>
@@ -501,8 +544,9 @@ const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <h3 className="font-semibold">{selectedGeneralInquiry.title}</h3>
-                            <div className="text-sm text-muted-foreground">
-                              {selectedGeneralInquiry.category} · {selectedGeneralInquiry.userName} ({selectedGeneralInquiry.userEmail})
+                            <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                              <Badge variant="secondary">{getCategoryLabel(selectedGeneralInquiry.category)}</Badge>
+                              <span>{selectedGeneralInquiry.userName} ({selectedGeneralInquiry.userEmail})</span>
                             </div>
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">

@@ -105,10 +105,10 @@
     --ring: 212 95% 18%;
 
     /* Status semantic colors */
-    --status-pending: 50 95% 80%; /* pastel yellow */
-    --status-pending-foreground: 212 95% 18%;
-    --status-answered: 100 60% 80%; /* pastel light green */
-    --status-answered-foreground: 212 95% 18%;
+    --status-pending: 38 92% 55%; /* vivid amber for visibility */
+    --status-pending-foreground: 0 0% 100%; /* white text for contrast */
+    --status-answered: 158 64% 42%; /* vibrant emerald for success */
+    --status-answered-foreground: 0 0% 100%;
     
     /* Water-themed Gradients */
     --gradient-water: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
