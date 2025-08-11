@@ -21,6 +21,9 @@ const FAQManagement = () => {
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
   const fetchCategories = async () => {
     try {
       const res = await fetch('http://localhost:8080/api/admin/faq/categories', {
@@ -131,6 +134,73 @@ const FAQManagement = () => {
     }
   };
 
+  const handleEdit = (item: FAQItem) => {
+    setIsEditing(true);
+    setEditingItemId(item.id);
+    setNewQuestion(item.question);
+    setNewAnswer(item.answer);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingItemId(null);
+    setNewQuestion('');
+    setNewAnswer('');
+  };
+
+  const handleSave = async () => {
+    if (!selectedCategoryId) {
+      toast({ title: '선택 필요', description: '카테고리를 먼저 선택하세요.', variant: 'destructive' });
+      return;
+    }
+    if (!newQuestion.trim() || !newAnswer.trim()) {
+      toast({ title: '입력 오류', description: '질문과 답변을 모두 입력하세요.', variant: 'destructive' });
+      return;
+    }
+
+    const accessToken = localStorage.getItem('accessToken');
+    const url = isEditing
+        ? `http://localhost:8080/api/admin/faq/${editingItemId}` // 수정 모드 API 엔드포인트
+        : 'http://localhost:8080/api/admin/faq/add'; // 추가 모드 API 엔드포인트
+    const method = isEditing ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ categoryId: selectedCategoryId, question: newQuestion, answer: newAnswer }),
+      });
+      if (!res.ok) throw new Error('failed');
+
+      toast({
+        title: isEditing ? 'FAQ 수정' : 'FAQ 등록',
+        description: isEditing ? 'FAQ가 성공적으로 수정되었습니다.' : '새로운 FAQ가 등록되었습니다.',
+      });
+
+      // 상태 초기화 및 목록 새로고침
+      handleCancelEdit();
+      fetchFaqs(selectedCategoryId);
+
+    } catch (e) {
+      if (isEditing) {
+        // 수정 실패 시 로컬 데이터 업데이트
+        setFaqItems((prev) =>
+            prev.map((item) => (item.id === editingItemId ? { ...item, question: newQuestion, answer: newAnswer } : item))
+        );
+        toast({ title: '임시 수정', description: '데모 데이터에서 FAQ를 수정했습니다.' });
+      } else {
+        // 추가 실패 시 로컬 데이터 추가
+        const id = Math.random().toString(36).slice(2);
+        setFaqItems((prev) => [...prev, { id, categoryId: selectedCategoryId, question: newQuestion, answer: newAnswer }]);
+        toast({ title: '임시 등록', description: '데모 데이터에 FAQ를 추가했습니다.' });
+      }
+
+      handleCancelEdit();
+    }
+  };
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">FAQ 관리</h1>
@@ -188,9 +258,16 @@ const FAQManagement = () => {
                   <Textarea id="a" value={newAnswer} onChange={(e) => setNewAnswer(e.target.value)} placeholder="답변을 입력" rows={5} />
                 </div>
                 <div className="flex justify-end">
-                  <Button onClick={addFaq}>
-                    <Save className="w-4 h-4 mr-1" /> 등록
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    {isEditing && (
+                        <Button variant="outline" onClick={handleCancelEdit}>
+                          취소
+                        </Button>
+                    )}
+                    <Button onClick={handleSave}>
+                      <Save className="w-4 h-4 mr-1" /> {isEditing ? '수정 저장' : '등록'}
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -202,9 +279,14 @@ const FAQManagement = () => {
                           <p className="font-medium">Q. {item.question}</p>
                           <p className="text-sm text-muted-foreground mt-1">A. {item.answer}</p>
                         </div>
-                        <Button variant="destructive" size="sm" onClick={() => removeFaq(item.id)}>
-                          <Trash2 className="w-4 h-4 mr-1" /> 삭제
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
+                            <Save className="w-4 h-4 mr-1" /> 수정
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => removeFaq(item.id)}>
+                            <Trash2 className="w-4 h-4 mr-1" /> 삭제
+                          </Button>
+                        </div>
                       </div>
                     ))}
                     {faqItems.length === 0 && <p className="text-muted-foreground">등록된 FAQ가 없습니다.</p>}
