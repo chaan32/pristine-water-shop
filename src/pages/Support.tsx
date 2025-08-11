@@ -121,8 +121,24 @@ const Support = () => {
         body
       });
 
-      const data = await response.json();
-      console.log('Response:', data);
+      let data: any = null;
+      let rawText = '';
+      const contentType = response.headers.get('content-type') || '';
+      try {
+        if (contentType.includes('application/json')) {
+          data = await response.json();
+        } else {
+          rawText = await response.text();
+          try {
+            data = JSON.parse(rawText);
+          } catch {
+            data = { message: rawText };
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to parse response body:', e);
+      }
+      console.log('Response:', data ?? rawText);
       if (response.ok) {
         // 폼 초기화
         setInquiryData({
@@ -143,7 +159,7 @@ const Support = () => {
             alert('일일 문의 제한을 초과했습니다. 내일 다시 시도해주세요.');
             break;
           default:
-            alert(data.message || '문의 접수 중 오류가 발생했습니다.');
+            alert((data && data.message) || rawText || '문의 접수 중 오류가 발생했습니다.');
         }
       }
     } catch (error) {
