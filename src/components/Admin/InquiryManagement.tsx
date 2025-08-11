@@ -75,6 +75,7 @@ const [generalInquiries, setGeneralInquiries] = useState<GeneralInquiryDto[]>([]
 const [selectedGeneralInquiry, setSelectedGeneralInquiry] = useState<GeneralInquiryDto | null>(null);
 const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
 
+
   useEffect(() => {
     if (inquiryType !== 'product') return;
     const fetchInquiries = async () => {
@@ -183,7 +184,6 @@ const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
       const inquiryId = isProduct
         ? (selectedInquiry as AdminSIQnAResDto).inquiriesId
         : (selectedGeneralInquiry as GeneralInquiryDto).inquiryId;
-
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
@@ -358,50 +358,81 @@ const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
             <CardContent className="p-0">
               <ScrollArea className="h-[520px]">
                 {loading ? (
-                  <div className="space-y-2 p-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="p-4 border border-border rounded-lg">
-                        <div className="flex items-start gap-3">
-                          <Skeleton className="h-8 w-8 rounded-full" />
-                          <div className="flex-1 space-y-2">
-                            <Skeleton className="h-4 w-3/4" />
-                            <Skeleton className="h-4 w-1/2" />
+                    <div className="space-y-2 p-4">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                          <div key={i} className="p-4 border border-border rounded-lg">
+                            <div className="flex items-start gap-3">
+                              <Skeleton className="h-8 w-8 rounded-full" />
+                              <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
                 ) : error ? (
-                  <div className="text-center p-10 text-destructive">{error}</div>
-                ) : inquiries.length === 0 ? (
-                  <div className="text-center p-10 text-muted-foreground">
-                    <img src="/placeholder.svg" alt="문의 없음 일러스트" className="mx-auto mb-4 h-24 opacity-60" />
-                    표시할 문의가 없습니다.
-                  </div>
+                    <div className="text-center p-10 text-destructive">{error}</div>
+                ) : (inquiryType === 'product' ? inquiries : generalInquiries).length === 0 ? (
+                    <div className="text-center p-10 text-muted-foreground">
+                      <img src="/placeholder.svg" alt="문의 없음 일러스트" className="mx-auto mb-4 h-24 opacity-60" />
+                      표시할 문의가 없습니다.
+                    </div>
                 ) : (
-                  <div className="space-y-2 p-4">
-                    {inquiries.map((inquiry) => (
-                      <div
-                        key={inquiry.inquiriesId}
-                        onClick={() => setSelectedInquiry(inquiry)}
-                        className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-secondary hover-scale ${
-                          selectedInquiry?.inquiriesId === inquiry.inquiriesId ? 'bg-primary/10 border-primary ring-1 ring-primary' : ''
-                        }`}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="min-w-0">
-                            <p className="font-semibold text-sm truncate pr-4">{inquiry.question}</p>
-                            <p className="text-xs text-muted-foreground truncate">{inquiry.productName}</p>
-                          </div>
-                          {inquiry.isAnswered ? (
-                            <Badge variant="answered" className="shrink-0">답변완료</Badge>
-                          ) : (
-                            <Badge variant="pending" className="shrink-0">대기중</Badge>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                    <div className="space-y-2 p-4">
+                      {inquiryType === 'product' ? (
+                          // 제품 문의 렌더링
+                          inquiries.map((inquiry) => (
+                              <div
+                                  key={inquiry.inquiriesId}
+                                  onClick={() => setSelectedInquiry(inquiry)}
+                                  className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-secondary hover-scale ${
+                                      selectedInquiry?.inquiriesId === inquiry.inquiriesId ? 'bg-primary/10 border-primary ring-1 ring-primary' : ''
+                                  }`}
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="min-w-0">
+                                    <p className="font-semibold text-sm truncate pr-4">{inquiry.question}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{inquiry.productName}</p>
+                                  </div>
+                                  {inquiry.isAnswered ? (
+                                      <Badge variant="answered" className="shrink-0">답변완료</Badge>
+                                  ) : (
+                                      <Badge variant="pending" className="shrink-0">대기중</Badge>
+                                  )}
+                                </div>
+                              </div>
+                          ))
+                      ) : (
+                          // 일반 문의 렌더링
+                          generalInquiries.map((inquiry) => (
+                              <div
+                                  key={inquiry.inquiryId}
+                                  onClick={() => setSelectedGeneralInquiry(inquiry)}
+                                  className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-secondary hover-scale ${
+                                      selectedGeneralInquiry?.inquiryId === inquiry.inquiryId ? 'bg-primary/10 border-primary ring-1 ring-primary' : ''
+                                  }`}
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="min-w-0">
+                                    <p className="font-semibold text-sm truncate pr-4">{inquiry.title}</p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {inquiry.category} · {inquiry.userName}
+                                    </p>
+                                  </div>
+                                  {inquiry.isAnswered ? (
+                                      <Badge variant="answered" className="shrink-0">답변완료</Badge>
+                                  ) : (
+                                      <Badge variant="pending" className="shrink-0">대기중</Badge>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-2">
+                                  {formatDistanceToNow(new Date(inquiry.createdAt), { addSuffix: true, locale: ko })}
+                                </div>
+                              </div>
+                          ))
+                      )}
+                    </div>
                 )}
               </ScrollArea>
             </CardContent>

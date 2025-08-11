@@ -111,6 +111,7 @@ const Support = () => {
         }
         body = JSON.stringify(inquiryData);
       }
+      console.log(body);
       const response = await fetch('http://localhost:8080/api/inquiries', {
         method: 'POST',
         headers,
@@ -318,7 +319,7 @@ const Support = () => {
                         <SelectItem value="general">일반문의</SelectItem>
                         <SelectItem value="product">제품 문의</SelectItem>
                         <SelectItem value="order">주문/배송 문의</SelectItem>
-                        <SelectItem value="order">기타</SelectItem>
+                        <SelectItem value="other">기타</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
