@@ -27,6 +27,19 @@ interface AdminSIQnAResDto{
   answer: string | null;
 }
 
+// 일반 문의 DTO
+interface GeneralInquiryDto {
+  inquiryId: number;
+  category: string;
+  title: string;
+  userName: string;
+  userEmail: string;
+  createdAt: string;
+  isAnswered: boolean;
+  content: string;
+  answer: string | null;
+}
+
 // 제품 목록 필터용 타입
 interface ProductInfo{
   id: number;
@@ -54,12 +67,20 @@ const InquiryManagement = () => {
   const [statusFilter, setStatusFilter] = useState('false'); // 'true' 또는 'false'
   const [productFilter, setProductFilter] = useState<string | null>(null)
 
+// 문의 유형 선택: 제품/일반
+const [inquiryType, setInquiryType] = useState<'product' | 'general'>('product');
+
+// 일반 문의 상태
+const [generalInquiries, setGeneralInquiries] = useState<GeneralInquiryDto[]>([]);
+const [selectedGeneralInquiry, setSelectedGeneralInquiry] = useState<GeneralInquiryDto | null>(null);
+const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
 
   useEffect(() => {
+    if (inquiryType !== 'product') return;
     const fetchInquiries = async () => {
       setLoading(true);
       setError(null);
-      setSelectedInquiry(null); // 필터 변경 시에 선택 초기화
+      setSelectedInquiry(null);
 
       let url = '';
       if (filterType === 'status') {
@@ -81,12 +102,9 @@ const InquiryManagement = () => {
         if (!res.ok) {
           throw new Error('문의 목록을 불러오는 데 실패했습니다.');
         }
-        // ⚠️ 중요: 서버 응답 타입은 any로 받아서 안전하게 처리
         const rawData: any[] = await res.json();
-
-        // ✨ [해결] 여기서 프론트엔드 타입에 맞게 데이터를 변환합니다.
         const formattedInquiries: AdminSIQnAResDto[] = rawData.map(item => ({
-          inquiriesId: item.inquiresId, // 서버가 보내는 실제 키 이름이 inquiresId가 맞는지 확인!
+          inquiriesId: item.inquiresId,
           productId: item.productId,
           productName: item.productName,
           userName: item.userName,
@@ -96,7 +114,6 @@ const InquiryManagement = () => {
           question: item.question,
           answer: item.answer,
         }));
-
         setInquiries(formattedInquiries);
       } catch (e: any) {
         setError(e.message || '알 수 없는 오류가 발생했습니다.');
@@ -104,34 +121,73 @@ const InquiryManagement = () => {
       } finally {
         setLoading(false);
       }
-
     };
     fetchInquiries();
-  }, [filterType, statusFilter, productFilter]); // 필터가 바뀔 때마다 실행
+  }, [inquiryType, filterType, statusFilter, productFilter]);
+
+  useEffect(() => {
+    if (inquiryType !== 'general') return;
+    const fetchGeneral = async () => {
+      setLoading(true);
+      setError(null);
+      setSelectedGeneralInquiry(null);
+      try {
+        const accessToken = localStorage.getItem('accessToken');
+        const url = `http://localhost:8080/api/admin/inquiries?answered=${statusFilterGeneral}`;
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+        if (!res.ok) throw new Error('일반 문의 목록을 불러오는 데 실패했습니다.');
+        const rawData: any[] = await res.json();
+        const formatted: GeneralInquiryDto[] = rawData.map((item: any) => ({
+          inquiryId: item.inquiryId ?? item.id,
+          category: item.category ?? item.type ?? '',
+          title: item.title ?? item.subject ?? '',
+          userName: item.userName ?? item.name,
+          userEmail: item.userEmail ?? item.email,
+          createdAt: item.createdAt,
+          isAnswered: item.isAnswered,
+          content: item.content ?? item.question,
+          answer: item.answer ?? null,
+        }));
+        setGeneralInquiries(formatted);
+      } catch (e: any) {
+        setError(e.message || '알 수 없는 오류가 발생했습니다.');
+        setGeneralInquiries([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGeneral();
+  }, [inquiryType, statusFilterGeneral]);
+
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const handleSendReply = async () => {
-    if (!replyText.trim() || !selectedInquiry) return;
+    const isProduct = inquiryType === 'product';
+    const target = isProduct ? selectedInquiry : selectedGeneralInquiry;
+    if (!replyText.trim() || !target) return;
 
     setIsSubmitting(true);
     try {
-      console.log('답변 전송 직전의 selectedInquiry 객체:', selectedInquiry);
       const accessToken = localStorage.getItem('accessToken');
-      const requestBody = {
-        inquiryId: selectedInquiry.inquiriesId,
-        answer: replyText,
-      }
-      console.log('답변 전송 요청 본문:', requestBody);
+      const endpoint = isProduct
+        ? 'http://localhost:8080/api/admin/product-inquiries/answer'
+        : 'http://localhost:8080/api/admin/inquiries/answer';
+      const inquiryId = isProduct
+        ? (selectedInquiry as AdminSIQnAResDto).inquiriesId
+        : (selectedGeneralInquiry as GeneralInquiryDto).inquiryId;
 
-      const res = await fetch('http://localhost:8080/api/admin/product-inquiries/answer', {
+      const res = await fetch(endpoint, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json',  'Authorization': `Bearer ${accessToken}`},
-        body: JSON.stringify({
-          inquiryId: selectedInquiry.inquiriesId,
-          answer: replyText,
-        }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({ inquiryId, answer: replyText }),
       });
 
       if (!res.ok) {
@@ -139,18 +195,27 @@ const InquiryManagement = () => {
       }
 
       toast({
-        title: "답변 등록 완료",
-        description: "고객에게 답변이 전송되었습니다."
+        title: '답변 등록 완료',
+        description: '고객에게 답변이 전송되었습니다.',
       });
+      // 낙관적 업데이트 및 목록 새로고침 트리거
+      if (isProduct) {
+        setSelectedInquiry((prev) => (prev ? { ...prev, isAnswered: true, answer: replyText } : prev));
+        const currentFilterType = filterType;
+        setFilterType('');
+        setTimeout(() => setFilterType(currentFilterType), 0);
+      } else {
+        setSelectedGeneralInquiry((prev) => (prev ? { ...prev, isAnswered: true, answer: replyText } : prev));
+        const current = statusFilterGeneral;
+        setStatusFilterGeneral(current === 'false' ? 'true' : 'false');
+        setTimeout(() => setStatusFilterGeneral(current), 0);
+      }
       setReplyText('');
-      const currentFilterType = filterType;
-      setFilterType('');
-      setTimeout(() => setFilterType(currentFilterType), 0);
     } catch (e: any) {
       toast({
-        title: "전송 실패",
-        description: e.message || "답변 전송에 실패했습니다.",
-        variant: "destructive",
+        title: '전송 실패',
+        description: e.message || '답변 전송에 실패했습니다.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -209,14 +274,14 @@ const InquiryManagement = () => {
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              대기 {inquiries.filter(inq => !inq.isAnswered).length}
+              대기 {(inquiryType === 'product' ? inquiries : generalInquiries).filter(inq => !inq.isAnswered).length}
             </Badge>
             <Badge variant="outline" className="flex items-center gap-1">
               <CheckCircle className="w-4 h-4" />
-              완료 {inquiries.filter(inq => inq.isAnswered).length}
+              완료 {(inquiryType === 'product' ? inquiries : generalInquiries).filter(inq => inq.isAnswered).length}
             </Badge>
             <Badge variant="default" className="flex items-center gap-1">
-              전체 {inquiries.length}
+              전체 {(inquiryType === 'product' ? inquiries : generalInquiries).length}
             </Badge>
           </div>
         </div>
@@ -229,38 +294,66 @@ const InquiryManagement = () => {
                 <MessageSquare className="w-5 h-5"/>
                 문의 목록
               </CardTitle>
-              {/* 요구사항 1: 필터 기능 */}
-              <Tabs value={filterType} onValueChange={setFilterType} className="w-full pt-4">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="status">상태별 보기</TabsTrigger>
-                  <TabsTrigger value="product">제품별 보기</TabsTrigger>
-                </TabsList>
-                <TabsContent value="status" className="pt-2">
+              <div className="pt-2">
+                <Tabs value={inquiryType} onValueChange={(v) => setInquiryType(v as 'product' | 'general')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="product">제품 문의</TabsTrigger>
+                    <TabsTrigger value="general">일반 문의</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+              {inquiryType === 'product' ? (
+                <Tabs value={filterType} onValueChange={setFilterType} className="w-full pt-4">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="status">상태별 보기</TabsTrigger>
+                    <TabsTrigger value="product">제품별 보기</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="status" className="pt-2">
+                    <div className="flex gap-2">
+                      <Button variant={statusFilter === 'false' ? 'pending' : 'pendingOutline'} size="sm"
+                              onClick={() => setStatusFilter('false')}>답변 대기</Button>
+                      <Button variant={statusFilter === 'true' ? 'answered' : 'answeredOutline'} size="sm"
+                              onClick={() => setStatusFilter('true')}>답변 완료</Button>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="product" className="pt-2">
+                    <Select
+                        value={productFilter || ''}
+                        onValueChange={setProductFilter}
+                        disabled={loadingProducts}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={loadingProducts? '불러오는 중...' : '제품을 선택하세요'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.map(p => (
+                            <SelectItem key={p.id} value = {String(p.id)}>
+                              {p.name}
+                            </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TabsContent>
+                </Tabs>
+              ) : (
+                <div className="pt-4">
                   <div className="flex gap-2">
-                    <Button variant={statusFilter === 'false' ? 'pending' : 'pendingOutline'} size="sm"
-                            onClick={() => setStatusFilter('false')}>답변 대기</Button>
-                    <Button variant={statusFilter === 'true' ? 'answered' : 'answeredOutline'} size="sm"
-                            onClick={() => setStatusFilter('true')}>답변 완료</Button>
+                    <Button
+                      variant={statusFilterGeneral === 'false' ? 'pending' : 'pendingOutline'}
+                      size="sm"
+                      onClick={() => setStatusFilterGeneral('false')}
+                    >
+                      답변 대기
+                    </Button>
+                    <Button
+                      variant={statusFilterGeneral === 'true' ? 'answered' : 'answeredOutline'}
+                      size="sm"
+                      onClick={() => setStatusFilterGeneral('true')}
+                    >
+                      답변 완료
+                    </Button>
                   </div>
-                </TabsContent>
-                <TabsContent value="product" className="pt-2">
-                  <Select
-                      value={productFilter || ''}
-                      onValueChange={setProductFilter}
-                      disabled={loadingProducts}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={loadingProducts? '불러오는 중...' : '제품을 선택하세요'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products.map(p => (
-                          <SelectItem key={p.id} value = {String(p.id)}>
-                            {p.name}
-                          </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TabsContent>
-              </Tabs>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <ScrollArea className="h-[520px]">
@@ -314,16 +407,15 @@ const InquiryManagement = () => {
             </CardContent>
           </Card>
 
-          {/* === 우측: 문의 상세 및 답변 === */}
           <Card>
             <CardHeader>
               <CardTitle>
-                {selectedInquiry ? '문의 상세 및 답변' : '문의를 선택해주세요'}
+                {(inquiryType === 'product' ? selectedInquiry : selectedGeneralInquiry) ? '문의 상세 및 답변' : '문의를 선택해주세요'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* 요구사항 3: 상세 정보 표시 */}
-              {selectedInquiry ? (
+              {inquiryType === 'product' ? (
+                selectedInquiry ? (
                   <div className="space-y-6">
                     <div className="space-y-4">
                       <div className="bg-secondary/50 p-4 rounded-lg">
@@ -340,40 +432,84 @@ const InquiryManagement = () => {
                         </div>
                         <p className="text-sm leading-relaxed">{selectedInquiry.question}</p>
                       </div>
-
                       {selectedInquiry.isAnswered && selectedInquiry.answer && (
-                          <div className="bg-primary/5 p-4 rounded-lg border-l-4 border-primary">
-                            <p className="text-sm font-medium text-primary mb-2">관리자 답변</p>
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedInquiry.answer}</p>
-                          </div>
+                        <div className="bg-primary/5 p-4 rounded-lg border-l-4 border-primary">
+                          <p className="text-sm font-medium text-primary mb-2">관리자 답변</p>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedInquiry.answer}</p>
+                        </div>
                       )}
                     </div>
-
                     {!selectedInquiry.isAnswered && (
-                        <div className="space-y-3">
-                          <label className="text-sm font-medium mb-2 block">답변 작성</label>
-                          <Textarea
-                              value={replyText}
-                              onChange={(e) => setReplyText(e.target.value)}
-                              placeholder="답변을 입력하세요..."
-                              rows={8}
-                          />
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>고객에게 바로 전송됩니다. 신중히 작성해주세요.</span>
-                            <span>{replyText.length}자</span>
-                          </div>
-                          <Button onClick={handleSendReply} className="w-full"
-                                  disabled={!replyText.trim() || isSubmitting}>
-                            <Send className="w-4 h-4 mr-2"/>
-                            {isSubmitting ? '전송 중...' : '답변 전송'}
-                          </Button>
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium mb-2 block">답변 작성</label>
+                        <Textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="답변을 입력하세요..."
+                          rows={8}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>고객에게 바로 전송됩니다. 신중히 작성해주세요.</span>
+                          <span>{replyText.length}자</span>
                         </div>
+                        <Button onClick={handleSendReply} className="w-full" disabled={!replyText.trim() || isSubmitting}>
+                          <Send className="w-4 h-4 mr-2" />
+                          {isSubmitting ? '전송 중...' : '답변 전송'}
+                        </Button>
+                      </div>
                     )}
                   </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-20">좌측에서 답변할 문의를 선택해주세요.</div>
+                )
               ) : (
-                  <div className="text-center text-muted-foreground py-20">
-                    좌측에서 답변할 문의를 선택해주세요.
+                selectedGeneralInquiry ? (
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="bg-secondary/50 p-4 rounded-lg">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold">{selectedGeneralInquiry.title}</h3>
+                            <div className="text-sm text-muted-foreground">
+                              {selectedGeneralInquiry.category} · {selectedGeneralInquiry.userName} ({selectedGeneralInquiry.userEmail})
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {formatDistanceToNow(new Date(selectedGeneralInquiry.createdAt), { addSuffix: true, locale: ko })}
+                          </div>
+                        </div>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedGeneralInquiry.content}</p>
+                      </div>
+                      {selectedGeneralInquiry.isAnswered && selectedGeneralInquiry.answer && (
+                        <div className="bg-primary/5 p-4 rounded-lg border-l-4 border-primary">
+                          <p className="text-sm font-medium text-primary mb-2">관리자 답변</p>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedGeneralInquiry.answer}</p>
+                        </div>
+                      )}
+                    </div>
+                    {!selectedGeneralInquiry.isAnswered && (
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium mb-2 block">답변 작성</label>
+                        <Textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="답변을 입력하세요..."
+                          rows={8}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>고객에게 바로 전송됩니다. 신중히 작성해주세요.</span>
+                          <span>{replyText.length}자</span>
+                        </div>
+                        <Button onClick={handleSendReply} className="w-full" disabled={!replyText.trim() || isSubmitting}>
+                          <Send className="w-4 h-4 mr-2" />
+                          {isSubmitting ? '전송 중...' : '답변 전송'}
+                        </Button>
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-20">좌측에서 답변할 문의를 선택해주세요.</div>
+                )
               )}
             </CardContent>
           </Card>
