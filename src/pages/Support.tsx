@@ -38,7 +38,6 @@ const Support = () => {
   });
 
   const [faqCategories, setFaqCategories] = useState<any[]>([]);
-  const [selectedFaqCategory, setSelectedFaqCategory] = useState<string>('');
   const [faqs, setFaqs] = useState<any[]>([]);
   const [faqsLoading, setFaqsLoading] = useState(false);
 
@@ -162,36 +161,42 @@ const Support = () => {
       if (!res.ok) throw new Error('Failed to fetch categories');
       const data = await res.json();
       setFaqCategories(data);
-      if (data.length > 0) {
-        setSelectedFaqCategory(data[0].id);
-      }
+      await fetchAllFaqs(data);
     } catch (e) {
       console.error('Failed to fetch FAQ categories:', e);
-      setFaqCategories([
+      const fallback = [
         { id: '1', name: '제품' },
         { id: '2', name: '주문/배송' },
         { id: '3', name: '교환/환불' },
-      ]);
-      setSelectedFaqCategory('1');
+      ];
+      setFaqCategories(fallback);
+      await fetchAllFaqs(fallback);
     }
   };
 
-  const fetchFaqsByCategory = async (categoryId: string) => {
-    if (!categoryId) return;
+  const fetchAllFaqs = async (categoriesList?: any[]) => {
+    const cats = categoriesList ?? faqCategories;
+    if (!cats || cats.length === 0) return;
     setFaqsLoading(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/faq?categoryId=${categoryId}`);
-      if (!res.ok) throw new Error('Failed to fetch faqs');
-      const data = await res.json();
-      const category = faqCategories.find((c) => c.id === categoryId);
-      setFaqs([{ id: categoryId, name: category?.name || '', items: data }]);
-    } catch (e) {
-      console.error('Failed to fetch FAQs:', e);
-      const category = faqCategories.find((c) => c.id === categoryId);
-      const items = categoryId === '1'
-        ? [{ id: 'a', question: '필터 교체 주기는?', answer: '평균 6개월마다 권장합니다.' }]
-        : [];
-      setFaqs([{ id: categoryId, name: category?.name || '', items }]);
+      const results = await Promise.all(
+        cats.map(async (cat: any) => {
+          try {
+            const res = await fetch(`http://localhost:8080/api/faq?categoryId=${cat.id}`);
+            if (!res.ok) throw new Error('Failed to fetch faqs');
+            const data = await res.json();
+            return { id: cat.id, name: cat.name, items: data };
+          } catch (e) {
+            console.error('Failed to fetch FAQs for category:', cat.id, e);
+            const items =
+              cat.id === '1'
+                ? [{ id: 'a', question: '필터 교체 주기는?', answer: '평균 6개월마다 권장합니다.' }]
+                : [];
+            return { id: cat.id, name: cat.name, items };
+          }
+        })
+      );
+      setFaqs(results);
     } finally {
       setFaqsLoading(false);
     }
@@ -200,17 +205,9 @@ const Support = () => {
 
   useEffect(() => {
     fetchNotices();
-  }, []);
-  // 기존 useEffect 아래에 추가
-  useEffect(() => {
     fetchFaqCategories();
   }, []);
 
-  useEffect(() => {
-    if (selectedFaqCategory) {
-      fetchFaqsByCategory(selectedFaqCategory);
-    }
-  }, [selectedFaqCategory]);
   return (
     <div className="min-h-screen bg-background">
       <Header />
