@@ -12,7 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bell, FileText, MessageCircle, HelpCircle, Send, Pin, Upload, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { toast } from '@/hooks/use-toast';
 interface Notice{
     id: number;
     title: string;
@@ -111,10 +111,6 @@ const Support = () => {
         }
         body = JSON.stringify(inquiryData);
       }
-
-      console.log('Request Body:', body); // 확인용 로그
-      console.log('Request Headers:', headers); // 확인용 로그
-
       const response = await fetch('http://localhost:8080/api/inquiries', {
         method: 'POST',
         headers,
@@ -147,6 +143,10 @@ const Support = () => {
           content: ''
         });
         setAttachedFiles([]);
+        toast({
+          title: "문의 접수 완료",
+          description: "문의가 성공적으로 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.",
+        });
       } else {
         switch (response.status) {
           case 400:
