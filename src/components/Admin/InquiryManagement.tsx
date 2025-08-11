@@ -373,12 +373,12 @@ const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
                   </div>
                 ) : error ? (
                   <div className="text-center p-10 text-destructive">{error}</div>
-                ) : inquiries.length === 0 ? (
+                ) : (inquiryType === 'product' ? inquiries.length === 0 : generalInquiries.length === 0) ? (
                   <div className="text-center p-10 text-muted-foreground">
                     <img src="/placeholder.svg" alt="문의 없음 일러스트" className="mx-auto mb-4 h-24 opacity-60" />
                     표시할 문의가 없습니다.
                   </div>
-                ) : (
+                ) : inquiryType === 'product' ? (
                   <div className="space-y-2 p-4">
                     {inquiries.map((inquiry) => (
                       <div
@@ -394,6 +394,30 @@ const [statusFilterGeneral, setStatusFilterGeneral] = useState('false');
                             <p className="text-xs text-muted-foreground truncate">{inquiry.productName}</p>
                           </div>
                           {inquiry.isAnswered ? (
+                            <Badge variant="answered" className="shrink-0">답변완료</Badge>
+                          ) : (
+                            <Badge variant="pending" className="shrink-0">대기중</Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2 p-4">
+                    {generalInquiries.map((inq) => (
+                      <div
+                        key={inq.inquiryId}
+                        onClick={() => setSelectedGeneralInquiry(inq)}
+                        className={`p-4 border border-border rounded-lg cursor-pointer transition-colors hover:bg-secondary hover-scale ${
+                          selectedGeneralInquiry?.inquiryId === inq.inquiryId ? 'bg-primary/10 border-primary ring-1 ring-primary' : ''
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm truncate pr-4">{inq.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">{inq.category} · {inq.userName} ({inq.userEmail})</p>
+                          </div>
+                          {inq.isAnswered ? (
                             <Badge variant="answered" className="shrink-0">답변완료</Badge>
                           ) : (
                             <Badge variant="pending" className="shrink-0">대기중</Badge>
