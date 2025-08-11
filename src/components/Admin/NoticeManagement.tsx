@@ -62,7 +62,6 @@ const NoticeManagement = () => {
       });
       if (!res.ok) throw new Error('failed');
       const data = await res.json();
-      // Expecting array of notices
       setNotices(data);
     } catch (e) {
       // Fallback demo data
@@ -95,7 +94,7 @@ const NoticeManagement = () => {
       toast({ title: '입력 오류', description: '내용을 입력하세요.', variant: 'destructive' });
       return;
     }
-
+    console.log('Creating notice:', { title, content: htmlContent, pinned });
     try {
       const res = await fetch('http://localhost:8080/api/admin/notices', {
         method: 'POST',
@@ -205,6 +204,62 @@ const NoticeManagement = () => {
               <div className="grid gap-2">
                 <Label>내용</Label>
                 <div className="rounded-md border">
+                  {/* ✨ 여기에 툴바 추가 */}
+                  {editor && (
+                      <div className="border-b p-2 bg-muted rounded-t-md">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <Button
+                              type="button" variant="ghost" size="sm"
+                              onClick={() => editor.chain().focus().toggleBold().run()}
+                              className={editor.isActive('bold') ? 'bg-accent' : ''}
+                          >
+                            Bold
+                          </Button>
+                          <Button
+                              type="button" variant="ghost" size="sm"
+                              onClick={() => editor.chain().focus().toggleItalic().run()}
+                              className={editor.isActive('italic') ? 'bg-accent' : ''}
+                          >
+                            Italic
+                          </Button>
+                          <Button
+                              type="button" variant="ghost" size="sm"
+                              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                              className={editor.isActive('heading', { level: 1 }) ? 'bg-accent' : ''}
+                          >
+                            H1
+                          </Button>
+                          <Button
+                              type="button" variant="ghost" size="sm"
+                              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                              className={editor.isActive('heading', { level: 2 }) ? 'bg-accent' : ''}
+                          >
+                            H2
+                          </Button>
+                          <Button
+                              type="button" variant="ghost" size="sm"
+                              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                              className={editor.isActive('heading', { level: 3 }) ? 'bg-accent' : ''}
+                          >
+                            H3
+                          </Button>
+                          <Button
+                              type="button" variant="ghost" size="sm"
+                              onClick={() => editor.chain().focus().toggleBulletList().run()}
+                              className={editor.isActive('bulletList') ? 'bg-accent' : ''}
+                          >
+                            List
+                          </Button>
+                          <input
+                              type="color"
+                              onInput={(e) => editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
+                              value={editor.getAttributes('textStyle').color || '#000000'}
+                              className="w-8 h-8 rounded cursor-pointer bg-transparent border-none"
+                              title="텍스트 색상"
+                          />
+                        </div>
+                      </div>
+                  )}
                   <EditorContent editor={editor} />
                 </div>
               </div>

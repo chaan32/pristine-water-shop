@@ -99,7 +99,7 @@ const FAQManagement = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:8080/api/admin/faq', {
+      const res = await fetch('http://localhost:8080/api/admin/faq/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
         body: JSON.stringify({ categoryId: selectedCategoryId, question: newQuestion, answer: newAnswer }),
