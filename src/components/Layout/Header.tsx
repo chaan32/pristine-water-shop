@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import {
   Phone,
   Mail
 } from 'lucide-react';
+import { apiFetch } from '@/lib/api';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,8 +26,40 @@ const Header = () => {
   const isHeadquarters = localStorage.getItem('isHeadquarters') === 'true';
   const parentCompany = localStorage.getItem('parentCompany') || '';
   
-  const [cartCount] = useState(3);
+  const [cartCount, setCartCount] = useState<number>(0);
   const location = useLocation();
+
+  const computeCartCount = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        const res = await apiFetch('/api/cart');
+        if (!res.ok) throw new Error('failed');
+        const dtos = await res.json();
+        setCartCount(Array.isArray(dtos) ? dtos.length : 0);
+      } else {
+        const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        setCartCount(Array.isArray(localCart) ? localCart.length : 0);
+      }
+    } catch {
+      setCartCount(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    computeCartCount();
+  }, [computeCartCount, isLoggedIn, location.pathname]);
+
+  useEffect(() => {
+    const onStorage = () => computeCartCount();
+    const onCartUpdated: EventListener = () => computeCartCount();
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('cart:updated', onCartUpdated);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('cart:updated', onCartUpdated);
+    };
+  }, [computeCartCount]);
 
   const mainMenuItems = [
     { 

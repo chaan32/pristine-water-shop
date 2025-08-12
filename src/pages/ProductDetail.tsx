@@ -250,6 +250,7 @@ const ProductDetail = () => {
           }),
         });
         if (!res.ok) throw new Error('장바구니 추가에 실패했습니다.');
+        window.dispatchEvent(new Event('cart:updated'));
         alert('장바구니에 추가되었습니다.');
         return;
       }
@@ -260,6 +261,7 @@ const ProductDetail = () => {
       if (existing) existing.quantity += quantity;
       else localCart.push({ id: Date.now(), productId: product.productId, name: product.productName, price: currentDisplayPrice(product), quantity, image: images[0] });
       localStorage.setItem('cart', JSON.stringify(localCart));
+      window.dispatchEvent(new Event('cart:updated'));
       alert('장바구니에 추가되었습니다.');
     } catch (e: any) {
       console.error(e);
