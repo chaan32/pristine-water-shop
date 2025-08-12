@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import showerFilter from '@/assets/shower-filter.jpg';
 import kitchenFilter from '@/assets/kitchen-filter.jpg';
+import { apiFetch, API_BASE_URL } from '@/lib/api';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -61,20 +62,34 @@ const Cart = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/cart', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCartItems(data.data.items);
-      } else {
+      // 서버 장바구니 조회 (CartItemDto[])
+      const res = await apiFetch('/api/cart');
+      if (!res.ok) {
         throw new Error('장바구니 조회 실패');
       }
+      const dtos: Array<{ productId: number; quantity: number }> = await res.json();
+
+      // 각 상품 상세를 병렬로 조회하여 표시용 데이터 구성
+      const userType = localStorage.getItem('userType');
+      const items = await Promise.all(
+        dtos.map(async (dto) => {
+          const pdRes = await fetch(`${API_BASE_URL}/api/shop/${dto.productId}`);
+          if (!pdRes.ok) throw new Error('상품 정보를 불러오지 못했습니다.');
+          const pd = await pdRes.json();
+          const price =
+            userType === 'headquarters' || userType === 'branch'
+              ? pd.businessPrice
+              : pd.customerPrice;
+          return {
+            productId: dto.productId,
+            name: pd.productName,
+            price,
+            quantity: dto.quantity,
+            image: pd.thumbnailImageUrl || '/placeholder.svg',
+          };
+        })
+      );
+      setCartItems(items);
     } catch (error) {
       console.error('Cart fetch error:', error);
       // 에러 시 로컬 장바구니 사용
@@ -99,8 +114,8 @@ const Cart = () => {
     "quantity": number
   }
   */
-  const updateQuantity = async (id: number, change: number) => {
-    const currentItem = cartItems.find((item: any) => item.id === id);
+  const updateQuantity = async (productId: number, change: number) => {
+    const currentItem = cartItems.find((item: any) => item.productId === productId);
     if (!currentItem) return;
 
     const newQuantity = Math.max(1, currentItem.quantity + change);
@@ -108,16 +123,11 @@ const Cart = () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
-        const response = await fetch(`http://localhost:8080/api/cart/items/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ quantity: newQuantity })
+        const res = await apiFetch('/api/cart', {
+          method: 'POST',
+          body: JSON.stringify({ productId, quantity: newQuantity })
         });
-
-        if (!response.ok) {
+        if (!res.ok) {
           throw new Error('수량 변경 실패');
         }
       }
@@ -125,7 +135,7 @@ const Cart = () => {
       // 로컬 상태 업데이트
       setCartItems((items: any) => 
         items.map((item: any) => 
-          item.id === id 
+          item.productId === productId 
             ? { ...item, quantity: newQuantity }
             : item
         )
@@ -134,7 +144,7 @@ const Cart = () => {
       // 로컬 스토리지 업데이트 (비로그인 사용자용)
       if (!token) {
         const updatedItems = cartItems.map((item: any) => 
-          item.id === id ? { ...item, quantity: newQuantity } : item
+          item.productId === productId ? { ...item, quantity: newQuantity } : item
         );
         localStorage.setItem('cart', JSON.stringify(updatedItems));
       }
@@ -152,28 +162,24 @@ const Cart = () => {
     'Authorization': 'Bearer {accessToken}'
   }
   */
-  const removeItem = async (id: number) => {
+  const removeItem = async (productId: number) => {
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
-        const response = await fetch(`http://localhost:8080/api/cart/items/${id}`, {
+        const res = await apiFetch(`/api/cart/${productId}`, {
           method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
         });
-
-        if (!response.ok) {
+        if (!res.ok) {
           throw new Error('상품 삭제 실패');
         }
       }
 
       // 로컬 상태 업데이트
-      setCartItems((items: any) => items.filter((item: any) => item.id !== id));
+      setCartItems((items: any) => items.filter((item: any) => item.productId !== productId));
 
       // 로컬 스토리지 업데이트 (비로그인 사용자용)
       if (!token) {
-        const updatedItems = cartItems.filter((item: any) => item.id !== id);
+        const updatedItems = cartItems.filter((item: any) => item.productId !== productId);
         localStorage.setItem('cart', JSON.stringify(updatedItems));
       }
     } catch (error) {
@@ -210,7 +216,7 @@ const Cart = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => (
-              <Card key={item.id} className="water-drop">
+              <Card key={item.productId} className="water-drop">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
                     <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded" />
@@ -222,7 +228,7 @@ const Cart = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => updateQuantity(item.id, -1)}
+                        onClick={() => updateQuantity(item.productId, -1)}
                       >
                         <Minus className="w-4 h-4" />
                       </Button>
@@ -230,7 +236,7 @@ const Cart = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => updateQuantity(item.id, 1)}
+                        onClick={() => updateQuantity(item.productId, 1)}
                       >
                         <Plus className="w-4 h-4" />
                       </Button>
@@ -238,7 +244,7 @@ const Cart = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(item.productId)}
                     >
                       <X className="w-4 h-4" />
                     </Button>

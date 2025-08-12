@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star, Minus, Plus, ShoppingCart, Heart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { apiFetch, API_BASE_URL } from '@/lib/api';
 
 // 백엔드 DTO 타입
 interface ProductDetailDTO {
@@ -89,7 +90,7 @@ const ProductDetail = () => {
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:8080/api/shop/${id}`);
+        const res = await fetch(`${API_BASE_URL}/api/shop/${id}`);
 
         if (!res.ok) {
           throw new Error('제품 상세 정보를 불러오지 못했습니다.');
@@ -122,7 +123,7 @@ const ProductDetail = () => {
 
       try{
         setReviewsLoading(true);
-        const res = await fetch(`http://localhost:8080/api/shop/${id}/comments`);
+        const res = await fetch(`${API_BASE_URL}/api/shop/${id}/comments`);
         if (!res.ok) throw new Error('리뷰를 불러오지 못했습니다.');
         const data: ReviewDTO[] = await res.json();
 
@@ -153,7 +154,7 @@ const ProductDetail = () => {
 
       try {
         setQnasLoading(true); // Q&A 로딩 시작
-        const res = await fetch(`http://localhost:8080/api/shop/${id}/inquiries`);
+        const res = await fetch(`${API_BASE_URL}/api/shop/${id}/inquiries`);
         if (!res.ok) throw new Error('Q&A 목록을 불러오지 못했습니다.');
         const data: QnaDTO[] = await res.json();
 
@@ -235,25 +236,35 @@ const ProductDetail = () => {
     return p.customerPrice;
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
     const token = localStorage.getItem('accessToken');
 
-    if (!token) {
+    try {
+      if (token) {
+        const res = await apiFetch('/api/cart', {
+          method: 'POST',
+          body: JSON.stringify({
+            productId: product.productId,
+            quantity,
+          }),
+        });
+        if (!res.ok) throw new Error('장바구니 추가에 실패했습니다.');
+        alert('장바구니에 추가되었습니다.');
+        return;
+      }
+
+      // 비로그인: 로컬 스토리지 사용 유지
       const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
       const existing = localCart.find((item: any) => item.productId === product.productId);
       if (existing) existing.quantity += quantity;
       else localCart.push({ id: Date.now(), productId: product.productId, name: product.productName, price: currentDisplayPrice(product), quantity, image: images[0] });
       localStorage.setItem('cart', JSON.stringify(localCart));
       alert('장바구니에 추가되었습니다.');
-      return;
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || '장바구니 추가 중 오류가 발생했습니다.');
     }
-
-    // 서버 연동은 추후 명세 확정 시 적용
-    const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    localCart.push({ id: Date.now(), productId: product.productId, name: product.productName, price: currentDisplayPrice(product), quantity, image: images[0] });
-    localStorage.setItem('cart', JSON.stringify(localCart));
-    alert('장바구니에 추가되었습니다.');
   };
 
   // 문의 등록 핸들러 함수 작성하기
@@ -282,7 +293,7 @@ const ProductDetail = () => {
     setIsSubmitting(true);
 
     try{
-      const res = await fetch('http://localhost:8080/api/shop/inquiry', {
+      const res = await fetch(`${API_BASE_URL}/api/shop/inquiry`, {
         method: 'POST',
         headers:{
             'Content-Type': 'application/json',
