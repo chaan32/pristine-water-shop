@@ -19,6 +19,7 @@ import MyPage from "./pages/MyPage";
 import Admin from "./pages/Admin";
 import HeadquartersDashboard from "./pages/HeadquartersDashboard";
 import NotFound from "./pages/NotFound";
+import EmptyCart from "./pages/EmptyCart";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/support" element={<Support />} />
           <Route path="/notice/:id" element={<NoticeDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/cart/empty" element={<EmptyCart />} />
           <Route path="/order" element={<Order />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

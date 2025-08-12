@@ -161,6 +161,12 @@ const Cart = () => {
   const totalPrice = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
   const finalPrice = totalPrice + (cartItems.length > 0 ? shippingFee : 0);
 
+  useEffect(() => {
+    if (!loading && cartItems.length === 0) {
+      navigate('/cart/empty', { replace: true });
+    }
+  }, [loading, cartItems.length, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
