@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowRight, Star, Search, Filter, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '@/lib/api';
+import { toast } from '@/hooks/use-toast';
 
 const Shop = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,6 +149,43 @@ const Shop = () => {
     }
   });
 
+  const handleAddToCart = async (product: any) => {
+    const token = localStorage.getItem('accessToken');
+    try {
+      if (token) {
+        const res = await apiFetch('/api/cart', {
+          method: 'POST',
+          body: JSON.stringify({ productId: product.productId, quantity: 1 }),
+        });
+        if (!res.ok) throw new Error('장바구니 추가에 실패했습니다.');
+      } else {
+        const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const existing = localCart.find((item: any) => item.productId === product.productId);
+        if (existing) existing.quantity += 1;
+        else localCart.push({
+          productId: product.productId,
+          name: product.productName,
+          price: getDisplayPrice(product),
+          quantity: 1,
+          image: product.thumbnailImageUrl,
+        });
+        localStorage.setItem('cart', JSON.stringify(localCart));
+      }
+
+      window.dispatchEvent(new Event('cart:updated'));
+      toast({
+        title: '장바구니에 담았어요',
+        description: `${product.productName}이(가) 장바구니에 추가되었습니다.`,
+      });
+    } catch (e: any) {
+      toast({
+        title: '장바구니 추가 실패',
+        description: e?.message || '장바구니 추가 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -276,6 +315,8 @@ const Shop = () => {
                                   variant="outline"
                                   size="icon"
                                   className="water-drop"
+                                  onClick={() => handleAddToCart(product)}
+                                  aria-label="장바구니 담기"
                               >
                                 <ShoppingCart className="w-4 h-4" />
                               </Button>

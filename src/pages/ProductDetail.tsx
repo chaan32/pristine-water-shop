@@ -9,6 +9,7 @@ import { Star, Minus, Plus, ShoppingCart, Heart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiFetch, API_BASE_URL } from '@/lib/api';
+import { toast } from '@/hooks/use-toast';
 
 // 백엔드 DTO 타입
 interface ProductDetailDTO {
@@ -251,7 +252,7 @@ const ProductDetail = () => {
         });
         if (!res.ok) throw new Error('장바구니 추가에 실패했습니다.');
         window.dispatchEvent(new Event('cart:updated'));
-        alert('장바구니에 추가되었습니다.');
+        toast({ title: '장바구니에 담았어요', description: `${product.productName} x ${quantity}` });
         return;
       }
 
@@ -262,10 +263,10 @@ const ProductDetail = () => {
       else localCart.push({ id: Date.now(), productId: product.productId, name: product.productName, price: currentDisplayPrice(product), quantity, image: images[0] });
       localStorage.setItem('cart', JSON.stringify(localCart));
       window.dispatchEvent(new Event('cart:updated'));
-      alert('장바구니에 추가되었습니다.');
+      toast({ title: '장바구니에 담았어요', description: `${product.productName} x ${quantity}` });
     } catch (e: any) {
       console.error(e);
-      alert(e?.message || '장바구니 추가 중 오류가 발생했습니다.');
+      toast({ title: '장바구니 추가 실패', description: e?.message || '장바구니 추가 중 오류가 발생했습니다.', variant: 'destructive' });
     }
   };
 
