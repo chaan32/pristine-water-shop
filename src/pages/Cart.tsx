@@ -1,3 +1,4 @@
+
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,38 +15,6 @@ const Cart = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  /*
-  ==================== API 요청 명세 (장바구니 조회) ====================
-  Method: GET
-  URL: http://localhost:8080/api/cart
-  Headers: {
-    'Authorization': 'Bearer {accessToken}',
-    'Content-Type': 'application/json'
-  }
-  
-  ==================== 예상 응답 명세 ====================
-  성공 시 (200 OK):
-  {
-    "success": true,
-    "data": {
-      "items": [
-        {
-          "id": number,
-          "productId": number,
-          "name": string,
-          "price": number,
-          "quantity": number,
-          "image": string,
-          "options": object,      // 제품 옵션
-          "addedAt": string      // 추가 시간
-        }
-      ],
-      "totalItems": number,
-      "lastUpdated": string
-    }
-  }
-  */
   
   useEffect(() => {
     fetchCartItems();
