@@ -35,6 +35,7 @@ const Register = () => {
     isIdAvailable: false,
     address: '',
     detailAddress: '',
+    postalCode: '',
     phone: '',
     isPhoneVerified: false
   });
@@ -55,6 +56,7 @@ const Register = () => {
     isIdAvailable: false,
     address: '',
     detailAddress: '',
+    postalCode: '',
     phone: '',
     isPhoneVerified: false,
     // 프랜차이즈 지점 회원 전용 필드
@@ -196,9 +198,9 @@ const Register = () => {
 
         // 선택된 주소를 폼에 설정
         if (type === 'individual') {
-          setIndividualForm(prev => ({ ...prev, address: addr }));
+          setIndividualForm(prev => ({ ...prev, address: addr, postalCode: data.zonecode }));
         } else {
-          setCorporateForm(prev => ({ ...prev, address: addr }));
+          setCorporateForm(prev => ({ ...prev, address: addr, postalCode: data.zonecode }));
         }
       }
     }).open();
@@ -425,6 +427,7 @@ const Register = () => {
         phone: individualForm.phone,
         address: individualForm.address,
         detailAddress: individualForm.detailAddress,
+        postalCode: individualForm.postalCode,
         termsAccepted: individualForm.termsAccepted,
         privacyAccepted: individualForm.privacyAccepted,
         marketingAccepted: false
@@ -536,6 +539,7 @@ const Register = () => {
         phone: corporateForm.phone,
         address: corporateForm.address,
         detailAddress: corporateForm.detailAddress,
+        postalCode: corporateForm.postalCode,
         termsAccepted: corporateForm.termsAccepted,
         privacyAccepted: corporateForm.privacyAccepted,
          ...(corporateForm.corporateType === 'franchise' && {
