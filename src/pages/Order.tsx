@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
@@ -12,11 +12,26 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
+import {apiFetch} from "@/lib/api.ts";
+
+
+interface UserInfo {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  detailAddress: string;
+  zipCode: string;
+}
 
 const Order = () => {
   const location = useLocation();
   const { items, isDirectPurchase } = location.state || { items: [], isDirectPurchase: false };
-  
+  const [pointUsage, setPointUsage] = useState(0);
+  const [selectedCoupon, setSelectedCoupon] = useState('');
+  const [loggedInUser, setLoggedInUser] = useState<UserInfo | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'bank', 'mobile'
+
   const [orderInfo, setOrderInfo] = useState({
     name: '',
     phone: '',
@@ -27,18 +42,31 @@ const Order = () => {
     memo: ''
   });
 
-  const [pointUsage, setPointUsage] = useState(0);
-  const [selectedCoupon, setSelectedCoupon] = useState('');
-  
-  // 주문자 정보 (실제로는 로그인된 사용자 정보에서 가져올 것)
-  const userInfo = {
-    name: '홍길동',
-    phone: '010-1234-5678',
-    email: 'hong@example.com',
-    address: '서울특별시 강남구 테헤란로 123',
-    detailAddress: '456호',
-    zipCode: '06234'
-  };
+
+
+  useEffect(() => {
+    // 페이지가 처음 로드될 때 로그인된 사용자의 정보를 가져옵니다.
+    const fetchUserInfo = async () => {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        // 로그인 상태가 아니면 아무 작업도 하지 않습니다.
+        // 실제로는 로그인 페이지로 보내는 로직을 추가할 수 있습니다.
+        console.log("로그인된 사용자가 없습니다.");
+        return;
+      }
+      try {
+        // 이전에 만드셨던 컨트롤러의 getRecipientInform 메서드 호출
+        const response = await apiFetch(`/api/order/recipient/same/${userId}`);
+        const data = await response.json(); // .json()을 호출해서 실제 데이터를 꺼냅니다.
+        setLoggedInUser(data);
+      } catch (error) {
+        console.error('사용자 정보 조회 실패:', error);
+        alert('회원 정보를 불러오는 데 실패했습니다.');
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   // 사용자 정보 (실제로는 로그인된 사용자 정보에서 가져올 것)
   const userPoints = 15000;
@@ -70,17 +98,21 @@ const Order = () => {
   const finalTotal = Math.max(0, totalAfterCoupon - pointUsage);
 
   const fillOrdererInfo = () => {
-    console.log('주문자와 동일 버튼 클릭됨');
-    console.log('userInfo:', userInfo);
-    setOrderInfo({
-      name: userInfo.name,
-      phone: userInfo.phone,
-      email: userInfo.email,
-      address: userInfo.address,
-      detailAddress: userInfo.detailAddress,
-      zipCode: userInfo.zipCode,
-      memo: orderInfo.memo // 배송 메모는 유지
-    });
+    if (loggedInUser) {
+      console.log('주문자와 동일 버튼 클릭됨');
+      console.log('API에서 가져온 사용자 정보:', loggedInUser);
+      setOrderInfo({
+        ...orderInfo, // 기존에 입력된 값 (예: 배송 메모) 유지
+        name: loggedInUser.name,
+        phone: loggedInUser.phone,
+        email: loggedInUser.email,
+        address: loggedInUser.address,
+        detailAddress: loggedInUser.detailAddress,
+        zipCode: loggedInUser.zipCode,
+      });
+    } else {
+      alert("로그인 정보가 없습니다.");
+    }
   };
 
   const openPostcode = () => {
@@ -113,93 +145,42 @@ const Order = () => {
       alert('필수 정보를 모두 입력해주세요.');
       return;
     }
-
-    /*
-    ==================== API 요청 명세 (주문 생성) ====================
-    Method: POST
-    URL: http://localhost:8080/api/orders
-    Headers: {
-      'Authorization': 'Bearer {accessToken}',
-      'Content-Type': 'application/json'
-    }
-    
-    Request Body:
-    {
-      "items": [
-        {
-          "productId": number,
-          "quantity": number,
-          "price": number,
-          "options": object
-        }
-      ],
-      "deliveryInfo": {
-        "name": string,
-        "phone": string,
-        "email": string,
-        "address": string,
-        "detailAddress": string,
-        "zipCode": string,
-        "memo": string
-      },
-      "payment": {
-        "method": "card" | "bank" | "mobile",
-        "amount": number,
-        "couponId": string,      // 선택사항
-        "pointUsage": number     // 사용 포인트
-      },
-      "shipping": {
-        "fee": number,
-        "method": "standard" | "express"
-      }
-    }
-    
-    ==================== 예상 응답 명세 ====================
-    성공 시 (201 Created):
-    {
-      "success": true,
-      "message": "주문이 완료되었습니다.",
-      "data": {
-        "orderId": string,
-        "orderNumber": string,
-        "status": "pending_payment" | "paid" | "processing",
-        "totalAmount": number,
-        "estimatedDelivery": string,
-        "trackingNumber": string,
-        "createdAt": string
-      }
-    }
-    
-    실패 시:
-    - 400 Bad Request: 잘못된 주문 정보
-    - 402 Payment Required: 결제 정보 오류
-    - 409 Conflict: 재고 부족
-    - 500 Internal Server Error: 서버 내부 오류
-    */
-
+    const userId = localStorage.getItem('userId');
     const orderData = {
+      userId: userId || null, // 로그인된 사용자 ID, 없으면 null
+      // 1. OrderReqDto.items -> List<OrderItemDto>
       items: items.map((item: any) => ({
         productId: item.productId || item.id,
         quantity: item.quantity,
         price: item.price,
-        options: item.options || {}
+        perPrice: item.price * item.quantity,
       })),
-      deliveryInfo: orderInfo,
-      payment: {
-        method: 'card', // 실제로는 선택된 결제 방법
-        amount: finalTotal,
-        couponId: selectedCoupon,
-        pointUsage: pointUsage
+
+      // 2. OrderReqDto.shipmentInform -> ShipmentReqDto
+      shipmentInform: {
+        recipientName: orderInfo.name,
+        recipientPhone: orderInfo.phone,
+        postNumber: orderInfo.zipCode,
+        address: orderInfo.address,
+        detailAddress: orderInfo.detailAddress,
+        memo: orderInfo.memo,
       },
-      shipping: {
-        fee: shippingFee,
-        method: 'standard'
-      }
+
+      // 3. OrderReqDto의 가격 정보 필드들
+      totalPrice: finalTotal,          // 최종 결제 금액
+      productPrice: subtotal,          // 상품 총액
+      couponDiscountPrice: couponDiscount, // 쿠폰 할인액
+      pointDiscountPrice: pointUsage,      // 포인트 사용액
+      shipmentFee: shippingFee,        // 배송비
+
+      // 4. OrderReqDto의 결제 정보 필드들
+      paymentMethod: paymentMethod,
+
     };
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/orders', {
+      const response = await fetch('http://localhost:8080/api/order', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -307,18 +288,6 @@ const Order = () => {
                       tabIndex={2}
                     />
                   </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="receiver-email" className="text-sm font-medium mb-2 block">이메일</label>
-                  <Input 
-                    id="receiver-email"
-                    type="email"
-                    placeholder="example@email.com"
-                    value={orderInfo.email}
-                    onChange={(e) => setOrderInfo({...orderInfo, email: e.target.value})}
-                    tabIndex={3}
-                  />
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
@@ -511,17 +480,29 @@ const Order = () => {
                     결제 수단
                   </h4>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="card" defaultChecked />
-                      <label htmlFor="card" className="text-sm">신용카드</label>
+                    {/* 신용카드 */}
+                    <div
+                        className="flex items-center space-x-2 cursor-pointer"
+                        onClick={() => setPaymentMethod('card')}
+                    >
+                      <Checkbox id="card" checked={paymentMethod === 'card'} />
+                      <label htmlFor="card" className="text-sm cursor-pointer">신용카드</label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="bank" />
-                      <label htmlFor="bank" className="text-sm">계좌이체</label>
+                    {/* 계좌이체 */}
+                    <div
+                        className="flex items-center space-x-2 cursor-pointer"
+                        onClick={() => setPaymentMethod('bank_transfer')}
+                    >
+                      <Checkbox id="bank" checked={paymentMethod === 'bank_transfer'} />
+                      <label htmlFor="bank" className="text-sm cursor-pointer">계좌이체</label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="mobile" />
-                      <label htmlFor="mobile" className="text-sm">휴대폰 결제</label>
+                    {/* 법인결제 */}
+                    <div
+                        className="flex items-center space-x-2 cursor-pointer"
+                        onClick={() => setPaymentMethod('corporate_payment')}
+                    >
+                      <Checkbox id="bank" checked={paymentMethod === 'corporate_payment'} />
+                      <label htmlFor="bank" className="text-sm cursor-pointer">법인결제</label>
                     </div>
                   </div>
                 </div>
@@ -547,7 +528,7 @@ const Order = () => {
                           </div>
                           <div className="flex justify-between text-sm">
                             <span>배송지:</span>
-                            <span>{orderInfo.address || '배송지를 입력해주세요'}</span>
+                            <span>{orderInfo.address + orderInfo.detailAddress || '배송지를 입력해주세요'}</span>
                           </div>
                         </div>
                       </AlertDialogDescription>

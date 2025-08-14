@@ -153,7 +153,7 @@ const Shop = () => {
     const token = localStorage.getItem('accessToken');
     try {
       if (token) {
-        const res = await apiFetch('/api/cart', {
+        const res = await apiFetch('/api/cart/add', {
           method: 'POST',
           body: JSON.stringify({ productId: product.productId, quantity: 1 }),
         });
