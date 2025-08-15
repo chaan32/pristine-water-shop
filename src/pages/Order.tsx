@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 import {apiFetch} from "@/lib/api.ts";
+import { useToast } from '@/hooks/use-toast';
 
 
 interface UserInfo {
@@ -31,6 +32,7 @@ const Order = () => {
   const [selectedCoupon, setSelectedCoupon] = useState('');
   const [loggedInUser, setLoggedInUser] = useState<UserInfo | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'bank', 'mobile'
+  const { toast } = useToast();
 
   const [orderInfo, setOrderInfo] = useState({
     name: '',
@@ -192,7 +194,10 @@ const Order = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`주문이 완료되었습니다!\n\n주문번호: ${data.orderNumber}`);
+        toast({
+          title: "주문이 완료되었습니다!",
+          description: `주문번호: ${data.orderNumber}`,
+        });
         
         // 장바구니에서 주문한 경우 장바구니 비우기
         if (!isDirectPurchase) {

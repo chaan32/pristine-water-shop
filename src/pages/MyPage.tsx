@@ -141,6 +141,7 @@ const MyPage = () => {
   const getShipmentStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
       'PENDING': '배송 대기',
+      'PREPARING': '발송 대기중',
       'PROCESSING': '상품 준비중',
       'SHIPPED': '배송중',
       'DELIVERED': '배송완료',
@@ -203,9 +204,8 @@ const MyPage = () => {
           </div>
 
           <Tabs defaultValue="orders" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="orders">주문내역</TabsTrigger>
-              <TabsTrigger value="shipping">배송조회</TabsTrigger>
               <TabsTrigger value="profile">회원정보</TabsTrigger>
             </TabsList>
 
@@ -219,47 +219,49 @@ const MyPage = () => {
                   <p className="text-muted-foreground">주문 내역이 없습니다.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {orders.map((order) => (
                     <Card key={order.id} className="water-drop">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                              <span className="font-semibold">{order.id}</span>
-                              <Badge variant={order.status === '배송완료' ? 'default' : 'secondary'}>
-                                {order.status}
-                              </Badge>
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                          <div className="md:col-span-3">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-sm">{order.id}</span>
+                              <span className="text-xs text-muted-foreground">{order.date}</span>
                             </div>
-                            <p className="text-muted-foreground">
+                          </div>
+                          <div className="md:col-span-4">
+                            <p className="text-sm font-medium">
                               {typeof order.products === 'string' ? order.products : order.products?.join(', ')}
                             </p>
-                            <p className="text-sm text-muted-foreground">{order.date}</p>
                           </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold">{order.total?.toLocaleString()}원</p>
-                            <div className="flex gap-2 mt-2">
-                              <Button 
-                                variant="outline" 
+                          <div className="md:col-span-2">
+                            <Badge variant={order.status === '배송완료' ? 'default' : 'secondary'}>
+                              {order.status}
+                            </Badge>
+                          </div>
+                          <div className="md:col-span-2">
+                            <p className="text-sm font-bold">{order.total?.toLocaleString()}원</p>
+                          </div>
+                          <div className="md:col-span-1 flex gap-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="h-8 px-2 text-xs"
+                              onClick={() => handleOrderDetailClick(order)}
+                            >
+                              상세
+                            </Button>
+                            {order.trackingNumber && (
+                              <Button
+                                variant="outline"
                                 size="sm"
-                                onClick={() => handleOrderDetailClick(order)}
+                                className="h-8 px-2 text-xs"
+                                onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
                               >
-                                상세보기
+                                배송
                               </Button>
-                              {order.trackingNumber ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
-                                >
-                                  배송조회
-                                </Button>
-                              ) : (
-                                <Badge variant="outline" className="px-2 py-1">
-                                  미발송
-                                </Badge>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </div>
                       </CardContent>
@@ -269,27 +271,6 @@ const MyPage = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="shipping" className="mt-8">
-              <Card className="water-drop">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Truck className="w-5 h-5" />
-                    배송조회
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="border rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-semibold">ORD-2024-002</span>
-                      <Badge variant="secondary">배송중</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">주방용 직수 정수기 KF-200</p>
-                    <p className="text-sm">송장번호: 1234567890</p>
-                    <Button variant="link" className="p-0 h-auto">배송조회 바로가기</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
 
             <TabsContent value="profile" className="mt-8">

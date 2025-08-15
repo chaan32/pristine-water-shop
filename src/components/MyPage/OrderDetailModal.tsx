@@ -7,6 +7,7 @@ interface OrderItem {
   productPerPrice: number;
   productTotalPrice: number;
   quantity: number;
+  productImageUrl?: string;
 }
 
 interface OrderDetailModalProps {
@@ -28,6 +29,7 @@ const OrderDetailModal = ({ isOpen, onClose, order }: OrderDetailModalProps) => 
   const getShipmentStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
       'PENDING': '배송 대기',
+      'PREPARING': '발송 대기중',
       'PROCESSING': '상품 준비중',
       'SHIPPED': '배송중',
       'DELIVERED': '배송완료',
@@ -85,7 +87,14 @@ const OrderDetailModal = ({ isOpen, onClose, order }: OrderDetailModalProps) => 
             </div>
             <div className="divide-y">
               {order.items.map((item, index) => (
-                <div key={index} className="p-4 flex justify-between items-center">
+                <div key={index} className="p-4 flex gap-4 items-center">
+                  {item.productImageUrl && (
+                    <img 
+                      src={item.productImageUrl} 
+                      alt={item.productName}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                  )}
                   <div className="flex-1">
                     <h5 className="font-medium">{item.productName}</h5>
                     <p className="text-sm text-muted-foreground">
