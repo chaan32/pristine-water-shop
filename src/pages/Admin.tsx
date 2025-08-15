@@ -5,6 +5,7 @@ import ProductManagement from '@/components/Admin/ProductManagement';
 import ProductEdit from '@/components/Admin/ProductEdit';
 import ProductContentManagement from '@/components/Admin/ProductContentManagement';
 import SalesChart from '@/components/Admin/SalesChart';
+import OrderManagement from '@/components/Admin/OrderManagement';
 import MemberList from '@/components/Admin/MemberList';
 import CorporateRequests from '@/components/Admin/CorporateRequests';
 import InquiryManagement from '@/components/Admin/InquiryManagement';
@@ -29,6 +30,7 @@ const Admin = () => {
         <Route path="/products/edit/:id?" element={<ProductEdit />} />
         <Route path="/products/content" element={<ProductContentManagement />} />
         <Route path="/sales" element={<SalesChart />} />
+        <Route path="/orders" element={<OrderManagement />} />
         <Route path="/members" element={<MemberList />} />
         <Route path="/corporate-requests" element={<CorporateRequests />} />
         <Route path="/inquiries" element={<InquiryManagement />} />

@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Search, Eye, User, Building, Crown } from 'lucide-react';
+import OrderHistoryModal from './OrderHistoryModal';
 
 // 실제 백엔드 DTO 구조에 맞는 타입 정의
 interface IndividualMember {
@@ -51,6 +52,12 @@ const MemberList = () => {
   const [individualMembers, setIndividualMembers] = useState<IndividualMember[]>([]);
   const [corporateMembers, setCorporateMembers] = useState<CorporateMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orderHistoryModal, setOrderHistoryModal] = useState({
+    isOpen: false,
+    memberId: null as number | null,
+    memberName: '',
+    memberType: 'individual' as 'individual' | 'corporate'
+  });
 
   // 실제 API에서 회원 목록 가져오기
   const fetchMembers = async () => {
@@ -147,6 +154,25 @@ const MemberList = () => {
     console.log('회원 상세 조회:', { id, type });
   };
 
+  const handleOrderHistoryClick = (member: IndividualMember | CorporateMember, type: 'individual' | 'corporate') => {
+    const memberName = type === 'individual' ? (member as IndividualMember).name : (member as CorporateMember).companyName;
+    setOrderHistoryModal({
+      isOpen: true,
+      memberId: member.id,
+      memberName,
+      memberType: type
+    });
+  };
+
+  const closeOrderHistoryModal = () => {
+    setOrderHistoryModal({
+      isOpen: false,
+      memberId: null,
+      memberName: '',
+      memberType: 'individual'
+    });
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -224,7 +250,15 @@ const MemberList = () => {
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.phone}</TableCell>
                       <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
-                      <TableCell>{member.orderCount}회</TableCell>
+                      <TableCell>
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-auto text-primary hover:underline"
+                          onClick={() => handleOrderHistoryClick(member, 'individual')}
+                        >
+                          {member.orderCount}회
+                        </Button>
+                      </TableCell>
                       <TableCell>₩{member.totalAmount.toLocaleString()}</TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -314,7 +348,15 @@ const MemberList = () => {
                          </Badge>
                        </TableCell>
                       <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
-                      <TableCell>{member.orderCount}회</TableCell>
+                       <TableCell>
+                         <Button 
+                           variant="link" 
+                           className="p-0 h-auto text-primary hover:underline"
+                           onClick={() => handleOrderHistoryClick(member, 'corporate')}
+                         >
+                           {member.orderCount}회
+                         </Button>
+                       </TableCell>
                       <TableCell>₩{member.totalAmount.toLocaleString()}</TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -333,6 +375,14 @@ const MemberList = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      <OrderHistoryModal
+        isOpen={orderHistoryModal.isOpen}
+        onClose={closeOrderHistoryModal}
+        memberId={orderHistoryModal.memberId}
+        memberName={orderHistoryModal.memberName}
+        memberType={orderHistoryModal.memberType}
+      />
     </div>
   );
 };
