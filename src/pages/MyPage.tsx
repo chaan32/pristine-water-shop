@@ -11,11 +11,7 @@ import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard'
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
 
 const MyPage = () => {
-  const [userType, setUserType] = useState('individual');
-  const [userName, setUserName] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [parentCompany, setParentCompany] = useState('');
-  const [isHeadquarters, setIsHeadquarters] = useState(false);
+  const [userInfo, setUserInfo] = useState<any>(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -43,26 +39,12 @@ const MyPage = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const user = data.data;
-        console.log(user);
-        setUserType(user.userType);
-        setUserName(user.name);
-        setCompanyName(user.companyName || '');
-        setParentCompany(user.parentCompany || '');
-        setIsHeadquarters(user.isHeadquarters || false);
-
-        // 로컬 스토리지도 업데이트
-        localStorage.setItem('userType', user.userType);
-        localStorage.setItem('userName', user.name);
-        if (user.companyName) {
-          localStorage.setItem('companyName', user.companyName);
-        }
-        if (user.parentCompany) {
-          localStorage.setItem('parentCompany', user.parentCompany);
-        }
-        if (user.isHeadquarters !== undefined) {
-          localStorage.setItem('isHeadquarters', user.isHeadquarters.toString());
+        const result = await response.json();
+        console.log('User data:', result);
+        
+        if (result.data) {
+          setUserInfo(result.data);
+          localStorage.setItem('userInfo', JSON.stringify(result.data));
         }
       } else {
         throw new Error('사용자 정보 조회 실패');
@@ -70,17 +52,10 @@ const MyPage = () => {
     } catch (error) {
       console.error('User info fetch error:', error);
       // 에러 시 로컬 스토리지 정보 사용
-      const type = localStorage.getItem('userType') || 'individual';
-      const name = localStorage.getItem('userName') || '홍길동';
-      const company = localStorage.getItem('companyName') || '';
-      const parent = localStorage.getItem('parentCompany') || '';
-      const headquarters = localStorage.getItem('isHeadquarters') === 'true';
-
-      setUserType(type);
-      setUserName(name);
-      setCompanyName(company);
-      setParentCompany(parent);
-      setIsHeadquarters(headquarters);
+      const storedUserInfo = localStorage.getItem('userInfo');
+      if (storedUserInfo) {
+        setUserInfo(JSON.parse(storedUserInfo));
+      }
     }
   };
 
@@ -163,7 +138,9 @@ const MyPage = () => {
   };
 
   const getUserTypeText = () => {
-    switch (userType) {
+    if (!userInfo) return '회원';
+    
+    switch (userInfo.userType) {
       case 'headquarters':
         return '본사 회원';
       case 'branch':
@@ -176,10 +153,12 @@ const MyPage = () => {
   };
 
   const getDisplayName = () => {
-    if (userType === 'branch' && parentCompany && companyName) {
-      return `${parentCompany} (${companyName})`;
+    if (!userInfo) return '';
+    
+    if (userInfo.userType === 'branch' && userInfo.parentCompany && userInfo.companyName) {
+      return `${userInfo.parentCompany} (${userInfo.companyName})`;
     }
-    return companyName;
+    return userInfo.companyName || '';
   };
 
   const handleOrderDetailClick = (order: any) => {
@@ -194,11 +173,11 @@ const MyPage = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
-              {userType === 'branch' && <Building2 className="w-6 h-6 text-blue-500" />}
+              {userInfo?.userType === 'branch' && <Building2 className="w-6 h-6 text-blue-500" />}
               <h1 className="text-4xl font-bold text-foreground">마이페이지</h1>
             </div>
             <p className="text-lg text-muted-foreground">
-              {userName} ({getUserTypeText()})
+              {userInfo ? `${userInfo.name} (${getUserTypeText()})` : '사용자 정보 로딩 중...'}
               {getDisplayName() && ` - ${getDisplayName()}`}
             </p>
           </div>
@@ -282,28 +261,106 @@ const MyPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">이름</label>
-                      <input className="w-full p-2 border rounded" value={userName} readOnly />
+                  {userInfo ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">로그인 아이디</label>
+                          <input 
+                            className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
+                            value={userInfo.userLoginId} 
+                            readOnly 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">이름</label>
+                          <input 
+                            className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
+                            value={userInfo.name} 
+                            readOnly 
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">회원 유형</label>
+                          <input 
+                            className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
+                            value={getUserTypeText()} 
+                            readOnly 
+                          />
+                        </div>
+                        {userInfo.companyName && (
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">
+                              {userInfo.userType === 'branch' ? '지점명' : '회사명'}
+                            </label>
+                            <input 
+                              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                              value={userInfo.companyName} 
+                            />
+                          </div>
+                        )}
+                        {userInfo.parentCompany && (
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">소속 본사</label>
+                            <input 
+                              className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
+                              value={userInfo.parentCompany} 
+                              readOnly 
+                            />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">이메일</label>
+                          <input 
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                            value={userInfo.email} 
+                            type="email"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">전화번호</label>
+                          <input 
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                            value={userInfo.phone} 
+                            type="tel"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">우편번호</label>
+                          <input 
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                            value={userInfo.postalNumber} 
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">주소</label>
+                        <input 
+                          className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary mb-2" 
+                          value={userInfo.address} 
+                          placeholder="주소"
+                        />
+                        <input 
+                          className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                          value={userInfo.detailAddress} 
+                          placeholder="상세주소"
+                        />
+                      </div>
+                      
+                      <Button className="water-drop" disabled={!userInfo}>
+                        <Settings className="w-4 h-4 mr-2" />
+                        정보 수정
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">회원 정보를 불러오는 중...</p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">아이디</label>
-                      <input className="w-full p-2 border rounded" value="hong123" readOnly />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">이메일</label>
-                    <input className="w-full p-2 border rounded" value="hong@example.com" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">휴대폰</label>
-                    <input className="w-full p-2 border rounded" value="010-1234-5678" />
-                  </div>
-                  <Button className="water-drop">
-                    <Settings className="w-4 h-4 mr-2" />
-                    정보 수정
-                  </Button>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
