@@ -52,9 +52,10 @@ interface OrderTableProps {
   orders: ProcessedOrder[];
   onOpenModal: (order: ProcessedOrder) => void;
   showStatusColumns?: boolean;
+  showTrackingInput?: boolean;
 }
 
-const OrderTable = ({ orders, onOpenModal, showStatusColumns = true }: OrderTableProps) => {
+const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackingInput = false }: OrderTableProps) => {
   const formatDate = (dateString: string) => dateString ? dateString.split('T')[0] : '';
   const getShippingStatusText = (status: string) => ({ preparing: '준비중', shipped: '배송중', delivered: '완료' }[status] || status);
   const getShippingStatusStyle = (status: string) => ({ preparing: 'bg-yellow-50 text-yellow-700 border-yellow-200', shipped: 'bg-blue-50 text-blue-700 border-blue-200', delivered: 'bg-green-50 text-green-700 border-green-200' }[status] || 'bg-gray-50 text-gray-700 border-gray-200');
@@ -84,7 +85,7 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true }: OrderTabl
             <TableHead>상품명</TableHead>
             <TableHead>결제 금액</TableHead>
             {showStatusColumns && <><TableHead>배송 상태</TableHead><TableHead>발송 처리</TableHead></>}
-            <TableHead className="text-right">관리</TableHead>
+            <TableHead className="text-right">{showTrackingInput ? '관리' : '배송 상태'}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -111,7 +112,34 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true }: OrderTabl
                       <TableCell>{order.isShipmentProcessed ? (<Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />완료</Badge>) : (<Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">미처리</Badge>)}</TableCell>
                     </>
                 )}
-                <TableCell className="text-right">{!order.isShipmentProcessed && (<Button variant="outline" size="sm" onClick={() => onOpenModal(order)}>송장번호 입력</Button>)}</TableCell>
+                <TableCell className="text-right">
+                  {showTrackingInput ? (
+                    !order.isShipmentProcessed && (
+                      <Button variant="outline" size="sm" onClick={() => onOpenModal(order)}>
+                        송장번호 입력
+                      </Button>
+                    )
+                  ) : (
+                    order.trackingNumber ? (
+                      <div className="flex items-center gap-2 justify-end">
+                        <span className="text-sm font-medium">{order.trackingNumber}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
+                          className="flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          조회
+                        </Button>
+                      </div>
+                    ) : (
+                      <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-200">
+                        미발송 상태
+                      </Badge>
+                    )
+                  )}
+                </TableCell>
               </TableRow>
           ))}
         </TableBody>
@@ -261,7 +289,7 @@ const OrderManagement = () => {
                 <OrderTable orders={filteredOrders} onOpenModal={openTrackingModal} showStatusColumns={true} />
               </TabsContent>
               <TabsContent value="unprocessed" className="mt-6">
-                <OrderTable orders={unprocessedOrders} onOpenModal={openTrackingModal} showStatusColumns={false} />
+                <OrderTable orders={unprocessedOrders} onOpenModal={openTrackingModal} showStatusColumns={false} showTrackingInput={true} />
               </TabsContent>
             </Tabs>
           </CardContent>
