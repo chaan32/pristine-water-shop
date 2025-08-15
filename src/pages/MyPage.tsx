@@ -102,16 +102,6 @@ const MyPage = () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        // 로컬 스토리지에서 기본 정보 로드
-        const type = localStorage.getItem('userType') || 'individual';
-        const name = localStorage.getItem('userName') || '홍길동';
-        const company = localStorage.getItem('companyName') || '';
-        const headquarters = localStorage.getItem('isHeadquarters') === 'true';
-        
-        setUserType(type);
-        setUserName(name);
-        setCompanyName(company);
-        setIsHeadquarters(headquarters);
         return;
       }
 
@@ -126,7 +116,7 @@ const MyPage = () => {
       if (response.ok) {
         const data = await response.json();
         const user = data.data;
-        
+        console.log(user);
         setUserType(user.userType);
         setUserName(user.name);
         setCompanyName(user.companyName || '');
@@ -169,28 +159,11 @@ const MyPage = () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        // 비로그인 상태에서는 mock 데이터 사용
-        setOrders([
-          {
-            id: 'ORD-2024-001',
-            date: '2024.01.20',
-            products: ['프리미엄 샤워 필터 SF-100'],
-            total: 92000,
-            status: '배송완료'
-          },
-          {
-            id: 'ORD-2024-002', 
-            date: '2024.01.15',
-            products: ['주방용 직수 정수기 KF-200'],
-            total: 198000,
-            status: '배송중'
-          }
-        ]);
-        setLoading(false);
+        alert("로그인이 필요합니다.");
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/orders?page=1&limit=10', {
+      const response = await fetch('http://localhost:8080/api/users/orders?page=1&limit=10', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -199,8 +172,8 @@ const MyPage = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const ordersData = data.data.orders.map((order: any) => ({
+        const orders = await response.json();
+        const ordersData = orders.data.orders.map((order: any) => ({
           id: order.orderNumber,
           date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
           products: order.items.map((item: any) => item.name),
