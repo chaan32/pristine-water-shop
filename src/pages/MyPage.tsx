@@ -13,6 +13,7 @@ const MyPage = () => {
   const [userType, setUserType] = useState('individual');
   const [userName, setUserName] = useState('');
   const [companyName, setCompanyName] = useState('');
+  const [parentCompany, setParentCompany] = useState('');
   const [isHeadquarters, setIsHeadquarters] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -129,6 +130,7 @@ const MyPage = () => {
         setUserType(user.userType);
         setUserName(user.name);
         setCompanyName(user.companyName || '');
+        setParentCompany(user.parentCompany || '');
         setIsHeadquarters(user.isHeadquarters || false);
         
         // 로컬 스토리지도 업데이트
@@ -136,6 +138,9 @@ const MyPage = () => {
         localStorage.setItem('userName', user.name);
         if (user.companyName) {
           localStorage.setItem('companyName', user.companyName);
+        }
+        if (user.parentCompany) {
+          localStorage.setItem('parentCompany', user.parentCompany);
         }
         if (user.isHeadquarters !== undefined) {
           localStorage.setItem('isHeadquarters', user.isHeadquarters.toString());
@@ -149,11 +154,13 @@ const MyPage = () => {
       const type = localStorage.getItem('userType') || 'individual';
       const name = localStorage.getItem('userName') || '홍길동';
       const company = localStorage.getItem('companyName') || '';
+      const parent = localStorage.getItem('parentCompany') || '';
       const headquarters = localStorage.getItem('isHeadquarters') === 'true';
       
       setUserType(type);
       setUserName(name);
       setCompanyName(company);
+      setParentCompany(parent);
       setIsHeadquarters(headquarters);
     }
   };
@@ -198,7 +205,9 @@ const MyPage = () => {
           date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
           products: order.items.map((item: any) => item.name),
           total: order.totalAmount,
-          status: getStatusText(order.status)
+          status: getStatusText(order.status),
+          trackingNumber: order.trackingNumber || '',
+          deliveryAddress: order.deliveryAddress || ''
         }));
         setOrders(ordersData);
       } else {
@@ -253,6 +262,13 @@ const MyPage = () => {
     }
   };
 
+  const getDisplayName = () => {
+    if (userType === 'branch' && parentCompany && companyName) {
+      return `${parentCompany} (${companyName})`;
+    }
+    return companyName;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -265,7 +281,7 @@ const MyPage = () => {
           </div>
           <p className="text-lg text-muted-foreground">
             {userName} ({getUserTypeText()})
-            {companyName && ` - ${companyName}`}
+            {getDisplayName() && ` - ${getDisplayName()}`}
           </p>
         </div>
 
@@ -292,14 +308,23 @@ const MyPage = () => {
                         <p className="text-muted-foreground">{order.products.join(', ')}</p>
                         <p className="text-sm text-muted-foreground">{order.date}</p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold">{order.total.toLocaleString()}원</p>
-                        <div className="flex gap-2 mt-2">
-                          <Button variant="outline" size="sm">
-                            상세보기
-                          </Button>
-                        </div>
-                      </div>
+                       <div className="text-right">
+                         <p className="text-lg font-bold">{order.total.toLocaleString()}원</p>
+                         <div className="flex gap-2 mt-2">
+                           <Button variant="outline" size="sm">
+                             상세보기
+                           </Button>
+                           {order.trackingNumber && (
+                             <Button 
+                               variant="outline" 
+                               size="sm"
+                               onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
+                             >
+                               배송조회
+                             </Button>
+                           )}
+                         </div>
+                       </div>
                     </div>
                   </CardContent>
                 </Card>
