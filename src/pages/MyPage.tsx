@@ -5,13 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Package, Settings, Truck, Crown, Building2 } from 'lucide-react';
+import { User, Package, Settings, Truck, Crown, Building2, Search } from 'lucide-react';
 import RefundExchangeForm from '@/components/Support/RefundExchangeForm';
 import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard';
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
+import { apiFetch, getAccessToken } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 const MyPage = () => {
+  const { toast } = useToast();
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [editForm, setEditForm] = useState<any>({});
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -44,6 +48,7 @@ const MyPage = () => {
         
         if (result.data) {
           setUserInfo(result.data);
+          setEditForm(result.data);
           localStorage.setItem('userInfo', JSON.stringify(result.data));
         }
       } else {
@@ -54,7 +59,9 @@ const MyPage = () => {
       // 에러 시 로컬 스토리지 정보 사용
       const storedUserInfo = localStorage.getItem('userInfo');
       if (storedUserInfo) {
-        setUserInfo(JSON.parse(storedUserInfo));
+        const userData = JSON.parse(storedUserInfo);
+        setUserInfo(userData);
+        setEditForm(userData);
       }
     }
   };
@@ -166,6 +173,68 @@ const MyPage = () => {
     setIsOrderDetailOpen(true);
   };
 
+  // 주소 검색 함수
+  const handleAddressSearch = () => {
+    new (window as any).daum.Postcode({
+      oncomplete: function(data: any) {
+        let addr = '';
+        if (data.userSelectedType === 'R') {
+          addr = data.roadAddress;
+        } else {
+          addr = data.jibunAddress;
+        }
+        setEditForm((prev: any) => ({
+          ...prev,
+          address: addr,
+          postalNumber: data.zonecode
+        }));
+      }
+    }).open();
+  };
+
+  // 폼 입력 핸들러
+  const handleFormChange = (field: string, value: string) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 정보 수정 제출
+  const handleUpdateInfo = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
+      const response = await apiFetch('/api/users/me', {
+        method: 'PUT',
+        body: JSON.stringify(editForm)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setUserInfo(result.data);
+        localStorage.setItem('userInfo', JSON.stringify(result.data));
+        toast({
+          title: "성공",
+          description: "회원 정보가 수정되었습니다.",
+        });
+      } else {
+        throw new Error('정보 수정 실패');
+      }
+    } catch (error) {
+      console.error('Update error:', error);
+      toast({
+        title: "오류",
+        description: "정보 수정 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -261,14 +330,14 @@ const MyPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {userInfo ? (
+                  {userInfo && editForm ? (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">로그인 아이디</label>
                           <input 
                             className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
-                            value={userInfo.userLoginId} 
+                            value={editForm.userLoginId || ''} 
                             readOnly 
                           />
                         </div>
@@ -276,7 +345,7 @@ const MyPage = () => {
                           <label className="text-sm font-medium mb-2 block">이름</label>
                           <input 
                             className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
-                            value={userInfo.name} 
+                            value={editForm.name || ''} 
                             readOnly 
                           />
                         </div>
@@ -288,23 +357,34 @@ const MyPage = () => {
                             readOnly 
                           />
                         </div>
-                        {userInfo.companyName && (
+                        {editForm.companyName && (
                           <div>
                             <label className="text-sm font-medium mb-2 block">
-                              {userInfo.userType === 'branch' ? '지점명' : '회사명'}
+                              {editForm.userType === 'branch' ? '지점명' : '회사명'}
                             </label>
                             <input 
                               className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                              value={userInfo.companyName} 
+                              value={editForm.companyName || ''} 
+                              onChange={(e) => handleFormChange('companyName', e.target.value)}
                             />
                           </div>
                         )}
-                        {userInfo.parentCompany && (
+                        {editForm.parentCompany && (
                           <div>
                             <label className="text-sm font-medium mb-2 block">소속 본사</label>
                             <input 
                               className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
-                              value={userInfo.parentCompany} 
+                              value={editForm.parentCompany || ''} 
+                              readOnly 
+                            />
+                          </div>
+                        )}
+                        {editForm.userType === 'headquarters' && (
+                          <div>
+                            <label className="text-sm font-medium mb-2 block">본사 여부</label>
+                            <input 
+                              className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
+                              value={editForm.headquarters ? '본사' : '일반 회원'} 
                               readOnly 
                             />
                           </div>
@@ -316,24 +396,38 @@ const MyPage = () => {
                           <label className="text-sm font-medium mb-2 block">이메일</label>
                           <input 
                             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                            value={userInfo.email} 
+                            value={editForm.email || ''} 
                             type="email"
+                            onChange={(e) => handleFormChange('email', e.target.value)}
                           />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">전화번호</label>
                           <input 
                             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                            value={userInfo.phone} 
+                            value={editForm.phone || ''} 
                             type="tel"
+                            onChange={(e) => handleFormChange('phone', e.target.value)}
                           />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">우편번호</label>
-                          <input 
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                            value={userInfo.postalNumber} 
-                          />
+                          <div className="flex gap-2">
+                            <input 
+                              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                              value={editForm.postalNumber || ''} 
+                              placeholder="우편번호"
+                              readOnly
+                            />
+                            <Button 
+                              type="button"
+                              variant="outline"
+                              onClick={handleAddressSearch}
+                              className="px-3"
+                            >
+                              <Search className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                       
@@ -341,17 +435,19 @@ const MyPage = () => {
                         <label className="text-sm font-medium mb-2 block">주소</label>
                         <input 
                           className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary mb-2" 
-                          value={userInfo.address} 
+                          value={editForm.address || ''} 
                           placeholder="주소"
+                          readOnly
                         />
                         <input 
                           className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                          value={userInfo.detailAddress} 
+                          value={editForm.detailAddress || ''} 
                           placeholder="상세주소"
+                          onChange={(e) => handleFormChange('detailAddress', e.target.value)}
                         />
                       </div>
                       
-                      <Button className="water-drop" disabled={!userInfo}>
+                      <Button className="water-drop" onClick={handleUpdateInfo}>
                         <Settings className="w-4 h-4 mr-2" />
                         정보 수정
                       </Button>
