@@ -5,6 +5,8 @@ import FeaturedProducts from '@/components/Home/FeaturedProducts';
 import BrandPhilosophy from '@/components/Home/BrandPhilosophy';
 
 const Index = () => {
+  console.log('Index page is rendering');
+  
   return (
     <div className="min-h-screen bg-background">
       <Header />

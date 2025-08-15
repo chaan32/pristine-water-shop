@@ -4,6 +4,9 @@ import { ArrowRight, Shield, Droplets, Award } from 'lucide-react';
 import heroImage from '@/assets/hero-water-filter.jpg';
 
 const HeroSection = () => {
+  console.log('HeroSection is rendering');
+  console.log('Hero image path:', heroImage);
+  
   return (
     <section className="relative min-h-[600px] flex items-center overflow-hidden">
       {/* Background Image */}
