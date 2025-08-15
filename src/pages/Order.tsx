@@ -192,7 +192,7 @@ const Order = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`주문이 완료되었습니다!\n\n주문번호: ${data.data.orderNumber}\n주문 금액: ${finalTotal.toLocaleString()}원\n배송지: ${orderInfo.address}\n\n주문 내역은 마이페이지에서 확인하실 수 있습니다.`);
+        alert(`주문이 완료되었습니다!\n\n주문번호: ${data.orderNumber}`);
         
         // 장바구니에서 주문한 경우 장바구니 비우기
         if (!isDirectPurchase) {
