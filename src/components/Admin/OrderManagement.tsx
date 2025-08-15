@@ -30,6 +30,7 @@ interface Order {
   orderNumber: string;
   ordererName: string;
   recipientName: string;
+  recipientPhone: string;
   shippingAddress: string;
   orderDate: string;
   daysSinceOrder: number | null;
@@ -45,7 +46,7 @@ interface ProcessedOrder extends Omit<Order, 'daysSinceOrder'> {
 }
 
 
-// --- 재사용 가능한 테이블 컴포넌트 (공백 제거) ---
+// --- 재사용 가능한 테이블 컴포넌트 (Whitespace 경고 최종 수정) ---
 interface OrderTableProps {
   orders: ProcessedOrder[];
   onOpenModal: (order: ProcessedOrder) => void;
@@ -54,16 +55,8 @@ interface OrderTableProps {
 
 const OrderTable = ({ orders, onOpenModal, showStatusColumns = true }: OrderTableProps) => {
   const formatDate = (dateString: string) => dateString ? dateString.split('T')[0] : '';
-
-  const getShippingStatusText = (status: string) => ({
-    preparing: '준비중', shipped: '배송중', delivered: '완료'
-  }[status] || status);
-
-  const getShippingStatusStyle = (status: string) => ({
-    preparing: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    shipped: 'bg-blue-50 text-blue-700 border-blue-200',
-    delivered: 'bg-green-50 text-green-700 border-green-200'
-  }[status] || 'bg-gray-50 text-gray-700 border-gray-200');
+  const getShippingStatusText = (status: string) => ({ preparing: '준비중', shipped: '배송중', delivered: '완료' }[status] || status);
+  const getShippingStatusStyle = (status: string) => ({ preparing: 'bg-yellow-50 text-yellow-700 border-yellow-200', shipped: 'bg-blue-50 text-blue-700 border-blue-200', delivered: 'bg-green-50 text-green-700 border-green-200' }[status] || 'bg-gray-50 text-gray-700 border-gray-200');
 
   if (orders.length === 0) {
     return (
@@ -77,32 +70,36 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true }: OrderTabl
   return (
       <Table>
         <TableHeader>
-          <TableRow>{/* 👈 불필요한 공백 제거 */}
+          <TableRow>
             <TableHead className="w-[150px]">주문번호</TableHead>
             <TableHead className="w-[120px]">주문일자</TableHead>
             <TableHead>주문자</TableHead>
             <TableHead>수령인</TableHead>
-            <TableHead>주문 일수</TableHead>
+            <TableHead className="w-[130px]">수령인 번호</TableHead>
+            <TableHead>배송지</TableHead>
             <TableHead>상품명</TableHead>
             <TableHead>결제 금액</TableHead>
             {showStatusColumns && <><TableHead>배송 상태</TableHead><TableHead>발송 처리</TableHead></>}
             <TableHead className="text-right">관리</TableHead>
-          </TableRow>{/* 👈 불필요한 공백 제거 */}
+          </TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => (
-              <TableRow key={order.id}>{/* 👈 불필요한 공백 제거 */}
+              <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell>{formatDate(order.orderDate)}</TableCell>
                 <TableCell>{order.ordererName}</TableCell>
                 <TableCell>{order.recipientName}</TableCell>
-                <TableCell>{order.daysSinceOrder}일</TableCell>
+                <TableCell>{order.recipientPhone}</TableCell>
+                <TableCell className="max-w-xs truncate" title={order.shippingAddress}>{order.shippingAddress}</TableCell>
                 <TableCell className="max-w-xs truncate" title={order.productName}>{order.productName}</TableCell>
                 <TableCell>₩{order.totalAmount.toLocaleString()}</TableCell>
-                {showStatusColumns && (<>
-                  <TableCell><Badge variant="outline" className={`text-xs ${getShippingStatusStyle(order.shippingStatus)}`}>{getShippingStatusText(order.shippingStatus)}</Badge></TableCell>
-                  <TableCell>{order.isShipmentProcessed ? (<Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />완료</Badge>) : (<Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">미처리</Badge>)}</TableCell>
-                </>)}
+                {showStatusColumns && (
+                    <>
+                      <TableCell><Badge variant="outline" className={`text-xs ${getShippingStatusStyle(order.shippingStatus)}`}>{getShippingStatusText(order.shippingStatus)}</Badge></TableCell>
+                      <TableCell>{order.isShipmentProcessed ? (<Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />완료</Badge>) : (<Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">미처리</Badge>)}</TableCell>
+                    </>
+                )}
                 <TableCell className="text-right">{!order.isShipmentProcessed && (<Button variant="outline" size="sm" onClick={() => onOpenModal(order)}>송장번호 입력</Button>)}</TableCell>
               </TableRow>
           ))}
@@ -126,7 +123,6 @@ const OrderManagement = () => {
 
   const fetchOrders = async () => {
     if (!loading) setIsRefreshing(true);
-
     try {
       const response = await apiFetch('/api/admin/orders');
       if (response.ok) {
@@ -164,10 +160,8 @@ const OrderManagement = () => {
 
   const unprocessedOrders = filteredOrders.filter(order => !order.isShipmentProcessed);
 
-  const handleTrackingSubmit = async () => { /* ... 기존과 동일 ... */ };
-  const openTrackingModal = (order: ProcessedOrder) => { /* ... 기존과 동일 ... */ };
-
-  // (생략된 로직은 이전과 동일합니다)
+  const handleTrackingSubmit = async () => { /* ... */ };
+  const openTrackingModal = (order: ProcessedOrder) => { /* ... */ };
 
   if (loading) {
     return <div className="p-6 text-center">로딩 중...</div>;
@@ -182,7 +176,6 @@ const OrderManagement = () => {
             <Badge variant="destructive">미처리: {unprocessedOrders.length}건</Badge>
           </div>
         </div>
-
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
@@ -204,18 +197,15 @@ const OrderManagement = () => {
                 <TabsTrigger value="all" className="flex items-center gap-2"><Package className="w-4 h-4" /> 전체 주문</TabsTrigger>
                 <TabsTrigger value="unprocessed" className="flex items-center gap-2"><Truck className="w-4 h-4" /> 미처리 주문</TabsTrigger>
               </TabsList>
-
               <TabsContent value="all" className="mt-6">
                 <OrderTable orders={filteredOrders} onOpenModal={openTrackingModal} showStatusColumns={true} />
               </TabsContent>
-
               <TabsContent value="unprocessed" className="mt-6">
                 <OrderTable orders={unprocessedOrders} onOpenModal={openTrackingModal} showStatusColumns={false} />
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
-
         <Dialog open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>{/* ... */}</Dialog>
       </div>
   );
