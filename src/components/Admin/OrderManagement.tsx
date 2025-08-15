@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Package, Truck, CheckCircle, RefreshCw } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, RefreshCw, ExternalLink } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -39,6 +39,7 @@ interface Order {
   shippingStatus: 'preparing' | 'shipped' | 'delivered';
   isShipmentProcessed: boolean;
   trackingNumber?: string | null;
+  ordererType: 'individual' | 'headquarters' | 'branch';
 }
 
 interface ProcessedOrder extends Omit<Order, 'daysSinceOrder'> {
@@ -57,6 +58,9 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true }: OrderTabl
   const formatDate = (dateString: string) => dateString ? dateString.split('T')[0] : '';
   const getShippingStatusText = (status: string) => ({ preparing: '준비중', shipped: '배송중', delivered: '완료' }[status] || status);
   const getShippingStatusStyle = (status: string) => ({ preparing: 'bg-yellow-50 text-yellow-700 border-yellow-200', shipped: 'bg-blue-50 text-blue-700 border-blue-200', delivered: 'bg-green-50 text-green-700 border-green-200' }[status] || 'bg-gray-50 text-gray-700 border-gray-200');
+  
+  const getOrdererTypeText = (type: string) => ({ individual: '개인', headquarters: '본사', branch: '지점' }[type] || type);
+  const getOrdererTypeStyle = (type: string) => ({ individual: 'bg-blue-50 text-blue-700 border-blue-200', headquarters: 'bg-purple-50 text-purple-700 border-purple-200', branch: 'bg-orange-50 text-orange-700 border-orange-200' }[type] || 'bg-gray-50 text-gray-700 border-gray-200');
 
   if (orders.length === 0) {
     return (
@@ -88,7 +92,14 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true }: OrderTabl
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.orderNumber}</TableCell>
                 <TableCell>{formatDate(order.orderDate)}</TableCell>
-                <TableCell>{order.ordererName}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <span>{order.ordererName}</span>
+                    <Badge variant="outline" className={`text-xs ${getOrdererTypeStyle(order.ordererType)}`}>
+                      {getOrdererTypeText(order.ordererType)}
+                    </Badge>
+                  </div>
+                </TableCell>
                 <TableCell>{order.recipientName}</TableCell>
                 <TableCell>{order.recipientPhone}</TableCell>
                 <TableCell className="max-w-xs truncate" title={order.shippingAddress}>{order.shippingAddress}</TableCell>
@@ -160,8 +171,55 @@ const OrderManagement = () => {
 
   const unprocessedOrders = filteredOrders.filter(order => !order.isShipmentProcessed);
 
-  const handleTrackingSubmit = async () => { /* ... */ };
-  const openTrackingModal = (order: ProcessedOrder) => { /* ... */ };
+  const handleTrackingSubmit = async () => {
+    if (!selectedOrder || !trackingNumber.trim()) {
+      toast({ title: "오류", description: "송장번호를 입력해주세요.", variant: "destructive" });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await apiFetch(`/api/admin/orders/${selectedOrder.id}/tracking`, {
+        method: 'POST',
+        body: JSON.stringify({ trackingNumber: trackingNumber.trim() }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          toast({ title: "성공", description: "송장번호가 등록되었습니다." });
+          setTrackingModalOpen(false);
+          setTrackingNumber('');
+          setSelectedOrder(null);
+          fetchOrders(); // 목록 새로고침
+        } else {
+          throw new Error(data.message || '송장번호 등록에 실패했습니다.');
+        }
+      } else {
+        throw new Error('서버 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Error submitting tracking:', error);
+      toast({ 
+        title: "오류", 
+        description: error instanceof Error ? error.message : "송장번호 등록에 실패했습니다.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openTrackingModal = (order: ProcessedOrder) => {
+    setSelectedOrder(order);
+    setTrackingNumber(order.trackingNumber || '');
+    setTrackingModalOpen(true);
+  };
+
+  const getTrackingUrl = (trackingNumber: string) => {
+    // 일반적인 택배사 추적 URL (실제로는 택배사에 따라 다름)
+    return `https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${trackingNumber}`;
+  };
 
   if (loading) {
     return <div className="p-6 text-center">로딩 중...</div>;
@@ -206,7 +264,100 @@ const OrderManagement = () => {
             </Tabs>
           </CardContent>
         </Card>
-        <Dialog open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>{/* ... */}</Dialog>
+        <Dialog open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>송장번호 관리</DialogTitle>
+              <DialogDescription>
+                주문 정보를 확인하고 송장번호를 입력하거나 배송 상태를 확인하세요.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedOrder && (
+              <div className="space-y-6">
+                {/* 주문 정보 */}
+                <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <h3 className="font-semibold text-lg">주문 정보</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">주문번호:</span>
+                      <span className="ml-2">{selectedOrder.orderNumber}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">주문일자:</span>
+                      <span className="ml-2">{selectedOrder.orderDate.split('T')[0]}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">상품명:</span>
+                      <span className="ml-2">{selectedOrder.productName}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">결제금액:</span>
+                      <span className="ml-2">₩{selectedOrder.totalAmount.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 배송 정보 */}
+                <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+                  <h3 className="font-semibold text-lg">배송 정보</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">수령인:</span>
+                      <span className="ml-2">{selectedOrder.recipientName}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">연락처:</span>
+                      <span className="ml-2">{selectedOrder.recipientPhone}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">배송지:</span>
+                      <span className="ml-2">{selectedOrder.shippingAddress}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 송장번호 입력 */}
+                <div className="space-y-3">
+                  <label htmlFor="tracking-input" className="text-sm font-medium">
+                    송장번호
+                  </label>
+                  <Input
+                    id="tracking-input"
+                    value={trackingNumber}
+                    onChange={(e) => setTrackingNumber(e.target.value)}
+                    placeholder="송장번호를 입력하세요"
+                    disabled={submitting}
+                  />
+                  
+                  {/* 기존 송장번호가 있는 경우 배송 조회 링크 표시 */}
+                  {selectedOrder.trackingNumber && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-gray-600">현재 송장번호:</span>
+                      <span className="font-medium">{selectedOrder.trackingNumber}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(getTrackingUrl(selectedOrder.trackingNumber!), '_blank')}
+                        className="flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        배송 조회
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setTrackingModalOpen(false)}>
+                취소
+              </Button>
+              <Button onClick={handleTrackingSubmit} disabled={submitting}>
+                {submitting ? '처리 중...' : '저장'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
   );
 };
