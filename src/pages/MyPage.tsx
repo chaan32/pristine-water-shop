@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, Package, Settings, Truck, Crown, Building2 } from 'lucide-react';
 import RefundExchangeForm from '@/components/Support/RefundExchangeForm';
 import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard';
+import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
 
 const MyPage = () => {
   const [userType, setUserType] = useState('individual');
@@ -17,6 +18,8 @@ const MyPage = () => {
   const [isHeadquarters, setIsHeadquarters] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false);
 
 
   useEffect(() => {
@@ -96,27 +99,54 @@ const MyPage = () => {
           'Content-Type': 'application/json',
         },
       });
-      console.log(response.json());
+      
       if (response.ok) {
-        const orders = await response.json();
-        const ordersData = orders.data.orders.map((order: any) => ({
-          id: order.orderNumber,
-          date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
-          products: order.items.map((item: any) => item.name),
-          total: order.totalAmount,
-          status: getStatusText(order.status),
-          trackingNumber: order.trackingNumber || '',
-          deliveryAddress: order.deliveryAddress || ''
-        }));
-        setOrders(ordersData);
+        const result = await response.json();
+        console.log('API Response:', result);
+        
+        // 백엔드 응답 구조에 맞게 수정
+        if (result.data && Array.isArray(result.data)) {
+          const ordersData = result.data.map((order: any) => ({
+            id: order.orderName,
+            date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
+            products: order.products,
+            total: order.price,
+            status: getShipmentStatusText(order.shipmentStatus),
+            trackingNumber: order.trackingNumber || '',
+            deliveryAddress: '',
+            // 상세정보용 데이터 추가
+            orderName: order.orderName,
+            createdAt: new Date(order.createdAt).toLocaleDateString('ko-KR'),
+            price: order.price,
+            shipmentStatus: order.shipmentStatus,
+            items: order.items || []
+          }));
+          setOrders(ordersData);
+          console.log('Processed orders:', ordersData);
+        } else {
+          console.error('Unexpected data structure:', result);
+          setOrders([]);
+        }
       } else {
         throw new Error('주문 내역 조회 실패');
       }
     } catch (error) {
       console.error('Orders fetch error:', error);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getShipmentStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'PENDING': '배송 대기',
+      'PROCESSING': '상품 준비중',
+      'SHIPPED': '배송중',
+      'DELIVERED': '배송완료',
+      'CANCELLED': '배송 취소'
+    };
+    return statusMap[status] || status;
   };
 
   const getStatusText = (status: string) => {
@@ -151,6 +181,11 @@ const MyPage = () => {
     return companyName;
   };
 
+  const handleOrderDetailClick = (order: any) => {
+    setSelectedOrder(order);
+    setIsOrderDetailOpen(true);
+  };
+
   return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -175,8 +210,17 @@ const MyPage = () => {
             </TabsList>
 
             <TabsContent value="orders" className="mt-8">
-              <div className="space-y-4">
-                {orders.map((order) => (
+              {loading ? (
+                <div className="text-center py-8">
+                  <p>주문 내역을 불러오는 중...</p>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">주문 내역이 없습니다.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orders.map((order) => (
                     <Card key={order.id} className="water-drop">
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between">
@@ -187,31 +231,42 @@ const MyPage = () => {
                                 {order.status}
                               </Badge>
                             </div>
-                            <p className="text-muted-foreground">{order.products.join(', ')}</p>
+                            <p className="text-muted-foreground">
+                              {typeof order.products === 'string' ? order.products : order.products?.join(', ')}
+                            </p>
                             <p className="text-sm text-muted-foreground">{order.date}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold">{order.total.toLocaleString()}원</p>
+                            <p className="text-lg font-bold">{order.total?.toLocaleString()}원</p>
                             <div className="flex gap-2 mt-2">
-                              <Button variant="outline" size="sm">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleOrderDetailClick(order)}
+                              >
                                 상세보기
                               </Button>
-                              {order.trackingNumber && (
-                                  <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
-                                  >
-                                    배송조회
-                                  </Button>
+                              {order.trackingNumber ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
+                                >
+                                  배송조회
+                                </Button>
+                              ) : (
+                                <Badge variant="outline" className="px-2 py-1">
+                                  미발송
+                                </Badge>
                               )}
                             </div>
                           </div>
                         </div>
                       </CardContent>
                     </Card>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="shipping" className="mt-8">
@@ -273,6 +328,12 @@ const MyPage = () => {
             </TabsContent>
           </Tabs>
         </main>
+
+        <OrderDetailModal
+          isOpen={isOrderDetailOpen}
+          onClose={() => setIsOrderDetailOpen(false)}
+          order={selectedOrder}
+        />
 
         <Footer />
       </div>
