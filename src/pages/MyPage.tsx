@@ -81,20 +81,20 @@ const MyPage = () => {
           'Content-Type': 'application/json',
         },
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log('API Response:', result);
-        
-        // 백엔드 응답 구조에 맞게 수정
+
         if (result.data && Array.isArray(result.data)) {
+          // ✅ API 응답 데이터를 매핑하는 이 부분을 수정합니다.
           const ordersData = result.data.map((order: any) => ({
             id: order.orderName,
             date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
             products: order.products,
             total: order.price,
             status: getShipmentStatusText(order.shipmentStatus),
-            paymentStatus: order.paymentStatus, // PENDDING, PAID 등 ...
+            paymentStatus: order.paymentStatus,
             trackingNumber: order.trackingNumber || '',
             deliveryAddress: '',
             // 상세정보용 데이터 추가
@@ -102,6 +102,7 @@ const MyPage = () => {
             createdAt: new Date(order.createdAt).toLocaleDateString('ko-KR'),
             price: order.price,
             shipmentStatus: order.shipmentStatus,
+            shipmentFee: order.shipmentFee || 0, // << 이 줄을 추가해주세요!
             items: order.items || []
           }));
           setOrders(ordersData);
