@@ -57,12 +57,18 @@ const MyPage = () => {
       }
     } catch (error) {
       console.error('User info fetch error:', error);
-      // 에러 시 로컬 스토리지 정보 사용
+      // 에러 시 로컬 스토리지 정보 사용 (현재 로그인 사용자와 일치하는 경우에만)
       const storedUserInfo = localStorage.getItem('userInfo');
+      const currentUsername = localStorage.getItem('username');
       if (storedUserInfo) {
         const userData = JSON.parse(storedUserInfo);
-        setUserInfo(userData);
-        setEditForm(userData);
+        if (!currentUsername || userData?.username === currentUsername || userData?.id?.toString() === localStorage.getItem('userId')) {
+          setUserInfo(userData);
+          setEditForm(userData);
+        } else {
+          // 이전 세션 캐시가 다른 사용자일 경우 제거
+          localStorage.removeItem('userInfo');
+        }
       }
     }
   };

@@ -121,6 +121,7 @@ const Header = () => {
                        localStorage.removeItem('isHeadquarters');
                        localStorage.removeItem('parentCompany');
                        localStorage.removeItem('permissions');
+                       localStorage.removeItem('userInfo');
                        setIsLoggedIn(false);
                        window.location.href = '/';
                      }}
@@ -307,6 +308,7 @@ const Header = () => {
                          localStorage.removeItem('isHeadquarters');
                          localStorage.removeItem('parentCompany');
                          localStorage.removeItem('permissions');
+                         localStorage.removeItem('userInfo');
                          setIsLoggedIn(false);
                          setIsMenuOpen(false);
                          window.location.href = '/';
