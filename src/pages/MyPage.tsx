@@ -11,6 +11,7 @@ import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard'
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
 import { apiFetch, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import InquiriesTab from '@/components/MyPage/InquiriesTab';
 
 const MyPage = () => {
   const { toast } = useToast();
@@ -261,81 +262,14 @@ const MyPage = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="orders" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="info" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="info">회원정보</TabsTrigger>
               <TabsTrigger value="orders">주문내역</TabsTrigger>
-              <TabsTrigger value="profile">회원정보</TabsTrigger>
+              <TabsTrigger value="inquiries">문의내역</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="orders" className="mt-8">
-              {loading ? (
-                <div className="text-center py-8">
-                  <p>주문 내역을 불러오는 중...</p>
-                </div>
-              ) : orders.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">주문 내역이 없습니다.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {orders.map((order) => (
-                    <Card key={order.id} className="water-drop">
-                      <CardContent className="p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                          <div className="md:col-span-3">
-                            <div className="flex flex-col gap-1">
-                              <span className="font-semibold text-sm">{order.id}</span>
-                              <span className="text-xs text-muted-foreground">{order.date}</span>
-                            </div>
-                          </div>
-                          <div className="md:col-span-4 flex flex-wrap gap-1">
-                            <p className="text-sm font-medium">
-                              {typeof order.products === 'string' ? order.products : order.products?.join(', ')}
-                            </p>
-                          </div>
-                          <div className="md:col-span-2 flex flex-wrap gap-8">
-                            {/* ✅ 결제 상태 Badge를 추가합니다. */}
-                            <Badge variant={order.paymentStatus === 'PAID' ? 'default' : 'outline'}>
-                              {getPaymentStatusText(order.paymentStatus)}
-                            </Badge>
-                            <Badge variant={order.status === '배송완료' ? 'default' : 'secondary'}>
-                              {order.status}
-                            </Badge>
-                          </div>
-                          <div className="md:col-span-2">
-                            <p className="text-sm font-bold">{order.total?.toLocaleString()}원</p>
-                          </div>
-                          <div className="md:col-span-1 flex gap-1">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="h-8 px-2 text-xs"
-                              onClick={() => handleOrderDetailClick(order)}
-                            >
-                              상세
-                            </Button>
-                            {order.trackingNumber && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-2 text-xs"
-                                onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
-                              >
-                                배송
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-
-
-            <TabsContent value="profile" className="mt-8">
+            <TabsContent value="info" className="mt-8">
               <Card className="water-drop">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -443,36 +377,111 @@ const MyPage = () => {
                             </Button>
                           </div>
                         </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">주소</label>
+                          <input 
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                            value={editForm.address || ''} 
+                            placeholder="주소"
+                            readOnly
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-medium mb-2 block">상세주소</label>
+                          <input 
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
+                            value={editForm.detailAddress || ''} 
+                            placeholder="상세주소"
+                            onChange={(e) => handleFormChange('detailAddress', e.target.value)}
+                          />
+                        </div>
                       </div>
                       
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">주소</label>
-                        <input 
-                          className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary mb-2" 
-                          value={editForm.address || ''} 
-                          placeholder="주소"
-                          readOnly
-                        />
-                        <input 
-                          className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                          value={editForm.detailAddress || ''} 
-                          placeholder="상세주소"
-                          onChange={(e) => handleFormChange('detailAddress', e.target.value)}
-                        />
+                      <div className="flex justify-center pt-4">
+                        <Button onClick={handleUpdateInfo} className="px-8">
+                          정보 수정
+                        </Button>
                       </div>
-                      
-                      <Button className="water-drop" onClick={handleUpdateInfo}>
-                        <Settings className="w-4 h-4 mr-2" />
-                        정보 수정
-                      </Button>
                     </>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-500">회원 정보를 불러오는 중...</p>
+                      <p>사용자 정보를 불러오는 중...</p>
                     </div>
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="orders" className="mt-8">
+              {loading ? (
+                <div className="text-center py-8">
+                  <p>주문 내역을 불러오는 중...</p>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">주문 내역이 없습니다.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {orders.map((order) => (
+                    <Card key={order.id} className="water-drop">
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                          <div className="md:col-span-3">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-sm">{order.id}</span>
+                              <span className="text-xs text-muted-foreground">{order.date}</span>
+                            </div>
+                          </div>
+                          <div className="md:col-span-4 flex flex-wrap gap-1">
+                            <p className="text-sm font-medium">
+                              {typeof order.products === 'string' ? order.products : order.products?.join(', ')}
+                            </p>
+                          </div>
+                          <div className="md:col-span-2 flex flex-wrap gap-8">
+                            {/* ✅ 결제 상태 Badge를 추가합니다. */}
+                            <Badge variant={order.paymentStatus === 'PAID' ? 'default' : 'outline'}>
+                              {getPaymentStatusText(order.paymentStatus)}
+                            </Badge>
+                            <Badge variant={order.status === '배송완료' ? 'default' : 'secondary'}>
+                              {order.status}
+                            </Badge>
+                          </div>
+                          <div className="md:col-span-2">
+                            <p className="text-sm font-bold">{order.total?.toLocaleString()}원</p>
+                          </div>
+                          <div className="md:col-span-1 flex gap-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="h-8 px-2 text-xs"
+                              onClick={() => handleOrderDetailClick(order)}
+                            >
+                              상세
+                            </Button>
+                            {order.trackingNumber && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-2 text-xs"
+                                onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
+                              >
+                                배송
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+
+
+            <TabsContent value="inquiries" className="space-y-4">
+              <InquiriesTab />
             </TabsContent>
           </Tabs>
         </main>
