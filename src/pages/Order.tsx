@@ -154,8 +154,8 @@ const Order = () => {
       items: items.map((item: any) => ({
         productId: item.productId || item.id,
         quantity: item.quantity,
-        price: item.price,
-        perPrice: item.price * item.quantity,
+        price: item.price * item.quantity,
+        perPrice: item.price,
       })),
 
       // 2. OrderReqDto.shipmentInform -> ShipmentReqDto
