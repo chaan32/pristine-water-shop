@@ -1,24 +1,30 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Package, Settings, Truck, Crown, Building2, Search } from 'lucide-react';
+import { User, Package, Settings, Truck, Crown, Building2, Search, Lock } from 'lucide-react';
 import RefundExchangeForm from '@/components/Support/RefundExchangeForm';
 import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard';
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
+import ReAuthDialog from '@/components/MyPage/ReAuthDialog';
+import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog';
 import { apiFetch, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
 
 const MyPageContent = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false);
+  const [isReAuthOpen, setIsReAuthOpen] = useState(false);
+  const [isPasswordChangeOpen, setIsPasswordChangeOpen] = useState(false);
 
   useEffect(() => {
     fetchUserInfo();
@@ -225,8 +231,12 @@ const MyPageContent = () => {
         localStorage.setItem('userInfo', JSON.stringify(result.data));
         toast({
           title: "성공",
-          description: "회원 정보가 수정되었습니다.",
+          description: "회원 정보가 수정되었습니다. 메인 페이지로 이동합니다.",
         });
+        // 일반 정보 수정시 메인 페이지로 이동
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       } else {
         throw new Error('정보 수정 실패');
       }
@@ -238,6 +248,27 @@ const MyPageContent = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handlePasswordChangeClick = () => {
+    setIsReAuthOpen(true);
+  };
+
+  const handleReAuthSuccess = () => {
+    setIsPasswordChangeOpen(true);
+  };
+
+  const handlePasswordChangeSuccess = () => {
+    // 비밀번호 변경 성공시 로그아웃
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userInfo');
+    toast({
+      title: "비밀번호 변경 완료",
+      description: "보안을 위해 로그아웃됩니다. 다시 로그인해주세요.",
+    });
+    setTimeout(() => {
+      navigate('/login');
+    }, 2000);
   };
 
   return (
@@ -388,9 +419,17 @@ const MyPageContent = () => {
                     </div>
                   </div>
                   
-                  <div className="flex justify-center pt-4">
+                  <div className="flex justify-center gap-4 pt-4">
                     <Button onClick={handleUpdateInfo} className="px-8">
                       정보 수정
+                    </Button>
+                    <Button 
+                      onClick={handlePasswordChangeClick} 
+                      variant="outline" 
+                      className="px-8"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      비밀번호 변경
                     </Button>
                   </div>
                 </>
@@ -468,6 +507,19 @@ const MyPageContent = () => {
         isOpen={isOrderDetailOpen}
         onClose={() => setIsOrderDetailOpen(false)}
         order={selectedOrder}
+      />
+
+      <ReAuthDialog
+        isOpen={isReAuthOpen}
+        onClose={() => setIsReAuthOpen(false)}
+        onSuccess={handleReAuthSuccess}
+        userLoginId={userInfo?.userLoginId || ''}
+      />
+
+      <PasswordChangeDialog
+        isOpen={isPasswordChangeOpen}
+        onClose={() => setIsPasswordChangeOpen(false)}
+        onSuccess={handlePasswordChangeSuccess}
       />
     </div>
   );
