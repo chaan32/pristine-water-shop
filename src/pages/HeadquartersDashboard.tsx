@@ -1,7 +1,7 @@
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard';
-import MyPage from './MyPage';
+import MyPageContent from '@/components/MyPage/MyPageContent';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const HeadquartersDashboardPage = () => {
@@ -19,7 +19,7 @@ const HeadquartersDashboardPage = () => {
             <HeadquartersDashboard />
           </TabsContent>
           <TabsContent value="mypage" className="mt-6">
-            <MyPage />
+            <MyPageContent />
           </TabsContent>
         </Tabs>
       </main>
