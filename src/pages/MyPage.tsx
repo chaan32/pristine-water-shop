@@ -5,13 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Package, Settings, Truck, Crown, Building2, Search } from 'lucide-react';
 import RefundExchangeForm from '@/components/Support/RefundExchangeForm';
 import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard';
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
 import { apiFetch, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
+import { User, Package, Settings, Truck, Crown, Building2, Search, Lock } from 'lucide-react'; // Lock 추가
+import ReAuthDialog from '@/components/MyPage/ReAuthDialog'; // 추가
+import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog'; // 추가
 
 const MyPage = () => {
   const { toast } = useToast();
@@ -21,6 +23,9 @@ const MyPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false);
+  const [isReAuthOpen, setIsReAuthOpen] = useState(false);
+  const [isPasswordChangeOpen, setIsPasswordChangeOpen] = useState(false);
+
 
 
   useEffect(() => {
@@ -46,7 +51,7 @@ const MyPage = () => {
       if (response.ok) {
         const result = await response.json();
         console.log('User data:', result);
-        
+
         if (result.data) {
           setUserInfo(result.data);
           setEditForm(result.data);
@@ -157,7 +162,7 @@ const MyPage = () => {
 
   const getUserTypeText = () => {
     if (!userInfo) return '회원';
-    
+
     switch (userInfo.userType) {
       case 'headquarters':
         return '본사 회원';
@@ -172,7 +177,7 @@ const MyPage = () => {
 
   const getDisplayName = () => {
     if (!userInfo) return '';
-    
+
     if (userInfo.userType === 'branch' && userInfo.parentCompany && userInfo.companyName) {
       return `${userInfo.parentCompany} (${userInfo.companyName})`;
     }
@@ -202,7 +207,27 @@ const MyPage = () => {
       }
     }).open();
   };
+  const handlePasswordChangeClick = () => {
+    setIsReAuthOpen(true);
+  };
 
+  const handleReAuthSuccess = () => {
+    setIsReAuthOpen(true); // 재인증 성공 시 비밀번호 변경 창 열기
+    setIsPasswordChangeOpen(true);
+  };
+
+  const handlePasswordChangeSuccess = () => {
+    // 비밀번호 변경 성공시 로그아웃
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userInfo');
+    toast({
+      title: "비밀번호 변경 완료",
+      description: "보안을 위해 로그아웃됩니다. 다시 로그인해주세요.",
+    });
+    setTimeout(() => {
+      navigate('/login');
+    }, 2000);
+  };
   // 폼 입력 핸들러
   const handleFormChange = (field: string, value: string) => {
     setEditForm((prev: any) => ({
@@ -280,36 +305,37 @@ const MyPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">로그인 아이디</label>
-                          <input 
-                            className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
-                            value={editForm.userLoginId || ''} 
-                            readOnly 
+                          <input
+                            className="w-full p-2 border rounded bg-gray-50 text-gray-600"
+                            value={editForm.userLoginId || ''}
+                            readOnly
                           />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">이름</label>
-                          <input 
-                            className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
-                            value={editForm.name || ''} 
-                            readOnly 
+                          <input
+                            className="w-full p-2 border rounded bg-gray-50 text-gray-600"
+                            value={editForm.name || ''}
+                            readOnly
                           />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">회원 유형</label>
-                          <input 
-                            className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
-                            value={getUserTypeText()} 
-                            readOnly 
+                          <input
+                            className="w-full p-2 border rounded bg-gray-50 text-gray-600"
+                            value={getUserTypeText()}
+                            readOnly
                           />
                         </div>
+
                         {editForm.companyName && (
                           <div>
                             <label className="text-sm font-medium mb-2 block">
                               {editForm.userType === 'branch' ? '지점명' : '회사명'}
                             </label>
-                            <input 
-                              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                              value={editForm.companyName || ''} 
+                            <input
+                              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                              value={editForm.companyName || ''}
                               onChange={(e) => handleFormChange('companyName', e.target.value)}
                             />
                           </div>
@@ -317,40 +343,40 @@ const MyPage = () => {
                         {editForm.parentCompany && (
                           <div>
                             <label className="text-sm font-medium mb-2 block">소속 본사</label>
-                            <input 
-                              className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
-                              value={editForm.parentCompany || ''} 
-                              readOnly 
+                            <input
+                              className="w-full p-2 border rounded bg-gray-50 text-gray-600"
+                              value={editForm.parentCompany || ''}
+                              readOnly
                             />
                           </div>
                         )}
                         {editForm.userType === 'headquarters' && (
                           <div>
                             <label className="text-sm font-medium mb-2 block">본사 여부</label>
-                            <input 
-                              className="w-full p-2 border rounded bg-gray-50 text-gray-600" 
-                              value={editForm.headquarters ? '본사' : '일반 회원'} 
-                              readOnly 
+                            <input
+                              className="w-full p-2 border rounded bg-gray-50 text-gray-600"
+                              value={editForm.headquarters ? '본사' : '일반 회원'}
+                              readOnly
                             />
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">이메일</label>
-                          <input 
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                            value={editForm.email || ''} 
+                          <input
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                            value={editForm.email || ''}
                             type="email"
                             onChange={(e) => handleFormChange('email', e.target.value)}
                           />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">전화번호</label>
-                          <input 
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                            value={editForm.phone || ''} 
+                          <input
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                            value={editForm.phone || ''}
                             type="tel"
                             onChange={(e) => handleFormChange('phone', e.target.value)}
                           />
@@ -358,13 +384,13 @@ const MyPage = () => {
                         <div>
                           <label className="text-sm font-medium mb-2 block">우편번호</label>
                           <div className="flex gap-2">
-                            <input 
-                              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                              value={editForm.postalNumber || ''} 
+                            <input
+                              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                              value={editForm.postalNumber || ''}
                               placeholder="우편번호"
                               readOnly
                             />
-                            <Button 
+                            <Button
                               type="button"
                               variant="outline"
                               onClick={handleAddressSearch}
@@ -376,24 +402,24 @@ const MyPage = () => {
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">주소</label>
-                          <input 
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                            value={editForm.address || ''} 
+                          <input
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                            value={editForm.address || ''}
                             placeholder="주소"
                             readOnly
                           />
                         </div>
                         <div className="md:col-span-2">
                           <label className="text-sm font-medium mb-2 block">상세주소</label>
-                          <input 
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary" 
-                            value={editForm.detailAddress || ''} 
+                          <input
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                            value={editForm.detailAddress || ''}
                             placeholder="상세주소"
                             onChange={(e) => handleFormChange('detailAddress', e.target.value)}
                           />
                         </div>
                       </div>
-                      
+
                       <div className="flex justify-center pt-4">
                         <Button onClick={handleUpdateInfo} className="px-8">
                           정보 수정
@@ -448,8 +474,8 @@ const MyPage = () => {
                             <p className="text-sm font-bold">{order.total?.toLocaleString()}원</p>
                           </div>
                           <div className="md:col-span-1 flex gap-1">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               className="h-8 px-2 text-xs"
                               onClick={() => handleOrderDetailClick(order)}
