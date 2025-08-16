@@ -237,44 +237,69 @@ const HeadquartersDashboard = () => {
 
                       return (
                           <Fragment key={firstItem.orderNumber}>
-                            {/* ✅ 상위 그룹 행 */}
-                            <TableRow className="bg-secondary/50 hover:bg-secondary/80 cursor-pointer" onClick={() => handleToggleOrder(firstItem.orderNumber)}>
-                              <TableCell>
-                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            {/* 상위 그룹 행 */}
+                            <TableRow className="bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 cursor-pointer transition-all duration-200 border-l-4 border-primary/20" onClick={() => handleToggleOrder(firstItem.orderNumber)}>
+                              <TableCell className="py-4">
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+                                  {isExpanded ? <ChevronDown className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-primary" />}
+                                </div>
                               </TableCell>
-                              <TableCell className="font-semibold">{firstItem.orderNumber}</TableCell>
-                              <TableCell>{firstItem.branchName}</TableCell>
-                              <TableCell>{new Date(firstItem.createdAt).toLocaleDateString('ko-KR')}</TableCell>
-                              <TableCell>
-                                {group.items.length > 1
-                                    ? `${firstItem.productName} 외 ${group.items.length - 1}건`
-                                    : firstItem.productName}
+                              <TableCell className="font-bold text-primary py-4">{firstItem.orderNumber}</TableCell>
+                              <TableCell className="font-medium py-4">
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                                  {firstItem.branchName}
+                                </div>
                               </TableCell>
-                              <TableCell>{group.totalQuantity}개</TableCell>
-                              <TableCell className="font-bold">{group.totalAmount.toLocaleString()}원</TableCell>
-                              <TableCell>
-                                <div className="flex flex-col gap-1">
-                                  <Badge variant={firstItem.paymentStatus === 'PAID' ? 'default' : 'destructive'}>
+                              <TableCell className="py-4">{new Date(firstItem.createdAt).toLocaleDateString('ko-KR')}</TableCell>
+                              <TableCell className="py-4">
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{firstItem.productName}</span>
+                                  {group.items.length > 1 && (
+                                    <span className="text-sm text-muted-foreground">외 {group.items.length - 1}건</span>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  {group.totalQuantity}개
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="font-bold text-lg py-4 text-green-600">
+                                {group.totalAmount.toLocaleString()}원
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="flex flex-col gap-2">
+                                  <Badge variant={firstItem.paymentStatus === 'PAID' ? 'default' : 'destructive'} className="justify-center">
                                     {getPaymentStatusText(firstItem.paymentStatus)}
                                   </Badge>
-                                  <Badge variant={firstItem.shipmentStatus === 'DELIVERED' ? 'default' : 'secondary'}>
+                                  <Badge variant={firstItem.shipmentStatus === 'DELIVERED' ? 'default' : 'secondary'} className="justify-center">
                                     {getShipmentStatusText(firstItem.shipmentStatus)}
                                   </Badge>
                                 </div>
                               </TableCell>
                             </TableRow>
 
-                            {/* ✅ 하위 아이템 행 (토글 시 보임) */}
+                            {/* 하위 아이템 행 (토글 시 보임) */}
                             {isExpanded && group.items.map((item, index) => (
-                                <TableRow key={`${item.orderNumber}-${index}`} className="bg-background hover:bg-muted/50">
-                                  <TableCell></TableCell>
-                                  <TableCell></TableCell>
-                                  <TableCell></TableCell>
-                                  <TableCell></TableCell>
-                                  <TableCell className="pl-6">{item.productName}</TableCell>
-                                  <TableCell>{item.quantity}개</TableCell>
-                                  <TableCell>{(item.price * item.quantity).toLocaleString()}원</TableCell>
-                                  <TableCell></TableCell>
+                                <TableRow key={`${item.orderNumber}-${index}`} className="bg-muted/30 hover:bg-muted/50 transition-colors">
+                                  <TableCell className="py-3"></TableCell>
+                                  <TableCell className="py-3"></TableCell>
+                                  <TableCell className="py-3"></TableCell>
+                                  <TableCell className="py-3"></TableCell>
+                                  <TableCell className="pl-8 py-3">
+                                    <div className="flex items-center gap-2">
+                                      <Package className="h-3 w-3 text-muted-foreground" />
+                                      <span className="text-sm">{item.productName}</span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="py-3">
+                                    <span className="text-sm text-muted-foreground">{item.quantity}개</span>
+                                  </TableCell>
+                                  <TableCell className="py-3">
+                                    <span className="text-sm font-medium">{(item.price * item.quantity).toLocaleString()}원</span>
+                                  </TableCell>
+                                  <TableCell className="py-3"></TableCell>
                                 </TableRow>
                             ))}
                           </Fragment>
