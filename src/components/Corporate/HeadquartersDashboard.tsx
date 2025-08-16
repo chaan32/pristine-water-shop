@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, Fragment } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -11,7 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight } from 'lucide-react';
+import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight, CreditCard } from 'lucide-react';
+import PaymentModal from './PaymentModal';
+import { toast } from 'sonner';
 
 // --- 1. INTERFACES UPDATED ---
 // Individual product item within an order
@@ -85,6 +88,19 @@ const HeadquartersDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [paymentModal, setPaymentModal] = useState<{
+    isOpen: boolean;
+    orderNumber: string;
+    branchName: string;
+    items: { productName: string; quantity: number; price: number; }[];
+    totalAmount: number;
+  }>({
+    isOpen: false,
+    orderNumber: '',
+    branchName: '',
+    items: [],
+    totalAmount: 0,
+  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -177,6 +193,67 @@ const HeadquartersDashboard = () => {
 
   const getPaymentStatusText = (status: string) => ({'PENDING': '결제대기', 'PAID': '결제완료', 'FAILED': '결제실패'}[status] || status);
   const getShipmentStatusText = (status: string) => ({'PENDING': '배송대기', 'PREPARING': '상품준비중', 'SHIPPED': '배송중', 'DELIVERED': '배송완료', 'CANCELLED': '주문취소'}[status] || status);
+  
+  const getPaymentStatusVariant = (status: string) => {
+    const variants = {
+      'PENDING': 'pending' as const,
+      'PAID': 'paid' as const,
+      'FAILED': 'failed' as const
+    };
+    return variants[status as keyof typeof variants] || 'outline' as const;
+  };
+
+  const getShipmentStatusVariant = (status: string) => {
+    const variants = {
+      'PENDING': 'pending' as const,
+      'PREPARING': 'preparing' as const,
+      'SHIPPED': 'shipped' as const,
+      'DELIVERED': 'delivered' as const,
+      'CANCELLED': 'cancelled' as const
+    };
+    return variants[status as keyof typeof variants] || 'outline' as const;
+  };
+
+  const handlePaymentClick = (group: { items: FlattenedDataItem[], totalAmount: number, totalQuantity: number }) => {
+    const firstItem = group.items[0];
+    setPaymentModal({
+      isOpen: true,
+      orderNumber: firstItem.orderNumber,
+      branchName: firstItem.branchName,
+      items: group.items.map(item => ({
+        productName: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      totalAmount: group.totalAmount,
+    });
+  };
+
+  const handlePayment = async (orderNumber: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) throw new Error('인증 토큰이 없습니다.');
+
+      // 실제 결제 API 호출 (여기서는 시뮬레이션)
+      const response = await fetch(`http://localhost:8080/api/orders/${orderNumber}/pay`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) throw new Error('결제 처리에 실패했습니다.');
+
+      toast.success('결제가 완료되었습니다.');
+      
+      // 데이터 새로고침
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || '결제 처리 중 오류가 발생했습니다.');
+      throw error;
+    }
+  };
 
   if (loading) return <div className="text-center py-10">데이터를 불러오는 중...</div>;
   if (error) return <div className="text-center py-10 text-red-500">오류: {error}</div>;
@@ -235,6 +312,7 @@ const HeadquartersDashboard = () => {
                   <TableHead>수량</TableHead>
                   <TableHead>금액</TableHead>
                   <TableHead>결제/배송</TableHead>
+                  <TableHead>액션</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -256,9 +334,24 @@ const HeadquartersDashboard = () => {
                               <TableCell className="font-semibold">{group.totalAmount.toLocaleString()}원</TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-1">
-                                  <Badge variant={firstItem.paymentStatus === 'PAID' ? 'default' : 'outline'}>{getPaymentStatusText(firstItem.paymentStatus)}</Badge>
-                                  <Badge variant={firstItem.shipmentStatus === 'DELIVERED' ? 'secondary' : 'outline'}>{getShipmentStatusText(firstItem.shipmentStatus)}</Badge>
+                                  <Badge variant={getPaymentStatusVariant(firstItem.paymentStatus)}>{getPaymentStatusText(firstItem.paymentStatus)}</Badge>
+                                  <Badge variant={getShipmentStatusVariant(firstItem.shipmentStatus)}>{getShipmentStatusText(firstItem.shipmentStatus)}</Badge>
                                 </div>
+                              </TableCell>
+                              <TableCell>
+                                {firstItem.paymentStatus === 'PENDING' && (
+                                  <Button 
+                                    size="sm" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handlePaymentClick(group);
+                                    }}
+                                    className="flex items-center gap-1"
+                                  >
+                                    <CreditCard className="w-3 h-3" />
+                                    결제하기
+                                  </Button>
+                                )}
                               </TableCell>
                             </TableRow>
 
@@ -274,6 +367,7 @@ const HeadquartersDashboard = () => {
                                   <TableCell className="text-sm text-gray-600">{item.quantity}개</TableCell>
                                   <TableCell className="text-sm text-gray-600">{item.price.toLocaleString()}원</TableCell>
                                   <TableCell></TableCell>
+                                  <TableCell></TableCell>
                                 </TableRow>
                             ))}
                           </Fragment>
@@ -281,13 +375,24 @@ const HeadquartersDashboard = () => {
                     })
                 ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="h-24 text-center">해당 조건의 데이터가 없습니다.</TableCell>
+                      <TableCell colSpan={9} className="h-24 text-center">해당 조건의 데이터가 없습니다.</TableCell>
                     </TableRow>
                 )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
+
+        {/* 결제 모달 */}
+        <PaymentModal
+          isOpen={paymentModal.isOpen}
+          onClose={() => setPaymentModal(prev => ({ ...prev, isOpen: false }))}
+          orderNumber={paymentModal.orderNumber}
+          branchName={paymentModal.branchName}
+          items={paymentModal.items}
+          totalAmount={paymentModal.totalAmount}
+          onPayment={handlePayment}
+        />
       </div>
   );
 };

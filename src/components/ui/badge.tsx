@@ -18,7 +18,19 @@ const badgeVariants = cva(
           "border-transparent bg-status-pending text-status-pending-foreground hover:bg-status-pending/90",
         answered:
           "border-transparent bg-status-answered text-status-answered-foreground hover:bg-status-answered/90",
-        outline: "text-foreground",
+        paid:
+          "border-transparent bg-accent text-accent-foreground hover:bg-accent/90",
+        failed:
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        shipped:
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
+        delivered:
+          "border-transparent bg-accent text-accent-foreground hover:bg-accent/90",
+        cancelled:
+          "border-transparent bg-muted text-muted-foreground hover:bg-muted/90",
+        preparing:
+          "border-transparent bg-status-pending text-status-pending-foreground hover:bg-status-pending/90",
+        outline: "text-foreground border-border",
       },
     },
     defaultVariants: {
