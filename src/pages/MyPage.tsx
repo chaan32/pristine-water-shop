@@ -226,9 +226,6 @@ const MyPage = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        setUserInfo(result.data);
-        localStorage.setItem('userInfo', JSON.stringify(result.data));
         toast({
           title: "성공",
           description: "회원 정보가 수정되었습니다.",
