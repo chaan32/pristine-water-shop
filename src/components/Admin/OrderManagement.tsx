@@ -40,6 +40,7 @@ interface Order {
   isShipmentProcessed: boolean;
   trackingNumber?: string | null;
   ordererType: 'individual' | 'headquarters' | 'branch';
+  branchName?: string | null;
 }
 
 interface ProcessedOrder extends Omit<Order, 'daysSinceOrder'> {
@@ -95,10 +96,19 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackin
                 <TableCell>{formatDate(order.orderDate)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <span>{order.ordererName}</span>
-                    <Badge variant="outline" className={`text-xs ${getOrdererTypeStyle(order.ordererType)}`}>
-                      {getOrdererTypeText(order.ordererType)}
-                    </Badge>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span>{order.ordererName}</span>
+                        <Badge variant="outline" className={`text-xs ${getOrdererTypeStyle(order.ordererType)}`}>
+                          {getOrdererTypeText(order.ordererType)}
+                        </Badge>
+                      </div>
+                      {order.ordererType === 'branch' && order.branchName && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {order.branchName}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>{order.recipientName}</TableCell>
