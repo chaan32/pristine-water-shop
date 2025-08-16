@@ -202,7 +202,7 @@ const HeadquartersDashboard = () => {
     });
   };
 
-  const getPaymentStatusText = (status: string) => ({'PENDING': '결제대기', 'PAID': '결제완료', 'FAILED': '결제실패'}[status] || status);
+  const getPaymentStatusText = (status: string) => ({'PENDING': '결제대기', 'APPROVED': '결제완료', 'FAILED': '결제실패'}[status] || status);
   const getShipmentStatusText = (status: string) => ({'PENDING': '배송대기', 'PREPARING': '상품준비중', 'SHIPPED': '배송중', 'DELIVERED': '배송완료', 'CANCELLED': '주문취소'}[status] || status);
   
   const getPaymentStatusVariant = (status: string) => {
@@ -247,7 +247,7 @@ const HeadquartersDashboard = () => {
       if (!token) throw new Error('인증 토큰이 없습니다.');
 
       // 실제 결제 API 호출 (여기서는 시뮬레이션)
-      const response = await fetch(`http://localhost:8080/api/orders/${orderNumber}/pay`, {
+      const response = await fetch(`http://localhost:8080/api/order/${orderNumber}/pay`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -309,7 +309,7 @@ const HeadquartersDashboard = () => {
               <TabsList className="grid w-full grid-cols-3 mb-4">
                 <TabsTrigger value="ALL">전체</TabsTrigger>
                 <TabsTrigger value="PENDING">결제대기</TabsTrigger>
-                <TabsTrigger value="PAID">결제완료</TabsTrigger>
+                <TabsTrigger value="APPROVED">결제완료</TabsTrigger>
               </TabsList>
             </Tabs>
 
