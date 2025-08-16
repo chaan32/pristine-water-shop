@@ -99,8 +99,6 @@ const Login = () => {
         // 실제 API 응답 구조에 따른 토큰 저장
         localStorage.setItem('accessToken', data.data.accessToken);
         localStorage.setItem('secretToken', data.data.secretToken);
-        // 이전 세션 캐시 정리
-        localStorage.removeItem('userInfo');
         
         // 실제 API 응답 구조에 따른 사용자 정보 저장
         const user = data.data.user;
