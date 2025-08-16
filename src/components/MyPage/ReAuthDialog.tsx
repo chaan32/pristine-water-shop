@@ -35,12 +35,15 @@ const ReAuthDialog = ({ isOpen, onClose, onSuccess, userLoginId }: ReAuthDialogP
 
     setLoading(true);
     try {
-      const response = await apiFetch('/api/auth/login', {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await apiFetch('/api/auth/login/recheck', {
         method: 'POST',
         body: JSON.stringify({
-          userLoginId,
           password
-        })
+        }),
+        headers :{
+            Authorization: `Bearer ${accessToken}`
+        }
       });
 
       if (response.ok) {

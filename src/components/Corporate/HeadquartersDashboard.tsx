@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, Fragment } from 'react'; // Fragment 추가
+import { useEffect, useState, useMemo, Fragment } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,22 +11,32 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight } from 'lucide-react'; // 아이콘 추가
+import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight } from 'lucide-react';
 
-// (인터페이스 정의는 기존과 동일)
-// API 응답 데이터 타입을 정의합니다.
+// --- 1. INTERFACES UPDATED ---
+// Individual product item within an order
+interface BranchOrder {
+  id: number;
+  orderId: number;
+  productName: string;
+  quantity: number;
+  productTotalPrice: number;
+  productPerPrice: number;
+}
+
+// An order from a branch, which contains multiple product items
 interface BranchDataItem {
   orderId: number;
   orderNumber: string;
   branchName: string;
   createdAt: string;
-  productName: string;
-  quantity: number;
-  price: number;
+  shipmentFee: number;
   paymentStatus: string;
   shipmentStatus: string;
+  branchOrders: BranchOrder[];
 }
 
+// The top-level dashboard data structure
 interface DashboardData {
   id: number;
   branchNumber: number;
@@ -35,9 +45,21 @@ interface DashboardData {
   branchesData: BranchDataItem[];
 }
 
+// A flattened structure for easier processing
+interface FlattenedDataItem {
+  orderId: number;
+  orderNumber: string;
+  branchName: string;
+  createdAt: string;
+  paymentStatus: string;
+  shipmentStatus: string;
+  productName: string;
+  quantity: number;
+  price: number; // Represents total price for this specific product line
+}
 
-// (generateLast12Months 함수는 기존과 동일)
-// 지난 12개월을 동적으로 생성하는 함수
+
+// Generates the last 12 months for the dropdown
 const generateLast12Months = () => {
   const months = [];
   const date = new Date();
@@ -62,10 +84,8 @@ const HeadquartersDashboard = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // ✅ 토글된 주문 번호들을 관리하는 상태
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
-  // (useEffect API 호출 로직은 기존과 동일)
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -95,30 +115,54 @@ const HeadquartersDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  const filteredData = useMemo(() => {
+  // --- 2. DATA FLATTENING ---
+  // Transforms the nested API response into a simple, flat array of products
+  const flattenedData: FlattenedDataItem[] = useMemo(() => {
     if (!dashboardData) return [];
-    return dashboardData.branchesData
+
+    const flatList: FlattenedDataItem[] = [];
+    dashboardData.branchesData.forEach(order => {
+      order.branchOrders.forEach(product => {
+        flatList.push({
+          orderId: order.orderId,
+          orderNumber: order.orderNumber,
+          branchName: order.branchName,
+          createdAt: order.createdAt,
+          paymentStatus: order.paymentStatus,
+          shipmentStatus: order.shipmentStatus,
+          productName: product.productName,
+          quantity: product.quantity,
+          price: product.productTotalPrice, // Use the total price for this product line
+        });
+      });
+    });
+    return flatList;
+  }, [dashboardData]);
+
+
+  const filteredData = useMemo(() => {
+    return flattenedData
         .filter(item => item.createdAt.startsWith(selectedMonth))
         .filter(item => selectedStatus === 'ALL' || item.paymentStatus === selectedStatus);
-  }, [dashboardData, selectedMonth, selectedStatus]);
+  }, [flattenedData, selectedMonth, selectedStatus]);
 
-  // ✅ 데이터를 주문 번호 기준으로 그룹핑하고 금액/수량 합산
+  // --- 3. GROUPING LOGIC ADJUSTED ---
+  // Groups the flattened data by order number
   const groupedData = useMemo(() => {
-    const groups: { [key: string]: { items: BranchDataItem[], totalAmount: number, totalQuantity: number } } = {};
+    const groups: { [key: string]: { items: FlattenedDataItem[], totalAmount: number, totalQuantity: number } } = {};
 
     filteredData.forEach(item => {
       if (!groups[item.orderNumber]) {
         groups[item.orderNumber] = { items: [], totalAmount: 0, totalQuantity: 0 };
       }
       groups[item.orderNumber].items.push(item);
-      groups[item.orderNumber].totalAmount += item.price * item.quantity;
+      groups[item.orderNumber].totalAmount += item.price; // Sum the pre-calculated total price
       groups[item.orderNumber].totalQuantity += item.quantity;
     });
 
     return Object.values(groups);
   }, [filteredData]);
 
-  // ✅ 토글 핸들러 함수
   const handleToggleOrder = (orderNumber: string) => {
     setExpandedOrders(prev => {
       const newSet = new Set(prev);
@@ -131,24 +175,15 @@ const HeadquartersDashboard = () => {
     });
   };
 
-  // (상태 변환 함수, 로딩/에러 처리는 기존과 동일)
-  const getPaymentStatusText = (status: string) => ({
-    'PENDING': '결제대기', 'PAID': '결제완료', 'FAILED': '결제실패'
-  }[status] || status);
-
-  const getShipmentStatusText = (status: string) => ({
-    'PENDING': '배송대기', 'PREPARING': '상품준비중', 'SHIPPED': '배송중',
-    'DELIVERED': '배송완료', 'CANCELLED': '주문취소'
-  }[status] || status);
+  const getPaymentStatusText = (status: string) => ({'PENDING': '결제대기', 'PAID': '결제완료', 'FAILED': '결제실패'}[status] || status);
+  const getShipmentStatusText = (status: string) => ({'PENDING': '배송대기', 'PREPARING': '상품준비중', 'SHIPPED': '배송중', 'DELIVERED': '배송완료', 'CANCELLED': '주문취소'}[status] || status);
 
   if (loading) return <div className="text-center py-10">데이터를 불러오는 중...</div>;
   if (error) return <div className="text-center py-10 text-red-500">오류: {error}</div>;
   if (!dashboardData) return <div className="text-center py-10">데이터가 없습니다.</div>;
 
-
   return (
       <div className="space-y-6">
-        {/* (헤더와 요약 카드는 기존과 동일) */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Crown className="w-6 h-6 text-yellow-500" />
@@ -156,55 +191,28 @@ const HeadquartersDashboard = () => {
           </div>
         </div>
 
-        {/* 요약 통계 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Summary Cards */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">총 주문 수</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.totalOrders}</div>
-              <p className="text-xs text-muted-foreground">전체 주문</p>
-            </CardContent>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">총 주문 수</CardTitle><Package className="h-4 w-4 text-muted-foreground" /></CardHeader>
+            <CardContent><div className="text-2xl font-bold">{dashboardData.totalOrders}</div><p className="text-xs text-muted-foreground">전체 주문</p></CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">활성 지점</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.branchNumber}</div>
-              <p className="text-xs text-muted-foreground">운영 중인 지점</p>
-            </CardContent>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">활성 지점</CardTitle><Building2 className="h-4 w-4 text-muted-foreground" /></CardHeader>
+            <CardContent><div className="text-2xl font-bold">{dashboardData.branchNumber}</div><p className="text-xs text-muted-foreground">운영 중인 지점</p></CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">총 주문액</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.totalAmount.toLocaleString()}원</div>
-              <p className="text-xs text-muted-foreground">전체 주문 누적</p>
-            </CardContent>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">총 주문액</CardTitle><BarChart3 className="h-4 w-4 text-muted-foreground" /></CardHeader>
+            <CardContent><div className="text-2xl font-bold">{dashboardData.totalAmount.toLocaleString()}원</div><p className="text-xs text-muted-foreground">전체 주문 누적</p></CardContent>
           </Card>
         </div>
 
         <Card>
-          {/* (카드 헤더, 월 선택, 탭은 기존과 동일) */}
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>지점 구매 내역</CardTitle>
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="월 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                {monthOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                ))}
-              </SelectContent>
+              <SelectTrigger className="w-40"><SelectValue placeholder="월 선택" /></SelectTrigger>
+              <SelectContent>{monthOptions.map(option => (<SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>))}</SelectContent>
             </Select>
           </CardHeader>
           <CardContent>
@@ -219,7 +227,7 @@ const HeadquartersDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12"></TableHead> {/* 토글 버튼을 위한 공간 */}
+                  <TableHead className="w-12"></TableHead>
                   <TableHead>주문번호</TableHead>
                   <TableHead>지점명</TableHead>
                   <TableHead>주문일</TableHead>
@@ -237,69 +245,35 @@ const HeadquartersDashboard = () => {
 
                       return (
                           <Fragment key={firstItem.orderNumber}>
-                            {/* 상위 그룹 행 */}
-                            <TableRow className="bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/15 cursor-pointer transition-all duration-200 border-l-4 border-primary/20" onClick={() => handleToggleOrder(firstItem.orderNumber)}>
-                              <TableCell className="py-4">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
-                                  {isExpanded ? <ChevronDown className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-primary" />}
-                                </div>
-                              </TableCell>
-                              <TableCell className="font-bold text-primary py-4">{firstItem.orderNumber}</TableCell>
-                              <TableCell className="font-medium py-4">
-                                <div className="flex items-center gap-2">
-                                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                                  {firstItem.branchName}
-                                </div>
-                              </TableCell>
-                              <TableCell className="py-4">{new Date(firstItem.createdAt).toLocaleDateString('ko-KR')}</TableCell>
-                              <TableCell className="py-4">
-                                <div className="flex flex-col">
-                                  <span className="font-medium">{firstItem.productName}</span>
-                                  {group.items.length > 1 && (
-                                    <span className="text-sm text-muted-foreground">외 {group.items.length - 1}건</span>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell className="py-4">
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                  {group.totalQuantity}개
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="font-bold text-lg py-4 text-green-600">
-                                {group.totalAmount.toLocaleString()}원
-                              </TableCell>
-                              <TableCell className="py-4">
-                                <div className="flex flex-col gap-2">
-                                  <Badge variant={firstItem.paymentStatus === 'PAID' ? 'default' : 'destructive'} className="justify-center">
-                                    {getPaymentStatusText(firstItem.paymentStatus)}
-                                  </Badge>
-                                  <Badge variant={firstItem.shipmentStatus === 'DELIVERED' ? 'default' : 'secondary'} className="justify-center">
-                                    {getShipmentStatusText(firstItem.shipmentStatus)}
-                                  </Badge>
+                            {/* Main Group Row */}
+                            <TableRow className="bg-slate-50 hover:bg-slate-100 cursor-pointer border-l-4 border-slate-200" onClick={() => handleToggleOrder(firstItem.orderNumber)}>
+                              <TableCell><div className="flex items-center justify-center">{isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div></TableCell>
+                              <TableCell className="font-medium">{firstItem.orderNumber}</TableCell>
+                              <TableCell>{firstItem.branchName}</TableCell>
+                              <TableCell>{new Date(firstItem.createdAt).toLocaleDateString('ko-KR')}</TableCell>
+                              <TableCell>{firstItem.productName} {group.items.length > 1 && `외 ${group.items.length - 1}건`}</TableCell>
+                              <TableCell>{group.totalQuantity}개</TableCell>
+                              <TableCell className="font-semibold">{group.totalAmount.toLocaleString()}원</TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-1">
+                                  <Badge variant={firstItem.paymentStatus === 'PAID' ? 'default' : 'outline'}>{getPaymentStatusText(firstItem.paymentStatus)}</Badge>
+                                  <Badge variant={firstItem.shipmentStatus === 'DELIVERED' ? 'secondary' : 'outline'}>{getShipmentStatusText(firstItem.shipmentStatus)}</Badge>
                                 </div>
                               </TableCell>
                             </TableRow>
 
-                            {/* 하위 아이템 행 (토글 시 보임) */}
+                            {/* --- 4. RENDERING LOGIC UPDATED --- */}
+                            {/* Expanded Rows for Individual Products */}
                             {isExpanded && group.items.map((item, index) => (
-                                <TableRow key={`${item.orderNumber}-${index}`} className="bg-muted/30 hover:bg-muted/50 transition-colors">
-                                  <TableCell className="py-3"></TableCell>
-                                  <TableCell className="py-3"></TableCell>
-                                  <TableCell className="py-3"></TableCell>
-                                  <TableCell className="py-3"></TableCell>
-                                  <TableCell className="pl-8 py-3">
-                                    <div className="flex items-center gap-2">
-                                      <Package className="h-3 w-3 text-muted-foreground" />
-                                      <span className="text-sm">{item.productName}</span>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="py-3">
-                                    <span className="text-sm text-muted-foreground">{item.quantity}개</span>
-                                  </TableCell>
-                                  <TableCell className="py-3">
-                                    <span className="text-sm font-medium">{(item.price * item.quantity).toLocaleString()}원</span>
-                                  </TableCell>
-                                  <TableCell className="py-3"></TableCell>
+                                <TableRow key={`${item.orderNumber}-${index}`} className="bg-white">
+                                  <TableCell></TableCell>
+                                  <TableCell></TableCell>
+                                  <TableCell></TableCell>
+                                  <TableCell></TableCell>
+                                  <TableCell className="pl-8 text-sm text-gray-600">{item.productName}</TableCell>
+                                  <TableCell className="text-sm text-gray-600">{item.quantity}개</TableCell>
+                                  <TableCell className="text-sm text-gray-600">{item.price.toLocaleString()}원</TableCell>
+                                  <TableCell></TableCell>
                                 </TableRow>
                             ))}
                           </Fragment>

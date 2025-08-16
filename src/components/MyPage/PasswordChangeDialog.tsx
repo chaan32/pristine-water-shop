@@ -18,13 +18,13 @@ interface PasswordChangeDialogProps {
 }
 
 const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDialogProps) => {
-  const [newPassword, setNewPassword] = useState('');
+  const [password, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handlePasswordChange = async () => {
-    if (!newPassword.trim() || !confirmPassword.trim()) {
+    if (!password.trim() || !confirmPassword.trim()) {
       toast({
         title: "오류",
         description: "새 비밀번호를 입력해주세요.",
@@ -33,7 +33,7 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
       return;
     }
 
-    if (newPassword !== confirmPassword) {
+    if (password !== confirmPassword) {
       toast({
         title: "오류",
         description: "새 비밀번호가 일치하지 않습니다.",
@@ -42,7 +42,7 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
       return;
     }
 
-    if (newPassword.length < 6) {
+    if (password.length < 6) {
       toast({
         title: "오류",
         description: "비밀번호는 6자 이상이어야 합니다.",
@@ -53,11 +53,15 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
 
     setLoading(true);
     try {
-      const response = await apiFetch('/api/users/password', {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await apiFetch('/api/auth/change/password', {
         method: 'PUT',
         body: JSON.stringify({
-          newPassword
-        })
+          newPassword: password
+        }),
+        headers :{
+          Authorization: `Bearer ${accessToken}`
+        }
       });
 
       if (response.ok) {
@@ -101,7 +105,7 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
             <Input
               id="new-password"
               type="password"
-              value={newPassword}
+              value={password}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="새 비밀번호를 입력하세요 (6자 이상)"
             />
