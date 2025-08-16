@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog'; // 
 
 const MyPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
   const [orders, setOrders] = useState([]);
@@ -327,6 +329,24 @@ const MyPage = () => {
                             readOnly
                           />
                         </div>
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">비밀번호</label>
+                          <div className="flex gap-2">
+                            <input 
+                              className="flex-1 p-2 border rounded bg-gray-50 text-gray-600" 
+                              value="••••••••" 
+                              readOnly 
+                            />
+                            <Button 
+                              onClick={handlePasswordChangeClick} 
+                              variant="outline" 
+                              className="px-3"
+                            >
+                              <Lock className="w-4 h-4 mr-1" />
+                              변경
+                            </Button>
+                          </div>
+                        </div>
 
                         {editForm.companyName && (
                           <div>
@@ -513,6 +533,19 @@ const MyPage = () => {
           isOpen={isOrderDetailOpen}
           onClose={() => setIsOrderDetailOpen(false)}
           order={selectedOrder}
+        />
+
+        <ReAuthDialog
+          isOpen={isReAuthOpen}
+          onClose={() => setIsReAuthOpen(false)}
+          onSuccess={handleReAuthSuccess}
+          userLoginId={userInfo?.userLoginId || ''}
+        />
+
+        <PasswordChangeDialog
+          isOpen={isPasswordChangeOpen}
+          onClose={() => setIsPasswordChangeOpen(false)}
+          onSuccess={handlePasswordChangeSuccess}
         />
 
         <Footer />
