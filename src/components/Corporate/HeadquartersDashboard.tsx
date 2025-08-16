@@ -94,12 +94,14 @@ const HeadquartersDashboard = () => {
     branchName: string;
     items: { productName: string; quantity: number; price: number; }[];
     totalAmount: number;
+    shipmentFee: number;
   }>({
     isOpen: false,
     orderNumber: '',
     branchName: '',
     items: [],
     totalAmount: 0,
+    shipmentFee: 0,
   });
 
   useEffect(() => {
@@ -163,21 +165,30 @@ const HeadquartersDashboard = () => {
   }, [flattenedData, selectedMonth, selectedStatus]);
 
   // --- 3. GROUPING LOGIC ADJUSTED ---
-  // Groups the flattened data by order number
+  // Groups the flattened data by order number and includes shipping fee
   const groupedData = useMemo(() => {
-    const groups: { [key: string]: { items: FlattenedDataItem[], totalAmount: number, totalQuantity: number } } = {};
+    const groups: { [key: string]: { items: FlattenedDataItem[], totalAmount: number, totalQuantity: number, shipmentFee: number } } = {};
 
     filteredData.forEach(item => {
       if (!groups[item.orderNumber]) {
-        groups[item.orderNumber] = { items: [], totalAmount: 0, totalQuantity: 0 };
+        // Find the original order data to get shipment fee
+        const originalOrder = dashboardData?.branchesData.find(order => order.orderNumber === item.orderNumber);
+        const shipmentFee = originalOrder?.shipmentFee || 0;
+        
+        groups[item.orderNumber] = { items: [], totalAmount: 0, totalQuantity: 0, shipmentFee };
       }
       groups[item.orderNumber].items.push(item);
       groups[item.orderNumber].totalAmount += item.price; // Sum the pre-calculated total price
       groups[item.orderNumber].totalQuantity += item.quantity;
     });
 
+    // Add shipping fee to total amount for each group
+    Object.values(groups).forEach(group => {
+      group.totalAmount += group.shipmentFee;
+    });
+
     return Object.values(groups);
-  }, [filteredData]);
+  }, [filteredData, dashboardData]);
 
   const handleToggleOrder = (orderNumber: string) => {
     setExpandedOrders(prev => {
@@ -214,7 +225,7 @@ const HeadquartersDashboard = () => {
     return variants[status as keyof typeof variants] || 'outline' as const;
   };
 
-  const handlePaymentClick = (group: { items: FlattenedDataItem[], totalAmount: number, totalQuantity: number }) => {
+  const handlePaymentClick = (group: { items: FlattenedDataItem[], totalAmount: number, totalQuantity: number, shipmentFee: number }) => {
     const firstItem = group.items[0];
     setPaymentModal({
       isOpen: true,
@@ -226,6 +237,7 @@ const HeadquartersDashboard = () => {
         price: item.price,
       })),
       totalAmount: group.totalAmount,
+      shipmentFee: group.shipmentFee,
     });
   };
 
@@ -391,6 +403,7 @@ const HeadquartersDashboard = () => {
           branchName={paymentModal.branchName}
           items={paymentModal.items}
           totalAmount={paymentModal.totalAmount}
+          shipmentFee={paymentModal.shipmentFee}
           onPayment={handlePayment}
         />
       </div>

@@ -19,6 +19,7 @@ interface PaymentModalProps {
   branchName: string;
   items: PaymentItem[];
   totalAmount: number;
+  shipmentFee: number;
   onPayment: (orderNumber: string) => Promise<void>;
 }
 
@@ -29,6 +30,7 @@ const PaymentModal = ({
   branchName, 
   items, 
   totalAmount,
+  shipmentFee,
   onPayment 
 }: PaymentModalProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -96,6 +98,14 @@ const PaymentModal = ({
                     <span className="font-medium">{item.price.toLocaleString()}원</span>
                   </div>
                 ))}
+                {shipmentFee > 0 && (
+                  <div className="flex justify-between items-center py-2">
+                    <div className="flex-1">
+                      <span className="font-medium">배송비</span>
+                    </div>
+                    <span className="font-medium">{shipmentFee.toLocaleString()}원</span>
+                  </div>
+                )}
                 <Separator />
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-lg font-semibold">총 결제금액</span>
