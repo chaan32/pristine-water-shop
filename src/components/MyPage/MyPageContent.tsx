@@ -327,6 +327,24 @@ const MyPageContent = () => {
                         readOnly 
                       />
                     </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">비밀번호</label>
+                      <div className="flex gap-2">
+                        <input 
+                          className="flex-1 p-2 border rounded bg-gray-50 text-gray-600" 
+                          value="••••••••" 
+                          readOnly 
+                        />
+                        <Button 
+                          onClick={handlePasswordChangeClick} 
+                          variant="outline" 
+                          className="px-3"
+                        >
+                          <Lock className="w-4 h-4 mr-1" />
+                          변경
+                        </Button>
+                      </div>
+                    </div>
                     {editForm.companyName && (
                       <div>
                         <label className="text-sm font-medium mb-2 block">
@@ -419,17 +437,9 @@ const MyPageContent = () => {
                     </div>
                   </div>
                   
-                  <div className="flex justify-center gap-4 pt-4">
+                  <div className="flex justify-center pt-4">
                     <Button onClick={handleUpdateInfo} className="px-8">
                       정보 수정
-                    </Button>
-                    <Button 
-                      onClick={handlePasswordChangeClick} 
-                      variant="outline" 
-                      className="px-8"
-                    >
-                      <Lock className="w-4 h-4 mr-2" />
-                      비밀번호 변경
                     </Button>
                   </div>
                 </>
