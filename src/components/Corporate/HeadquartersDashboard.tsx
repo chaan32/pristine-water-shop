@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState, useMemo, Fragment } from 'react'; // Fragment 추가
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
   Table,
   TableBody,
   TableCell,
@@ -10,147 +11,285 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Building2, Package, BarChart3, Crown } from 'lucide-react';
+import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight } from 'lucide-react'; // 아이콘 추가
+
+// (인터페이스 정의는 기존과 동일)
+// API 응답 데이터 타입을 정의합니다.
+interface BranchDataItem {
+  orderId: number;
+  orderNumber: string;
+  branchName: string;
+  createdAt: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  paymentStatus: string;
+  shipmentStatus: string;
+}
+
+interface DashboardData {
+  id: number;
+  branchNumber: number;
+  totalOrders: number;
+  totalAmount: number;
+  branchesData: BranchDataItem[];
+}
+
+
+// (generateLast12Months 함수는 기존과 동일)
+// 지난 12개월을 동적으로 생성하는 함수
+const generateLast12Months = () => {
+  const months = [];
+  const date = new Date();
+  for (let i = 0; i < 12; i++) {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    months.push({
+      value: `${year}-${month}`,
+      label: `${year}년 ${month}월`,
+    });
+    date.setMonth(date.getMonth() - 1);
+  }
+  return months;
+};
+
 
 const HeadquartersDashboard = () => {
-  const [selectedMonth, setSelectedMonth] = useState('2025-01');
+  const monthOptions = useMemo(() => generateLast12Months(), []);
 
-  // 임시 데이터
-  const branchPurchases = [
-    {
-      id: 1,
-      branchName: '강남점',
-      date: '2024.01.20',
-      products: ['프리미엄 샤워 필터 SF-100'],
-      quantity: 5,
-      total: 460000,
-      paymentStatus: '결제완료',
-      status: '배송완료'
-    },
-    {
-      id: 2,
-      branchName: '서초점',
-      date: '2024.01.18',
-      products: ['주방용 직수 정수기 KF-200'],
-      quantity: 3,
-      total: 594000,
-      paymentStatus: '결제완료',
-      status: '배송중'
-    },
-    {
-      id: 3,
-      branchName: '송파점',
-      date: '2024.01.15',
-      products: ['산업용 대용량 필터 IF-1000'],
-      quantity: 2,
-      total: 900000,
-      paymentStatus: '결제대기',
-      status: '배송완료'
-    }
-  ];
+  const [selectedMonth, setSelectedMonth] = useState(monthOptions[0].value);
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // ✅ 토글된 주문 번호들을 관리하는 상태
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
-  const totalAmount = branchPurchases.reduce((sum, purchase) => sum + purchase.total, 0);
-  const totalOrders = branchPurchases.length;
+  // (useEffect API 호출 로직은 기존과 동일)
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('accessToken');
+        if (!token) throw new Error('인증 토큰이 없습니다.');
+
+        const response = await fetch('http://localhost:8080/api/users/orders/headquarters', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) throw new Error('데이터를 불러오는 데 실패했습니다.');
+
+        const result = await response.json();
+        setDashboardData(result.data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const filteredData = useMemo(() => {
+    if (!dashboardData) return [];
+    return dashboardData.branchesData
+        .filter(item => item.createdAt.startsWith(selectedMonth))
+        .filter(item => selectedStatus === 'ALL' || item.paymentStatus === selectedStatus);
+  }, [dashboardData, selectedMonth, selectedStatus]);
+
+  // ✅ 데이터를 주문 번호 기준으로 그룹핑하고 금액/수량 합산
+  const groupedData = useMemo(() => {
+    const groups: { [key: string]: { items: BranchDataItem[], totalAmount: number, totalQuantity: number } } = {};
+
+    filteredData.forEach(item => {
+      if (!groups[item.orderNumber]) {
+        groups[item.orderNumber] = { items: [], totalAmount: 0, totalQuantity: 0 };
+      }
+      groups[item.orderNumber].items.push(item);
+      groups[item.orderNumber].totalAmount += item.price * item.quantity;
+      groups[item.orderNumber].totalQuantity += item.quantity;
+    });
+
+    return Object.values(groups);
+  }, [filteredData]);
+
+  // ✅ 토글 핸들러 함수
+  const handleToggleOrder = (orderNumber: string) => {
+    setExpandedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderNumber)) {
+        newSet.delete(orderNumber);
+      } else {
+        newSet.add(orderNumber);
+      }
+      return newSet;
+    });
+  };
+
+  // (상태 변환 함수, 로딩/에러 처리는 기존과 동일)
+  const getPaymentStatusText = (status: string) => ({
+    'PENDING': '결제대기', 'PAID': '결제완료', 'FAILED': '결제실패'
+  }[status] || status);
+
+  const getShipmentStatusText = (status: string) => ({
+    'PENDING': '배송대기', 'PREPARING': '상품준비중', 'SHIPPED': '배송중',
+    'DELIVERED': '배송완료', 'CANCELLED': '주문취소'
+  }[status] || status);
+
+  if (loading) return <div className="text-center py-10">데이터를 불러오는 중...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">오류: {error}</div>;
+  if (!dashboardData) return <div className="text-center py-10">데이터가 없습니다.</div>;
+
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Crown className="w-6 h-6 text-yellow-500" />
-          <h1 className="text-2xl font-bold">본사 관리 대시보드</h1>
+      <div className="space-y-6">
+        {/* (헤더와 요약 카드는 기존과 동일) */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Crown className="w-6 h-6 text-yellow-500" />
+            <h1 className="text-2xl font-bold">본사 관리 대시보드</h1>
+          </div>
         </div>
-      </div>
 
-      {/* 요약 통계 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 요약 통계 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">총 주문 수</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{dashboardData.totalOrders}</div>
+              <p className="text-xs text-muted-foreground">전체 주문</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">활성 지점</CardTitle>
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{dashboardData.branchNumber}</div>
+              <p className="text-xs text-muted-foreground">운영 중인 지점</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">총 주문액</CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{dashboardData.totalAmount.toLocaleString()}원</div>
+              <p className="text-xs text-muted-foreground">전체 주문 누적</p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 주문 수</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+          {/* (카드 헤더, 월 선택, 탭은 기존과 동일) */}
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>지점 구매 내역</CardTitle>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="월 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalOrders}</div>
-            <p className="text-xs text-muted-foreground">이번 달 주문</p>
-          </CardContent>
-        </Card>
+            <Tabs value={selectedStatus} onValueChange={setSelectedStatus} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="ALL">전체</TabsTrigger>
+                <TabsTrigger value="PENDING">결제대기</TabsTrigger>
+                <TabsTrigger value="PAID">결제완료</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">활성 지점</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">운영 중인 지점</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 주문액</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAmount.toLocaleString()}원</div>
-            <p className="text-xs text-muted-foreground">전체 주문 누적</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 지점별 구매내역 */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>지점 구매 내역</CardTitle>
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="2025-01">2025년 1월</SelectItem>
-              <SelectItem value="2024-12">2024년 12월</SelectItem>
-              <SelectItem value="2024-11">2024년 11월</SelectItem>
-              <SelectItem value="2024-10">2024년 10월</SelectItem>
-            </SelectContent>
-          </Select>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>지점명</TableHead>
-                <TableHead>주문일</TableHead>
-                <TableHead>상품명</TableHead>
-                <TableHead>수량</TableHead>
-                <TableHead>금액</TableHead>
-                <TableHead>결제상태</TableHead>
-                <TableHead>배송상태</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {branchPurchases.map((purchase) => (
-                <TableRow key={purchase.id}>
-                  <TableCell className="font-medium">{purchase.branchName}</TableCell>
-                  <TableCell>{purchase.date}</TableCell>
-                  <TableCell>{purchase.products.join(', ')}</TableCell>
-                  <TableCell>{purchase.quantity}개</TableCell>
-                  <TableCell className="font-semibold">{purchase.total.toLocaleString()}원</TableCell>
-                  <TableCell>
-                    <Badge variant={purchase.paymentStatus === '결제완료' ? 'default' : 'destructive'}>
-                      {purchase.paymentStatus}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={purchase.status === '배송완료' ? 'default' : 'secondary'}>
-                      {purchase.status}
-                    </Badge>
-                  </TableCell>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"></TableHead> {/* 토글 버튼을 위한 공간 */}
+                  <TableHead>주문번호</TableHead>
+                  <TableHead>지점명</TableHead>
+                  <TableHead>주문일</TableHead>
+                  <TableHead>상품명</TableHead>
+                  <TableHead>수량</TableHead>
+                  <TableHead>금액</TableHead>
+                  <TableHead>결제/배송</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+              </TableHeader>
+              <TableBody>
+                {groupedData.length > 0 ? (
+                    groupedData.map(group => {
+                      const firstItem = group.items[0];
+                      const isExpanded = expandedOrders.has(firstItem.orderNumber);
+
+                      return (
+                          <Fragment key={firstItem.orderNumber}>
+                            {/* ✅ 상위 그룹 행 */}
+                            <TableRow className="bg-secondary/50 hover:bg-secondary/80 cursor-pointer" onClick={() => handleToggleOrder(firstItem.orderNumber)}>
+                              <TableCell>
+                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                              </TableCell>
+                              <TableCell className="font-semibold">{firstItem.orderNumber}</TableCell>
+                              <TableCell>{firstItem.branchName}</TableCell>
+                              <TableCell>{new Date(firstItem.createdAt).toLocaleDateString('ko-KR')}</TableCell>
+                              <TableCell>
+                                {group.items.length > 1
+                                    ? `${firstItem.productName} 외 ${group.items.length - 1}건`
+                                    : firstItem.productName}
+                              </TableCell>
+                              <TableCell>{group.totalQuantity}개</TableCell>
+                              <TableCell className="font-bold">{group.totalAmount.toLocaleString()}원</TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-1">
+                                  <Badge variant={firstItem.paymentStatus === 'PAID' ? 'default' : 'destructive'}>
+                                    {getPaymentStatusText(firstItem.paymentStatus)}
+                                  </Badge>
+                                  <Badge variant={firstItem.shipmentStatus === 'DELIVERED' ? 'default' : 'secondary'}>
+                                    {getShipmentStatusText(firstItem.shipmentStatus)}
+                                  </Badge>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+
+                            {/* ✅ 하위 아이템 행 (토글 시 보임) */}
+                            {isExpanded && group.items.map((item, index) => (
+                                <TableRow key={`${item.orderNumber}-${index}`} className="bg-background hover:bg-muted/50">
+                                  <TableCell></TableCell>
+                                  <TableCell></TableCell>
+                                  <TableCell></TableCell>
+                                  <TableCell></TableCell>
+                                  <TableCell className="pl-6">{item.productName}</TableCell>
+                                  <TableCell>{item.quantity}개</TableCell>
+                                  <TableCell>{(item.price * item.quantity).toLocaleString()}원</TableCell>
+                                  <TableCell></TableCell>
+                                </TableRow>
+                            ))}
+                          </Fragment>
+                      );
+                    })
+                ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} className="h-24 text-center">해당 조건의 데이터가 없습니다.</TableCell>
+                    </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
   );
 };
 

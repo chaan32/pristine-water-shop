@@ -94,6 +94,7 @@ const MyPage = () => {
             products: order.products,
             total: order.price,
             status: getShipmentStatusText(order.shipmentStatus),
+            paymentStatus: order.paymentStatus, // PENDDING, PAID 등 ...
             trackingNumber: order.trackingNumber || '',
             deliveryAddress: '',
             // 상세정보용 데이터 추가
@@ -119,7 +120,15 @@ const MyPage = () => {
       setLoading(false);
     }
   };
-
+  const getPaymentStatusText = (status: string) =>{
+    const statusMap: { [key: string]: string } = {
+      'PENDING': '결제 대기',
+      'PAID': '결제 완료',
+      'UNPAID': '결제 실패',
+      'REFUNDED': '환불 완료'
+    };
+    return statusMap[status] || status;
+  }
   const getShipmentStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
       'PENDING': '배송 대기',
@@ -278,12 +287,16 @@ const MyPage = () => {
                               <span className="text-xs text-muted-foreground">{order.date}</span>
                             </div>
                           </div>
-                          <div className="md:col-span-4">
+                          <div className="md:col-span-4 flex flex-wrap gap-1">
                             <p className="text-sm font-medium">
                               {typeof order.products === 'string' ? order.products : order.products?.join(', ')}
                             </p>
                           </div>
-                          <div className="md:col-span-2">
+                          <div className="md:col-span-2 flex flex-wrap gap-8">
+                            {/* ✅ 결제 상태 Badge를 추가합니다. */}
+                            <Badge variant={order.paymentStatus === 'PAID' ? 'default' : 'outline'}>
+                              {getPaymentStatusText(order.paymentStatus)}
+                            </Badge>
                             <Badge variant={order.status === '배송완료' ? 'default' : 'secondary'}>
                               {order.status}
                             </Badge>
