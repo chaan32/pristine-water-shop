@@ -19,6 +19,14 @@ import { Search, Eye, User, Building, Crown } from 'lucide-react';
 import OrderHistoryModal from './OrderHistoryModal';
 
 // 백엔드 API 응답 구조에 맞는 타입 정의
+interface OrderSummary {
+  orderNumber: string;
+  orderId: number;
+  productName: string;
+  productPrice: number;
+  shipmentFee: number;
+}
+
 interface Member {
   id: number;
   loginId: string;
@@ -29,6 +37,8 @@ interface Member {
   email: string;
   createdAt: string;
   updatedAt: string;
+  orders: OrderSummary[];
+  totalAmount: number;
   headQuartersInform: {
     memberType: "HEADQUARTERS";
     name: string;
@@ -234,6 +244,8 @@ const MemberList = () => {
                     <TableHead>주소</TableHead>
                     <TableHead>가입일</TableHead>
                     <TableHead>적립금</TableHead>
+                    <TableHead>주문 수</TableHead>
+                    <TableHead>총 주문 금액</TableHead>
                     <TableHead className="text-right">관리</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -252,13 +264,19 @@ const MemberList = () => {
                         {new Date(member.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
+                        {member.individualInform?.memberShipPoints || 0}P
+                      </TableCell>
+                      <TableCell>
                         <Button 
                           variant="link" 
                           className="p-0 h-auto text-primary hover:underline"
                           onClick={() => handleOrderHistoryClick(member, 'individual')}
                         >
-                          {member.individualInform?.memberShipPoints || 0}P
+                          {member.orders?.length || 0}건
                         </Button>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {(member.totalAmount || 0).toLocaleString()}원
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -311,6 +329,8 @@ const MemberList = () => {
                     <TableHead>사업자번호</TableHead>
                     <TableHead>업종</TableHead>
                     <TableHead>가입일</TableHead>
+                    <TableHead>주문 수</TableHead>
+                    <TableHead>총 주문 금액</TableHead>
                     <TableHead className="text-right">관리</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -359,6 +379,18 @@ const MemberList = () => {
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {new Date(member.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="link" 
+                            className="p-0 h-auto text-primary hover:underline"
+                            onClick={() => handleOrderHistoryClick(member, 'corporate')}
+                          >
+                            {member.orders?.length || 0}건
+                          </Button>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {(member.totalAmount || 0).toLocaleString()}원
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
