@@ -76,7 +76,7 @@ const MemberList = () => {
   });
   const [memberDetailModal, setMemberDetailModal] = useState({
     isOpen: false,
-    memberId: null as number | null,
+    memberData: null as Member | null,
     memberType: 'individual' as 'individual' | 'corporate'
   });
 
@@ -158,10 +158,10 @@ const MemberList = () => {
     return styles[type] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
-  const handleViewDetail = (id: number, type: 'individual' | 'corporate') => {
+  const handleViewDetail = (member: Member, type: 'individual' | 'corporate') => {
     setMemberDetailModal({
       isOpen: true,
-      memberId: id,
+      memberData: member,
       memberType: type
     });
   };
@@ -169,7 +169,7 @@ const MemberList = () => {
   const closeMemberDetailModal = () => {
     setMemberDetailModal({
       isOpen: false,
-      memberId: null,
+      memberData: null,
       memberType: 'individual'
     });
   };
@@ -300,7 +300,7 @@ const MemberList = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleViewDetail(member.id, 'individual')}
+                          onClick={() => handleViewDetail(member, 'individual')}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -414,7 +414,7 @@ const MemberList = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleViewDetail(member.id, 'corporate')}
+                            onClick={() => handleViewDetail(member, 'corporate')}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -440,7 +440,7 @@ const MemberList = () => {
       <MemberDetailModal
         isOpen={memberDetailModal.isOpen}
         onClose={closeMemberDetailModal}
-        memberId={memberDetailModal.memberId}
+        memberData={memberDetailModal.memberData}
         memberType={memberDetailModal.memberType}
       />
     </div>

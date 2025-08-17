@@ -15,85 +15,51 @@ import { useToast } from '@/hooks/use-toast';
 interface MemberDetail {
   id: number;
   loginId: string;
-  name: string;
-  contactNumber: string;
+  address: string;
+  detailAddress: string;
+  postalCode: string;
+  phone: string;
   email: string;
   createdAt: string;
   updatedAt: string;
   orders: {
-    id: number;
+    orderNumber: string;
+    orderId: number;
     productName: string;
-    paymentStatus: string;
-    paymentMethod: string;
     productPrice: number;
     shipmentFee: number;
-    shipmentStatus: string;
   }[];
   totalAmount: number;
-  individualInform?: {
-    memberShipPoints: number;
-    address: string;
-  };
   headQuartersInform?: {
     memberType: "HEADQUARTERS";
     name: string;
-    businessType: string;
-    businessRegistrationNumber: string;
-    address: string;
+    bizRegImageUrl: string;
+    bizRegNumber: string;
+    bizType: string;
+    branches: string[];
   };
-  branchInform?: {
+  branchResDto?: {
     memberType: "BRANCH";
+    branchName: string;
+    parentName: string;
+    bizRegImageUrl: string;
+    bizRegNumber: string;
+    bizType: string;
+  };
+  individualInform?: {
     name: string;
-    businessType: string;
-    businessRegistrationNumber: string;
-    address: string;
-    headQuartersName: string;
+    memberShipPoints: number;
   };
 }
 
 interface MemberDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  memberId: number | null;
+  memberData: MemberDetail | null;
   memberType: 'individual' | 'corporate';
 }
 
-const MemberDetailModal = ({ isOpen, onClose, memberId, memberType }: MemberDetailModalProps) => {
-  const [memberDetail, setMemberDetail] = useState<MemberDetail | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-
-  const fetchMemberDetail = async () => {
-    if (!memberId) return;
-
-    setLoading(true);
-    try {
-      const response = await apiFetch(`/api/admin/members/${memberId}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setMemberDetail(data.data);
-        }
-      } else {
-        throw new Error('Failed to fetch member detail');
-      }
-    } catch (error) {
-      console.error('Error fetching member detail:', error);
-      toast({
-        title: "오류",
-        description: "회원 상세 정보를 불러오는데 실패했습니다.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen && memberId) {
-      fetchMemberDetail();
-    }
-  }, [isOpen, memberId]);
+const MemberDetailModal = ({ isOpen, onClose, memberData, memberType }: MemberDetailModalProps) => {
 
   const getBusinessTypeText = (businessType: string) => {
     const typeMap: { [key: string]: string } = {
@@ -117,29 +83,24 @@ const MemberDetailModal = ({ isOpen, onClose, memberId, memberType }: MemberDeta
   };
 
   const calculateTotalOrderAmount = () => {
-    if (!memberDetail?.orders) return 0;
-    return memberDetail.orders.reduce((total, order) => 
+    if (!memberData?.orders) return 0;
+    return memberData.orders.reduce((total, order) => 
       total + order.productPrice + order.shipmentFee, 0
     );
   };
 
-  if (loading) {
-    return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-2xl">
-          <div className="text-center py-8">로딩 중...</div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (!memberDetail) return null;
+  if (!memberData) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{memberDetail.name}님의 상세 정보</DialogTitle>
+          <DialogTitle>
+            {memberType === 'individual' 
+              ? memberData.individualInform?.name 
+              : memberData.headQuartersInform?.name || memberData.branchResDto?.parentName
+            }님의 상세 정보
+          </DialogTitle>
           <DialogDescription>
             {memberType === 'individual' ? '개인 회원' : '법인 회원'}의 상세 정보입니다.
           </DialogDescription>
@@ -155,34 +116,39 @@ const MemberDetailModal = ({ isOpen, onClose, memberId, memberType }: MemberDeta
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">로그인 ID</label>
-                  <p className="text-sm">{memberDetail.loginId}</p>
+                  <p className="text-sm">{memberData.loginId}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">이름</label>
-                  <p className="text-sm">{memberDetail.name}</p>
+                  <p className="text-sm">
+                    {memberType === 'individual' 
+                      ? memberData.individualInform?.name 
+                      : memberData.headQuartersInform?.name || memberData.branchResDto?.parentName
+                    }
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">연락처</label>
-                  <p className="text-sm">{memberDetail.contactNumber}</p>
+                  <p className="text-sm">{memberData.phone}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">이메일</label>
-                  <p className="text-sm">{memberDetail.email}</p>
+                  <p className="text-sm">{memberData.email}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">가입일</label>
-                  <p className="text-sm">{new Date(memberDetail.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm">{new Date(memberData.createdAt).toLocaleDateString()}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">수정일</label>
-                  <p className="text-sm">{new Date(memberDetail.updatedAt).toLocaleDateString()}</p>
+                  <p className="text-sm">{new Date(memberData.updatedAt).toLocaleDateString()}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* 개인 회원 정보 */}
-          {memberType === 'individual' && memberDetail.individualInform && (
+          {memberType === 'individual' && memberData.individualInform && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">개인 회원 정보</CardTitle>
@@ -190,11 +156,14 @@ const MemberDetailModal = ({ isOpen, onClose, memberId, memberType }: MemberDeta
               <CardContent className="space-y-3">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">주소</label>
-                  <p className="text-sm">{memberDetail.individualInform.address}</p>
+                  <p className="text-sm">{memberData.address} {memberData.detailAddress}</p>
+                  {memberData.postalCode && (
+                    <p className="text-xs text-muted-foreground">({memberData.postalCode})</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">적립금</label>
-                  <p className="text-sm font-medium">{memberDetail.individualInform.memberShipPoints}P</p>
+                  <p className="text-sm font-medium">{memberData.individualInform.memberShipPoints}P</p>
                 </div>
               </CardContent>
             </Card>
@@ -207,7 +176,7 @@ const MemberDetailModal = ({ isOpen, onClose, memberId, memberType }: MemberDeta
                 <CardTitle className="text-lg">법인 정보</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {memberDetail.headQuartersInform && (
+                {memberData.headQuartersInform && (
                   <>
                     <div className="flex items-center gap-2 mb-3">
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -217,25 +186,28 @@ const MemberDetailModal = ({ isOpen, onClose, memberId, memberType }: MemberDeta
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">회사명</label>
-                        <p className="text-sm">{memberDetail.headQuartersInform.name}</p>
+                        <p className="text-sm">{memberData.headQuartersInform.name}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">업종</label>
-                        <p className="text-sm">{getBusinessTypeText(memberDetail.headQuartersInform.businessType)}</p>
+                        <p className="text-sm">{getBusinessTypeText(memberData.headQuartersInform.bizType)}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">사업자번호</label>
-                        <p className="text-sm">{memberDetail.headQuartersInform.businessRegistrationNumber}</p>
+                        <p className="text-sm">{memberData.headQuartersInform.bizRegNumber}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">주소</label>
-                        <p className="text-sm">{memberDetail.headQuartersInform.address}</p>
+                        <p className="text-sm">{memberData.address} {memberData.detailAddress}</p>
+                        {memberData.postalCode && (
+                          <p className="text-xs text-muted-foreground">({memberData.postalCode})</p>
+                        )}
                       </div>
                     </div>
                   </>
                 )}
 
-                {memberDetail.branchInform && (
+                {memberData.branchResDto && (
                   <>
                     <div className="flex items-center gap-2 mb-3">
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -245,23 +217,26 @@ const MemberDetailModal = ({ isOpen, onClose, memberId, memberType }: MemberDeta
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">지점명</label>
-                        <p className="text-sm">{memberDetail.branchInform.name}</p>
+                        <p className="text-sm">{memberData.branchResDto.branchName}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">본사명</label>
-                        <p className="text-sm">{memberDetail.branchInform.headQuartersName}</p>
+                        <p className="text-sm">{memberData.branchResDto.parentName}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">업종</label>
-                        <p className="text-sm">{getBusinessTypeText(memberDetail.branchInform.businessType)}</p>
+                        <p className="text-sm">{getBusinessTypeText(memberData.branchResDto.bizType)}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">사업자번호</label>
-                        <p className="text-sm">{memberDetail.branchInform.businessRegistrationNumber}</p>
+                        <p className="text-sm">{memberData.branchResDto.bizRegNumber}</p>
                       </div>
                       <div className="col-span-2">
                         <label className="text-sm font-medium text-muted-foreground">주소</label>
-                        <p className="text-sm">{memberDetail.branchInform.address}</p>
+                        <p className="text-sm">{memberData.address} {memberData.detailAddress}</p>
+                        {memberData.postalCode && (
+                          <p className="text-xs text-muted-foreground">({memberData.postalCode})</p>
+                        )}
                       </div>
                     </div>
                   </>
@@ -279,7 +254,7 @@ const MemberDetailModal = ({ isOpen, onClose, memberId, memberType }: MemberDeta
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">총 주문 수</label>
-                  <p className="text-lg font-semibold">{memberDetail.orders?.length || 0}건</p>
+                  <p className="text-lg font-semibold">{memberData.orders?.length || 0}건</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">총 결제 금액</label>
