@@ -19,7 +19,7 @@ interface RefundExchangeRequest {
   type: 'refund' | 'exchange';
   reason: string;
   detailReason: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  status: 'pending' | 'received' | 'approved' | 'rejected' | 'completed';
   requestDate: string;
   products: string[];
   amount: number;
@@ -131,6 +131,7 @@ const RefundExchangeManagement = () => {
   const getStatusBadge = (status: string) => {
     const variants = {
       pending: { variant: 'secondary' as const, text: '대기중' },
+      received: { variant: 'secondary' as const, text: '접수됨' },
       approved: { variant: 'default' as const, text: '승인' },
       rejected: { variant: 'destructive' as const, text: '거절' },
       completed: { variant: 'outline' as const, text: '완료' }
@@ -281,7 +282,7 @@ const RefundExchangeManagement = () => {
                       </Card>
                   )}
 
-                  {selectedRequest.status === 'pending' && (
+                  {(selectedRequest.status === 'pending' || selectedRequest.status === 'received') && (
                       <div className="space-y-4 pt-4 border-t">
                         <div>
                           <Label htmlFor="rejectionReason" className="font-semibold">거절 사유 (거절 시 필수 입력)</Label>
