@@ -18,39 +18,44 @@ import {
 import { Search, Eye, User, Building, Crown } from 'lucide-react';
 import OrderHistoryModal from './OrderHistoryModal';
 
-// 실제 백엔드 DTO 구조에 맞는 타입 정의
-interface IndividualMember {
+// 백엔드 API 응답 구조에 맞는 타입 정의
+interface Member {
   id: number;
-  name: string;
-  email: string;
+  loginId: string;
+  address: string;
+  detailAddress: string;
+  postalCode: string;
   phone: string;
-  joinDate: string;
-  orderCount: number;
-  totalAmount: number;
-  status: string;
-}
-
-interface CorporateMember {
-  id: number;
-  companyName: string;
-  branchName: string;
   email: string;
-  phone: string;
-  businessRegistrationNumber: string;
-  businessType: string;
-  isHeadquarters: boolean;
-  joinDate: string;
-  orderCount: number;
-  totalAmount: number;
-  status: string;
+  createdAt: string;
+  updatedAt: string;
+  headQuartersInform: {
+    memberType: "HEADQUARTERS";
+    name: string;
+    bizRegImageUrl: string;
+    bizRegNumber: string;
+    bizType: string;
+    branches: string[];
+  } | null;
+  branchResDto: {
+    memberType: "BRANCH";
+    branchName: string;
+    parentName: string;
+    bizRegImageUrl: string;
+    bizRegNumber: string;
+    bizType: string;
+  } | null;
+  individualInform: {
+    name: string;
+    memberShipPoints: number;
+  } | null;
 }
 
 const MemberList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('individual');
   const [filterType, setFilterType] = useState<'all' | 'headquarters' | 'branch'>('all');
-  const [individualMembers, setIndividualMembers] = useState<IndividualMember[]>([]);
-  const [corporateMembers, setCorporateMembers] = useState<CorporateMember[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [orderHistoryModal, setOrderHistoryModal] = useState({
     isOpen: false,
@@ -59,13 +64,12 @@ const MemberList = () => {
     memberType: 'individual' as 'individual' | 'corporate'
   });
 
-  // 실제 API에서 회원 목록 가져오기
+  // 통합된 API에서 회원 목록 가져오기
   const fetchMembers = async () => {
     try {
       const accessToken = localStorage.getItem('accessToken');
       
-      // 개인 회원 목록
-      const individualResponse = await fetch('http://localhost:8080/api/admin/members/individual', {
+      const response = await fetch('http://localhost:8080/api/admin/members', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -73,28 +77,10 @@ const MemberList = () => {
         }
       });
 
-      // 법인 회원 목록
-      const corporateResponse = await fetch('http://localhost:8080/api/admin/members/corporate', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (individualResponse.ok) {
-        const individualData = await individualResponse.json();
-        if (individualData.success) {
-          setIndividualMembers(individualData.data);
-        }
-      }
-
-      if (corporateResponse.ok) {
-        const corporateData = await corporateResponse.json();
-        console.log('Corporate data:', corporateData);
-        if (corporateData.success) {
-          console.log('Corporate members:', corporateData.data);
-          setCorporateMembers(corporateData.data);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setMembers(data.data);
         }
       }
     } catch (error) {
@@ -109,21 +95,27 @@ const MemberList = () => {
     fetchMembers();
   }, []);
 
-  const filteredIndividual = individualMembers.filter(member =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredCorporate = corporateMembers.filter(member => {
-    const matchesSearch = member.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  // 개인 회원 필터링
+  const filteredIndividual = members.filter(member => {
+    if (!member.individualInform) return false;
+    
+    const matchesSearch = member.individualInform.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    console.log('Filter type:', filterType);
-    console.log('Member:', member.companyName, 'isHeadquarters:', member.isHeadquarters);
+    return matchesSearch;
+  });
+
+  // 법인 회원 필터링
+  const filteredCorporate = members.filter(member => {
+    if (!member.headQuartersInform && !member.branchResDto) return false;
     
-    if (filterType === 'headquarters') return matchesSearch && member.isHeadquarters;
-    if (filterType === 'branch') return matchesSearch && !member.isHeadquarters;
-    return matchesSearch; // 'all'
+    const companyName = member.headQuartersInform?.name || member.branchResDto?.parentName || '';
+    const matchesSearch = companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (filterType === 'headquarters') return matchesSearch && member.headQuartersInform;
+    if (filterType === 'branch') return matchesSearch && member.branchResDto;
+    return matchesSearch;
   });
 
   const getBusinessTypeText = (type: string) => {
@@ -154,8 +146,10 @@ const MemberList = () => {
     console.log('회원 상세 조회:', { id, type });
   };
 
-  const handleOrderHistoryClick = (member: IndividualMember | CorporateMember, type: 'individual' | 'corporate') => {
-    const memberName = type === 'individual' ? (member as IndividualMember).name : (member as CorporateMember).companyName;
+  const handleOrderHistoryClick = (member: Member, type: 'individual' | 'corporate') => {
+    const memberName = type === 'individual' 
+      ? member.individualInform?.name || ''
+      : member.headQuartersInform?.name || member.branchResDto?.parentName || '';
     setOrderHistoryModal({
       isOpen: true,
       memberId: member.id,
@@ -194,10 +188,10 @@ const MemberList = () => {
         <h1 className="text-2xl font-bold">회원 리스트</h1>
         <div className="flex gap-2">
           <Badge variant="secondary">
-            개인: {individualMembers.length}명
+            개인: {filteredIndividual.length}명
           </Badge>
           <Badge variant="secondary">
-            법인: {corporateMembers.length}개사
+            법인: {filteredCorporate.length}개사
           </Badge>
         </div>
       </div>
@@ -237,29 +231,35 @@ const MemberList = () => {
                     <TableHead>이름</TableHead>
                     <TableHead>이메일</TableHead>
                     <TableHead>연락처</TableHead>
+                    <TableHead>주소</TableHead>
                     <TableHead>가입일</TableHead>
-                    <TableHead>주문 수</TableHead>
-                    <TableHead>총 구매금액</TableHead>
+                    <TableHead>적립금</TableHead>
                     <TableHead className="text-right">관리</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredIndividual.map((member) => (
                     <TableRow key={member.id}>
-                      <TableCell className="font-medium">{member.name}</TableCell>
+                      <TableCell className="font-medium">{member.individualInform?.name}</TableCell>
                       <TableCell>{member.email}</TableCell>
                       <TableCell>{member.phone}</TableCell>
-                      <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {member.address} {member.detailAddress}
+                        <br />
+                        <span className="text-xs text-muted-foreground">({member.postalCode})</span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(member.createdAt).toLocaleDateString()}
+                      </TableCell>
                       <TableCell>
                         <Button 
                           variant="link" 
                           className="p-0 h-auto text-primary hover:underline"
                           onClick={() => handleOrderHistoryClick(member, 'individual')}
                         >
-                          {member.orderCount}회
+                          {member.individualInform?.memberShipPoints || 0}P
                         </Button>
                       </TableCell>
-                      <TableCell>₩{member.totalAmount.toLocaleString()}</TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="outline"
@@ -303,72 +303,75 @@ const MemberList = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>회사명</TableHead>
-                    <TableHead>지점명</TableHead>
+                    <TableHead>회사명/지점명</TableHead>
+                    <TableHead>유형</TableHead>
                     <TableHead>이메일</TableHead>
                     <TableHead>연락처</TableHead>
+                    <TableHead>주소</TableHead>
                     <TableHead>사업자번호</TableHead>
                     <TableHead>업종</TableHead>
                     <TableHead>가입일</TableHead>
-                    <TableHead>주문 수</TableHead>
-                    <TableHead>총 구매금액</TableHead>
                     <TableHead className="text-right">관리</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCorporate.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {member.companyName}
-                           {member.isHeadquarters && (
-                             <div title="본사 회원">
-                               <Crown className="w-4 h-4 text-yellow-500" />
-                             </div>
-                           )}
-                        </div>
-                      </TableCell>
-                       <TableCell>
-                         {member.isHeadquarters ? (
-                           <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                             본사
-                           </Badge>
-                         ) : (
-                           <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                             {member.branchName}
-                           </Badge>
-                         )}
-                       </TableCell>
-                      <TableCell>{member.email}</TableCell>
-                      <TableCell>{member.phone}</TableCell>
-                      <TableCell className="text-muted-foreground">{member.businessRegistrationNumber}</TableCell>
-                       <TableCell>
-                         <Badge variant="outline" className={`text-xs ${getBusinessTypeStyle(member.businessType)}`}>
-                           {getBusinessTypeText(member.businessType)}
-                         </Badge>
-                       </TableCell>
-                      <TableCell className="text-muted-foreground">{member.joinDate}</TableCell>
-                       <TableCell>
-                         <Button 
-                           variant="link" 
-                           className="p-0 h-auto text-primary hover:underline"
-                           onClick={() => handleOrderHistoryClick(member, 'corporate')}
-                         >
-                           {member.orderCount}회
-                         </Button>
-                       </TableCell>
-                      <TableCell>₩{member.totalAmount.toLocaleString()}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewDetail(member.id, 'corporate')}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredCorporate.map((member) => {
+                    const isHeadquarters = !!member.headQuartersInform;
+                    const companyName = member.headQuartersInform?.name || member.branchResDto?.parentName || '';
+                    const bizRegNumber = member.headQuartersInform?.bizRegNumber || member.branchResDto?.bizRegNumber || '';
+                    const bizType = member.headQuartersInform?.bizType || member.branchResDto?.bizType || '';
+                    
+                    return (
+                      <TableRow key={member.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {isHeadquarters ? companyName : `${companyName} (${member.branchResDto?.branchName})`}
+                            {isHeadquarters && (
+                              <div title="본사 회원">
+                                <Crown className="w-4 h-4 text-yellow-500" />
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {isHeadquarters ? (
+                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                              본사
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              지점
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{member.email}</TableCell>
+                        <TableCell>{member.phone}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {member.address} {member.detailAddress}
+                          <br />
+                          <span className="text-xs text-muted-foreground">({member.postalCode})</span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{bizRegNumber}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`text-xs ${getBusinessTypeStyle(bizType)}`}>
+                            {getBusinessTypeText(bizType)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(member.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDetail(member.id, 'corporate')}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TabsContent>
