@@ -515,7 +515,7 @@ const MyPage = () => {
                                 className="h-8 px-2 text-xs"
                                 onClick={() => handleOrderDetailClick(order)}
                               >
-                                상세
+                                상세보기
                               </Button>
                               {order.trackingNumber && (
                                 <Button
@@ -524,18 +524,10 @@ const MyPage = () => {
                                   className="h-8 px-2 text-xs"
                                   onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
                                 >
-                                  배송
+                                  배송추적
                                 </Button>
                               )}
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 px-2 text-xs"
-                              onClick={() => handleOrderDetailClick(order)}
-                            >
-                              상세보기
-                            </Button>
                           </div>
                         </div>
                       </CardContent>
