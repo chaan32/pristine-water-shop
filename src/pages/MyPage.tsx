@@ -12,10 +12,9 @@ import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
 import { apiFetch, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
-import ReviewModal from '@/components/MyPage/ReviewModal';
-import { User, Package, Settings, Truck, Crown, Building2, Search, Lock, MessageSquare } from 'lucide-react';
-import ReAuthDialog from '@/components/MyPage/ReAuthDialog';
-import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog';
+import { User, Package, Settings, Truck, Crown, Building2, Search, Lock } from 'lucide-react'; // Lock 추가
+import ReAuthDialog from '@/components/MyPage/ReAuthDialog'; // 추가
+import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog'; // 추가
 
 const MyPage = () => {
   const { toast } = useToast();
@@ -28,8 +27,6 @@ const MyPage = () => {
   const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false);
   const [isReAuthOpen, setIsReAuthOpen] = useState(false);
   const [isPasswordChangeOpen, setIsPasswordChangeOpen] = useState(false);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [selectedOrderForReview, setSelectedOrderForReview] = useState(null);
 
 
 
@@ -192,16 +189,6 @@ const MyPage = () => {
   const handleOrderDetailClick = (order: any) => {
     setSelectedOrder(order);
     setIsOrderDetailOpen(true);
-  };
-
-  const handleReviewClick = (order: any) => {
-    setSelectedOrderForReview(order);
-    setIsReviewModalOpen(true);
-  };
-
-  const handleReviewSubmitted = () => {
-    // 후기 등록 후 필요하다면 주문 목록을 다시 불러올 수 있습니다
-    fetchOrders();
   };
 
   // 주소 검색 함수
@@ -506,36 +493,23 @@ const MyPage = () => {
                           <div className="md:col-span-2">
                             <p className="text-sm font-bold">{order.total?.toLocaleString()}원</p>
                           </div>
-                          <div className="md:col-span-1 flex flex-col gap-1">
-                            <div className="flex gap-1">
+                          <div className="md:col-span-1 flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-2 text-xs"
+                              onClick={() => handleOrderDetailClick(order)}
+                            >
+                              상세
+                            </Button>
+                            {order.trackingNumber && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="h-8 px-2 text-xs"
-                                onClick={() => handleOrderDetailClick(order)}
+                                onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
                               >
-                                상세
-                              </Button>
-                              {order.trackingNumber && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 px-2 text-xs"
-                                  onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
-                                >
-                                  배송
-                                </Button>
-                              )}
-                            </div>
-                            {order.shipmentStatus === 'DELIVERED' && (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                className="h-8 px-2 text-xs mt-1"
-                                onClick={() => handleReviewClick(order)}
-                              >
-                                <MessageSquare className="w-3 h-3 mr-1" />
-                                후기 남기기
+                                배송
                               </Button>
                             )}
                           </div>
@@ -572,13 +546,6 @@ const MyPage = () => {
           isOpen={isPasswordChangeOpen}
           onClose={() => setIsPasswordChangeOpen(false)}
           onSuccess={handlePasswordChangeSuccess}
-        />
-
-        <ReviewModal
-          isOpen={isReviewModalOpen}
-          onClose={() => setIsReviewModalOpen(false)}
-          order={selectedOrderForReview}
-          onReviewSubmitted={handleReviewSubmitted}
         />
 
         <Footer />
