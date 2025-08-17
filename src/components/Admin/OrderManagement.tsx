@@ -41,6 +41,7 @@ interface Order {
   recipientName: string;
   recipientPhone: string;
   shippingAddress: string;
+  postalCode?: string;
   orderDate: string;
   daysSinceOrder: number | null;
   productName: string;
@@ -67,7 +68,8 @@ interface OrderTableProps {
 }
 
 const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackingInput = false }: OrderTableProps) => {
-  const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<ProcessedOrder | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   
   const formatDate = (dateString: string) => dateString ? dateString.split('T')[0] : '';
   const getShippingStatusText = (status: string) => ({ preparing: '준비중', shipped: '배송중', delivered: '완료' }[status] || status);
@@ -76,14 +78,9 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackin
   const getOrdererTypeText = (type: string) => ({ individual: '개인', headquarters: '본사', branch: '지점' }[type] || type);
   const getOrdererTypeStyle = (type: string) => ({ individual: 'bg-blue-50 text-blue-700 border-blue-200', headquarters: 'bg-purple-50 text-purple-700 border-purple-200', branch: 'bg-orange-50 text-orange-700 border-orange-200' }[type] || 'bg-gray-50 text-gray-700 border-gray-200');
 
-  const toggleOrderExpansion = (orderId: number) => {
-    const newExpanded = new Set(expandedOrders);
-    if (newExpanded.has(orderId)) {
-      newExpanded.delete(orderId);
-    } else {
-      newExpanded.add(orderId);
-    }
-    setExpandedOrders(newExpanded);
+  const openDetailModal = (order: ProcessedOrder) => {
+    setSelectedOrderForDetail(order);
+    setDetailModalOpen(true);
   };
 
   if (orders.length === 0) {
@@ -96,137 +93,206 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackin
   }
 
   return (
+    <>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px]"></TableHead>
             <TableHead className="w-[150px]">주문번호</TableHead>
             <TableHead className="w-[120px]">주문일자</TableHead>
             <TableHead>주문자</TableHead>
-            <TableHead>수령인</TableHead>
-            <TableHead className="w-[130px]">수령인 번호</TableHead>
-            <TableHead>배송지</TableHead>
             <TableHead>상품명</TableHead>
-            <TableHead>결제 금액</TableHead>
-            {showStatusColumns && <><TableHead>배송 상태</TableHead><TableHead>발송 처리</TableHead></>}
-            <TableHead className="text-right">{showTrackingInput ? '관리' : '배송 상태'}</TableHead>
+            <TableHead>배송상태</TableHead>
+            <TableHead>발송처리</TableHead>
+            <TableHead className="text-right">관리</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => (
-              <>
-                <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleOrderExpansion(order.id)}
-                      className="p-1 h-auto"
-                    >
-                      {expandedOrders.has(order.id) ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
+            <TableRow key={order.id} className="hover:bg-muted/50">
+              <TableCell className="font-medium">{order.orderNumber}</TableCell>
+              <TableCell>{formatDate(order.orderDate)}</TableCell>
+              <TableCell>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span>{order.ordererName}</span>
+                    <Badge variant="outline" className={`text-xs ${getOrdererTypeStyle(order.ordererType)}`}>
+                      {getOrdererTypeText(order.ordererType)}
+                    </Badge>
+                  </div>
+                  {order.ordererType === 'branch' && order.branchName && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      {order.branchName}
+                    </div>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="max-w-xs truncate" title={order.productName}>{order.productName}</TableCell>
+              <TableCell>
+                <Badge variant="outline" className={`text-xs ${getShippingStatusStyle(order.shippingStatus)}`}>
+                  {getShippingStatusText(order.shippingStatus)}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {order.isShipmentProcessed ? (
+                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                    <CheckCircle className="w-3 h-3 mr-1" />완료
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                    미처리
+                  </Badge>
+                )}
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => openDetailModal(order)}>
+                    상세보기
+                  </Button>
+                  {showTrackingInput && !order.isShipmentProcessed && (
+                    <Button variant="outline" size="sm" onClick={() => onOpenModal(order)}>
+                      송장입력
                     </Button>
-                  </TableCell>
-                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                  <TableCell>{formatDate(order.orderDate)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {/* 상세보기 모달 */}
+      <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>주문 상세 정보</DialogTitle>
+          </DialogHeader>
+          {selectedOrderForDetail && (
+            <div className="space-y-6">
+              {/* 주문 기본 정보 */}
+              <div className="grid grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">주문 정보</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">주문번호:</span>
+                      <span>{selectedOrderForDetail.orderNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">주문일자:</span>
+                      <span>{formatDate(selectedOrderForDetail.orderDate)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">주문자:</span>
+                      <div className="text-right">
                         <div className="flex items-center gap-2">
-                          <span>{order.ordererName}</span>
-                          <Badge variant="outline" className={`text-xs ${getOrdererTypeStyle(order.ordererType)}`}>
-                            {getOrdererTypeText(order.ordererType)}
+                          <span>{selectedOrderForDetail.ordererName}</span>
+                          <Badge variant="outline" className={`text-xs ${getOrdererTypeStyle(selectedOrderForDetail.ordererType)}`}>
+                            {getOrdererTypeText(selectedOrderForDetail.ordererType)}
                           </Badge>
                         </div>
-                        {order.ordererType === 'branch' && order.branchName && (
+                        {selectedOrderForDetail.ordererType === 'branch' && selectedOrderForDetail.branchName && (
                           <div className="text-xs text-gray-500 mt-1">
-                            {order.branchName}
+                            {selectedOrderForDetail.branchName}
                           </div>
                         )}
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>{order.recipientName}</TableCell>
-                  <TableCell>{order.recipientPhone}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={order.shippingAddress}>{order.shippingAddress}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={order.productName}>{order.productName}</TableCell>
-                  <TableCell>₩{order.totalAmount.toLocaleString()}</TableCell>
-                  {showStatusColumns && (
-                      <>
-                        <TableCell><Badge variant="outline" className={`text-xs ${getShippingStatusStyle(order.shippingStatus)}`}>{getShippingStatusText(order.shippingStatus)}</Badge></TableCell>
-                        <TableCell>{order.isShipmentProcessed ? (<Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1" />완료</Badge>) : (<Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">미처리</Badge>)}</TableCell>
-                      </>
-                  )}
-                  <TableCell className="text-right">
-                    {showTrackingInput ? (
-                      !order.isShipmentProcessed && (
-                        <Button variant="outline" size="sm" onClick={() => onOpenModal(order)}>
-                          송장번호 입력
-                        </Button>
-                      )
-                    ) : (
-                      order.trackingNumber ? (
-                        <div className="flex items-center gap-2 justify-end">
-                          <span className="text-sm font-medium">{order.trackingNumber}</span>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">총 결제금액:</span>
+                      <span className="font-bold">₩{selectedOrderForDetail.totalAmount.toLocaleString()}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">배송 정보</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">수령인:</span>
+                      <span>{selectedOrderForDetail.recipientName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">연락처:</span>
+                      <span>{selectedOrderForDetail.recipientPhone}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">배송지:</span>
+                      <div className="text-right max-w-xs">
+                        <div>{selectedOrderForDetail.shippingAddress}</div>
+                        {selectedOrderForDetail.postalCode && (
+                          <div className="text-xs text-gray-500">({selectedOrderForDetail.postalCode})</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">배송상태:</span>
+                      <Badge variant="outline" className={`text-xs ${getShippingStatusStyle(selectedOrderForDetail.shippingStatus)}`}>
+                        {getShippingStatusText(selectedOrderForDetail.shippingStatus)}
+                      </Badge>
+                    </div>
+                    {selectedOrderForDetail.trackingNumber && (
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">송장번호:</span>
+                        <div className="flex items-center gap-2">
+                          <span>{selectedOrderForDetail.trackingNumber}</span>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
+                            onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${selectedOrderForDetail.trackingNumber}`, '_blank')}
                             className="flex items-center gap-1"
                           >
                             <ExternalLink className="w-3 h-3" />
                             조회
                           </Button>
                         </div>
-                      ) : (
-                        <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-200">
-                          미발송 상태
-                        </Badge>
-                      )
+                      </div>
                     )}
-                  </TableCell>
-                </TableRow>
-                {expandedOrders.has(order.id) && (
-                  <TableRow>
-                    <TableCell colSpan={showStatusColumns ? 12 : 10} className="p-0">
-                      <div className="bg-muted/30 p-4 border-t">
-                        <h4 className="font-semibold mb-3 text-sm">주문 상품 목록</h4>
-                        <div className="grid gap-3">
-                          {order.items.map((item, index) => (
-                            <div key={item.orderItemId} className="flex items-center gap-4 p-3 bg-background rounded-md border">
-                              <img 
-                                src={item.productImageUrl} 
-                                alt={item.productName}
-                                className="w-12 h-12 object-cover rounded-md"
-                                onError={(e) => {
-                                  e.currentTarget.src = '/placeholder.svg';
-                                }}
-                              />
-                              <div className="flex-1">
-                                <div className="font-medium text-sm">{item.productName}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  개당 ₩{item.perPrice.toLocaleString()} × {item.quantity}개
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="font-medium text-sm">
-                                  ₩{(item.perPrice * item.quantity).toLocaleString()}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* 주문 상품 목록 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">주문 상품 목록</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {selectedOrderForDetail.items.map((item) => (
+                      <div key={item.orderItemId} className="flex items-center gap-4 p-4 border rounded-lg">
+                        <img 
+                          src={item.productImageUrl} 
+                          alt={item.productName}
+                          className="w-16 h-16 object-cover rounded-md"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder.svg';
+                          }}
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium">{item.productName}</div>
+                          <div className="text-sm text-gray-600">
+                            개당 ₩{item.perPrice.toLocaleString()} × {item.quantity}개
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium">
+                            ₩{(item.perPrice * item.quantity).toLocaleString()}
+                          </div>
                         </div>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </>
-          ))}
-        </TableBody>
-      </Table>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
