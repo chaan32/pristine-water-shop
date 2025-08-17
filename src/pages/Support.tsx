@@ -137,7 +137,7 @@ const Support = () => {
         // 수정된 submissionData를 사용
         body = JSON.stringify(submissionData);
       }
-
+      console.log(body);
       const response = await fetch('http://localhost:8080/api/inquiries', {
         method: 'POST',
         headers,
