@@ -1,8 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Package, MessageSquare } from 'lucide-react';
 
 interface OrderItem {
+  productId?: number;
   productName: string;
   productPerPrice: number;
   productTotalPrice: number;
@@ -18,14 +20,15 @@ interface OrderDetailModalProps {
     orderName: string;
     createdAt: string;
     price: number;
-    shipmentFee: number; // << 이 필드를 추가하세요
+    shipmentFee: number;
     shipmentStatus: string;
     products: string;
     items: OrderItem[];
   } | null;
+  onReviewClick?: (product: OrderItem, orderName: string) => void;
 }
 
-const OrderDetailModal = ({ isOpen, onClose, order }: OrderDetailModalProps) => {
+const OrderDetailModal = ({ isOpen, onClose, order, onReviewClick }: OrderDetailModalProps) => {
   if (!order) return null;
 
   const getShipmentStatusText = (status: string) => {
@@ -128,10 +131,21 @@ const OrderDetailModal = ({ isOpen, onClose, order }: OrderDetailModalProps) => 
                           {item.productPerPrice.toLocaleString()}원 × {item.quantity}개
                         </p>
                       </div>
-                      <div className="w-32 text-right">
+                      <div className="w-32 text-right flex flex-col items-end gap-2">
                         <p className="font-semibold">
                           {item.productTotalPrice.toLocaleString()}원
                         </p>
+                        {order.shipmentStatus === 'DELIVERED' && onReviewClick && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => onReviewClick(item, order.orderName)}
+                          >
+                            <MessageSquare className="w-3 h-3 mr-1" />
+                            후기 작성
+                          </Button>
+                        )}
                       </div>
                     </div>
                 ))}

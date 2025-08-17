@@ -528,22 +528,14 @@ const MyPage = () => {
                                 </Button>
                               )}
                             </div>
-                            {order.shipmentStatus === 'DELIVERED' && order.products && (
-                              <div className="flex flex-col gap-1">
-                                {(Array.isArray(order.products) ? order.products : [order.products]).map((product, idx) => (
-                                  <Button
-                                    key={idx}
-                                    variant="default"
-                                    size="sm"
-                                    className="h-8 px-2 text-xs"
-                                    onClick={() => handleReviewClick({ productId: product.productId || idx, productName: product.productName || product }, order.orderName)}
-                                  >
-                                    <MessageSquare className="w-3 h-3 mr-1" />
-                                    {product.productName || product} 후기
-                                  </Button>
-                                ))}
-                              </div>
-                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-2 text-xs"
+                              onClick={() => handleOrderDetailClick(order)}
+                            >
+                              상세보기
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -565,6 +557,7 @@ const MyPage = () => {
           isOpen={isOrderDetailOpen}
           onClose={() => setIsOrderDetailOpen(false)}
           order={selectedOrder}
+          onReviewClick={handleReviewClick}
         />
 
         <ReAuthDialog
