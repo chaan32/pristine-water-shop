@@ -33,7 +33,8 @@ const InquiriesTab = () => {
   const fetchInquiries = async () => {
     try {
       setLoading(true);
-      const response = await apiFetch('/api/users/inquiries');
+      const id = localStorage.getItem('userId');
+      const response = await apiFetch('/api/users/inquiries/${id}')
 
       if (response.ok) {
         const data = await response.json();
