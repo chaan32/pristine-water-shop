@@ -540,66 +540,68 @@ const ProductDetail = () => {
 
             {/* Q&A 탭 콘텐츠 */}
             <TabsContent value="qna" className="mt-8">
-              {/* 로딩/에러/빈 상태 처리 */}
-              {qnasLoading ? (
-                  <div className="text-center py-8">Q&A 목록을 불러오는 중입니다...</div>
-              ) : qnasError ? (
-                  <div className="text-center py-8 text-destructive">{qnasError}</div>
-              ) : qnas.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">작성된 Q&A가 없습니다.</div>
-              ) : (
-                  <div className="space-y-6">
-                    {qnas.map((qna) => (
-                        <Card key={qna.id} className="water-drop">
-                          <CardContent className="p-6">
-                            <div className="space-y-4">
-                              {/* 질문 섹션 */}
-                              <div>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Badge variant="outline">Q</Badge>
-                                  <span className="text-sm text-muted-foreground">{qna.date}</span>
-                                </div>
-                                <p className="ml-8">{qna.question}</p>
-                              </div>
-
-                              {/* 답변이 있을 때만 답변 섹션 렌더링 */}
-                              {qna.isAnswered && (
-                                  <div className="ml-4 pl-4 border-l-2 border-secondary">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <Badge>A</Badge>
-                                      <span className="font-medium text-primary">관리자</span>
-                                    </div>
-                                    <p className="ml-8 text-muted-foreground">{qna.answer}</p>
+              <div className="space-y-6">
+                {/* 로딩/에러 상태 처리 */}
+                {qnasLoading ? (
+                    <div className="text-center py-8">Q&A 목록을 불러오는 중입니다...</div>
+                ) : qnasError ? (
+                    <div className="text-center py-8 text-destructive">{qnasError}</div>
+                ) : qnas.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">작성된 Q&A가 없습니다.</div>
+                ) : (
+                    <div className="space-y-6">
+                      {qnas.map((qna) => (
+                          <Card key={qna.id} className="water-drop">
+                            <CardContent className="p-6">
+                              <div className="space-y-4">
+                                {/* 질문 섹션 */}
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Badge variant="outline">Q</Badge>
+                                    <span className="text-sm text-muted-foreground">{qna.date}</span>
                                   </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                    ))}
+                                  <p className="ml-8">{qna.question}</p>
+                                </div>
 
-                    {/* 문의하기 카드 */}
-                    <Card className="water-drop">
-                      <CardHeader>
-                        <CardTitle>문의하기</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <Textarea
-                            placeholder="궁금한 점을 남겨주세요..."
-                            value={newQuestion}
-                            onChange={(e) => setNewQuestion(e.target.value)}
-                            disabled={isSubmitting}
-                        />
-                        <Button
-                            className="w-full water-drop"
-                            onClick={handleInquirySubmit}
-                            disabled={isSubmitting}
-                        >
-                          {isSubmitting ?'등록 중...' : '문의 등록' }
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-              )}
+                                {/* 답변이 있을 때만 답변 섹션 렌더링 */}
+                                {qna.isAnswered && (
+                                    <div className="ml-4 pl-4 border-l-2 border-secondary">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <Badge>A</Badge>
+                                        <span className="font-medium text-primary">관리자</span>
+                                      </div>
+                                      <p className="ml-8 text-muted-foreground">{qna.answer}</p>
+                                    </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                      ))}
+                    </div>
+                )}
+
+                {/* 문의하기 카드 - 항상 표시 */}
+                <Card className="water-drop">
+                  <CardHeader>
+                    <CardTitle>문의하기</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea
+                        placeholder="궁금한 점을 남겨주세요..."
+                        value={newQuestion}
+                        onChange={(e) => setNewQuestion(e.target.value)}
+                        disabled={isSubmitting}
+                    />
+                    <Button
+                        className="w-full water-drop"
+                        onClick={handleInquirySubmit}
+                        disabled={isSubmitting}
+                    >
+                      {isSubmitting ?'등록 중...' : '문의 등록' }
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </main>
