@@ -53,15 +53,15 @@ const RefundExchangeManagement = () => {
           const formattedData: RefundExchangeRequest[] = data.map((item: any) => ({
             id: `RE-${item.claimId}`, // 화면 표시 및 key를 위한 문자열 ID
             claimId: item.claimId, // API 호출을 위한 숫자 ID
-            orderId: item.orderInform.orderNumber,
+            orderId: item.orderInform?.orderNumber,
             customerName: item.customerName,
-            type: item.type,
+            type: (item.type ? String(item.type).toLowerCase() : 'refund') as RefundExchangeRequest['type'],
             reason: item.detailContent.title,
             detailReason: item.detailContent.content,
-            status: item.status || 'pending',
-            requestDate: new Date(item.createdAt).toLocaleDateString(),
-            products: [item.orderInform.productName],
-            amount: item.orderInform.productPrice,
+            status: (item.status ? String(item.status).toLowerCase() : 'pending') as RefundExchangeRequest['status'],
+            requestDate: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '',
+            products: [item.orderInform?.productName].filter(Boolean) as string[],
+            amount: item.orderInform?.productPrice ?? 0,
             attachments: item.detailContent.filesUrl,
           }));
           setRequests(formattedData);
@@ -135,11 +135,13 @@ const RefundExchangeManagement = () => {
       rejected: { variant: 'destructive' as const, text: '거절' },
       completed: { variant: 'outline' as const, text: '완료' }
     };
-    return variants[status as keyof typeof variants] || variants.pending;
+    const key = (status || '').toLowerCase() as keyof typeof variants;
+    return variants[key] || variants.pending;
   };
 
   const getTypeBadge = (type: string) => {
-    return type === 'refund'
+    const t = (type || '').toLowerCase();
+    return t === 'refund'
         ? { icon: RotateCcw, text: '환불', className: 'text-red-600' }
         : { icon: RefreshCw, text: '교환', className: 'text-blue-600' };
   };
