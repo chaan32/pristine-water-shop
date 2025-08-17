@@ -35,7 +35,7 @@ const ReviewModal = ({ isOpen, onClose, product, orderName, onReviewSubmitted }:
       const response = await apiFetch('/api/shop/products/review', {
         method: 'POST',
         body: JSON.stringify({
-          productId: product?.productId,
+          productId: product.productId,
           orderName: orderName,
           rating,
           comment: comment.trim()
