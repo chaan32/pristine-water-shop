@@ -3,27 +3,54 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { MessageCircle, Package, Calendar, Eye } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MessageCircle, Package, Calendar, Eye, AlertTriangle, ShoppingCart } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-interface Inquiry {
-  id: number;
+interface GeneralInquiry {
+  inquiryId: number;
+  orderNumber?: string;
+  isAnswered: boolean;
+  answer?: string;
+  question: string;
+  title: string;
+  createdAt: string;
+}
+
+interface ProductInquiry {
+  inquiryId: number;
+  isAnswered: boolean;
+  answer?: string;
+  question: string;
+  createdAt: string;
+}
+
+interface Claim {
+  claimId: number;
   title: string;
   content: string;
-  type: 'GENERAL' | 'PRODUCT';
-  productName?: string;
-  status: 'PENDING' | 'ANSWERED' | 'CLOSED';
-  createdAt: string;
+  status: string;
   answer?: string;
-  answeredAt?: string;
+  orderNumber?: string;
+  createdAt?: string;
+}
+
+interface InquiriesData {
+  generalInquiries: GeneralInquiry[];
+  productInquiries: ProductInquiry[];
+  claims: Claim[];
 }
 
 const InquiriesTab = () => {
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [inquiriesData, setInquiriesData] = useState<InquiriesData>({
+    generalInquiries: [],
+    productInquiries: [],
+    claims: []
+  });
   const [loading, setLoading] = useState(true);
-  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedType, setSelectedType] = useState<'general' | 'product' | 'claim'>('general');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -37,8 +64,12 @@ const InquiriesTab = () => {
       const response = await apiFetch(`/api/users/inquiries/${id}`);
 
       if (response.ok) {
-        const data = await response.json();
-        setInquiries(data.data || []);
+        const result = await response.json();
+        setInquiriesData(result.data || {
+          generalInquiries: [],
+          productInquiries: [],
+          claims: []
+        });
       } else {
         throw new Error('문의내역을 불러오는데 실패했습니다.');
       }
@@ -93,143 +124,303 @@ const InquiriesTab = () => {
     );
   }
 
-  return (
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
-              나의 문의내역
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {inquiries.length === 0 ? (
-                <div className="text-center py-8">
-                  <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">문의내역이 없습니다.</p>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                  {inquiries.map((inquiry) => (
-                      <div
-                          key={inquiry.id}
-                          className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline">
-                                {getTypeText(inquiry.type)}
-                              </Badge>
-                              <Badge variant={getStatusVariant(inquiry.status)}>
-                                {getStatusText(inquiry.status)}
-                              </Badge>
-                              {inquiry.productName && (
-                                  <Badge variant="secondary" className="flex items-center gap-1">
-                                    <Package className="h-3 w-3" />
-                                    {inquiry.productName}
-                                  </Badge>
-                              )}
-                            </div>
-                            <h3 className="font-semibold text-lg mb-2">{inquiry.title}</h3>
-                            <p className="text-muted-foreground text-sm line-clamp-2 mb-2">
-                              {inquiry.content}
-                            </p>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Calendar className="h-4 w-4" />
-                              {new Date(inquiry.createdAt).toLocaleDateString('ko-KR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                            </div>
-                          </div>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setSelectedInquiry(inquiry)}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                상세보기
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
-                              <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
-                                  <MessageCircle className="h-5 w-5" />
-                                  문의 상세내용
-                                </DialogTitle>
-                              </DialogHeader>
-                              {selectedInquiry && (
-                                  <div className="space-y-4">
-                                    <div className="flex items-center gap-2">
-                                      <Badge variant="outline">
-                                        {getTypeText(selectedInquiry.type)}
-                                      </Badge>
-                                      <Badge variant={getStatusVariant(selectedInquiry.status)}>
-                                        {getStatusText(selectedInquiry.status)}
-                                      </Badge>
-                                      {selectedInquiry.productName && (
-                                          <Badge variant="secondary" className="flex items-center gap-1">
-                                            <Package className="h-3 w-3" />
-                                            {selectedInquiry.productName}
-                                          </Badge>
-                                      )}
-                                    </div>
-
-                                    <div>
-                                      <h3 className="font-semibold text-lg mb-2">{selectedInquiry.title}</h3>
-                                      <div className="text-sm text-muted-foreground mb-4">
-                                        {new Date(selectedInquiry.createdAt).toLocaleDateString('ko-KR', {
-                                          year: 'numeric',
-                                          month: 'long',
-                                          day: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })}
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <h4 className="font-semibold mb-2">문의내용</h4>
-                                      <div className="bg-muted/50 p-4 rounded-lg">
-                                        <p className="whitespace-pre-wrap">{selectedInquiry.content}</p>
-                                      </div>
-                                    </div>
-
-                                    {selectedInquiry.answer && (
-                                        <div>
-                                          <h4 className="font-semibold mb-2 text-primary">답변내용</h4>
-                                          <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
-                                            <p className="whitespace-pre-wrap mb-2">{selectedInquiry.answer}</p>
-                                            {selectedInquiry.answeredAt && (
-                                                <div className="text-sm text-muted-foreground">
-                                                  답변일시: {new Date(selectedInquiry.answeredAt).toLocaleDateString('ko-KR', {
-                                                  year: 'numeric',
-                                                  month: 'long',
-                                                  day: 'numeric',
-                                                  hour: '2-digit',
-                                                  minute: '2-digit'
-                                                })}
-                                                </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                    )}
-                                  </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </div>
-                  ))}
-                </div>
+  const renderGeneralInquiry = (inquiry: GeneralInquiry) => (
+    <div key={inquiry.inquiryId} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline">일반문의</Badge>
+            <Badge variant={inquiry.isAnswered ? 'default' : 'destructive'}>
+              {inquiry.isAnswered ? '답변완료' : '답변대기'}
+            </Badge>
+            {inquiry.orderNumber && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <ShoppingCart className="h-3 w-3" />
+                {inquiry.orderNumber}
+              </Badge>
             )}
-          </CardContent>
-        </Card>
+          </div>
+          <h3 className="font-semibold text-lg mb-2">{inquiry.title}</h3>
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-2">
+            {inquiry.question}
+          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar className="h-4 w-4" />
+            {new Date(inquiry.createdAt).toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </div>
+        </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedItem(inquiry);
+                setSelectedType('general');
+              }}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              상세보기
+            </Button>
+          </DialogTrigger>
+        </Dialog>
       </div>
+    </div>
+  );
+
+  const renderProductInquiry = (inquiry: ProductInquiry) => (
+    <div key={inquiry.inquiryId} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline">제품문의</Badge>
+            <Badge variant={inquiry.isAnswered ? 'default' : 'destructive'}>
+              {inquiry.isAnswered ? '답변완료' : '답변대기'}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-2">
+            {inquiry.question}
+          </p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar className="h-4 w-4" />
+            {new Date(inquiry.createdAt).toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </div>
+        </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedItem(inquiry);
+                setSelectedType('product');
+              }}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              상세보기
+            </Button>
+          </DialogTrigger>
+        </Dialog>
+      </div>
+    </div>
+  );
+
+  const renderClaim = (claim: Claim) => (
+    <div key={claim.claimId} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline">클레임</Badge>
+            <Badge variant={getStatusVariant(claim.status)}>
+              {getStatusText(claim.status)}
+            </Badge>
+            {claim.orderNumber && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <ShoppingCart className="h-3 w-3" />
+                {claim.orderNumber}
+              </Badge>
+            )}
+          </div>
+          <h3 className="font-semibold text-lg mb-2">{claim.title}</h3>
+          <p className="text-muted-foreground text-sm line-clamp-2 mb-2">
+            {claim.content}
+          </p>
+          {claim.createdAt && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              {new Date(claim.createdAt).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </div>
+          )}
+        </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedItem(claim);
+                setSelectedType('claim');
+              }}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              상세보기
+            </Button>
+          </DialogTrigger>
+        </Dialog>
+      </div>
+    </div>
+  );
+
+  const totalCount = inquiriesData.generalInquiries.length + inquiriesData.productInquiries.length + inquiriesData.claims.length;
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            나의 문의내역
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {totalCount === 0 ? (
+            <div className="text-center py-8">
+              <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">문의내역이 없습니다.</p>
+            </div>
+          ) : (
+            <Tabs defaultValue="general" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="general" className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  일반문의 ({inquiriesData.generalInquiries.length})
+                </TabsTrigger>
+                <TabsTrigger value="product" className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  제품문의 ({inquiriesData.productInquiries.length})
+                </TabsTrigger>
+                <TabsTrigger value="claim" className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  클레임 ({inquiriesData.claims.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="general" className="mt-4">
+                <div className="space-y-4">
+                  {inquiriesData.generalInquiries.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">일반문의가 없습니다.</p>
+                    </div>
+                  ) : (
+                    inquiriesData.generalInquiries.map(renderGeneralInquiry)
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="product" className="mt-4">
+                <div className="space-y-4">
+                  {inquiriesData.productInquiries.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">제품문의가 없습니다.</p>
+                    </div>
+                  ) : (
+                    inquiriesData.productInquiries.map(renderProductInquiry)
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="claim" className="mt-4">
+                <div className="space-y-4">
+                  {inquiriesData.claims.length === 0 ? (
+                    <div className="text-center py-8">
+                      <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">클레임이 없습니다.</p>
+                    </div>
+                  ) : (
+                    inquiriesData.claims.map(renderClaim)
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedType === 'general' && <MessageCircle className="h-5 w-5" />}
+              {selectedType === 'product' && <Package className="h-5 w-5" />}
+              {selectedType === 'claim' && <AlertTriangle className="h-5 w-5" />}
+              {selectedType === 'general' && '일반문의 상세내용'}
+              {selectedType === 'product' && '제품문의 상세내용'}
+              {selectedType === 'claim' && '클레임 상세내용'}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">
+                  {selectedType === 'general' && '일반문의'}
+                  {selectedType === 'product' && '제품문의'}
+                  {selectedType === 'claim' && '클레임'}
+                </Badge>
+                {selectedType !== 'claim' && (
+                  <Badge variant={selectedItem.isAnswered ? 'default' : 'destructive'}>
+                    {selectedItem.isAnswered ? '답변완료' : '답변대기'}
+                  </Badge>
+                )}
+                {selectedType === 'claim' && (
+                  <Badge variant={getStatusVariant(selectedItem.status)}>
+                    {getStatusText(selectedItem.status)}
+                  </Badge>
+                )}
+                {(selectedItem.orderNumber) && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <ShoppingCart className="h-3 w-3" />
+                    {selectedItem.orderNumber}
+                  </Badge>
+                )}
+              </div>
+
+              <div>
+                {selectedType !== 'product' && (
+                  <h3 className="font-semibold text-lg mb-2">
+                    {selectedType === 'general' ? selectedItem.title : selectedItem.title}
+                  </h3>
+                )}
+                <div className="text-sm text-muted-foreground mb-4">
+                  {selectedItem.createdAt && new Date(selectedItem.createdAt).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">
+                  {selectedType === 'claim' ? '내용' : '문의내용'}
+                </h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="whitespace-pre-wrap">
+                    {selectedType === 'general' ? selectedItem.question : 
+                     selectedType === 'product' ? selectedItem.question : 
+                     selectedItem.content}
+                  </p>
+                </div>
+              </div>
+
+              {selectedItem.answer && (
+                <div>
+                  <h4 className="font-semibold mb-2 text-primary">답변내용</h4>
+                  <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                    <p className="whitespace-pre-wrap mb-2">{selectedItem.answer}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
