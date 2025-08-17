@@ -39,7 +39,6 @@ const RefundExchangeManagement = () => {
       setLoading(true);
       try {
         const token = localStorage.getItem('accessToken');
-        // 🚨 중요: 정확한 API 엔드포인트('/api/admin/claims')를 사용하도록 수정했습니다.
         const response = await fetch('http://localhost:8080/api/admin/claims', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
