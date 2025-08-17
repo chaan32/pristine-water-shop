@@ -52,6 +52,8 @@ interface Order {
   ordererType: 'individual' | 'headquarters' | 'branch';
   branchName?: string | null;
   items: OrderItem[];
+  paymentStatus: 'REFUNDED' | 'APPROVED' | 'PENDING' | 'UNPAID';
+  paymentMethod: 'CARD' | 'BANK_TRANSFER' | 'CORPORATE_PAYMENT';
 }
 
 interface ProcessedOrder extends Omit<Order, 'daysSinceOrder'> {
@@ -78,6 +80,11 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackin
   const getOrdererTypeText = (type: string) => ({ individual: '개인', headquarters: '본사', branch: '지점' }[type] || type);
   const getOrdererTypeStyle = (type: string) => ({ individual: 'bg-blue-50 text-blue-700 border-blue-200', headquarters: 'bg-purple-50 text-purple-700 border-purple-200', branch: 'bg-orange-50 text-orange-700 border-orange-200' }[type] || 'bg-gray-50 text-gray-700 border-gray-200');
 
+  const getPaymentStatusText = (status: string) => ({ REFUNDED: '환불완료', APPROVED: '결제승인', PENDING: '결제대기', UNPAID: '미결제' }[status] || status);
+  const getPaymentStatusStyle = (status: string) => ({ REFUNDED: 'bg-red-50 text-red-700 border-red-200', APPROVED: 'bg-green-50 text-green-700 border-green-200', PENDING: 'bg-yellow-50 text-yellow-700 border-yellow-200', UNPAID: 'bg-gray-50 text-gray-700 border-gray-200' }[status] || 'bg-gray-50 text-gray-700 border-gray-200');
+
+  const getPaymentMethodText = (method: string) => ({ CARD: '신용카드', BANK_TRANSFER: '계좌이체', CORPORATE_PAYMENT: '법인결제' }[method] || method);
+
   const openDetailModal = (order: ProcessedOrder) => {
     setSelectedOrderForDetail(order);
     setDetailModalOpen(true);
@@ -101,6 +108,8 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackin
             <TableHead className="w-[120px]">주문일자</TableHead>
             <TableHead>주문자</TableHead>
             <TableHead>상품명</TableHead>
+            <TableHead>결제상태</TableHead>
+            <TableHead>결제방법</TableHead>
             <TableHead>배송상태</TableHead>
             <TableHead>발송처리</TableHead>
             <TableHead className="text-right">관리</TableHead>
@@ -127,6 +136,14 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackin
                 </div>
               </TableCell>
               <TableCell className="max-w-xs truncate" title={order.productName}>{order.productName}</TableCell>
+              <TableCell>
+                <Badge variant="outline" className={`text-xs ${getPaymentStatusStyle(order.paymentStatus)}`}>
+                  {getPaymentStatusText(order.paymentStatus)}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm">{getPaymentMethodText(order.paymentMethod)}</span>
+              </TableCell>
               <TableCell>
                 <Badge variant="outline" className={`text-xs ${getShippingStatusStyle(order.shippingStatus)}`}>
                   {getShippingStatusText(order.shippingStatus)}
@@ -202,6 +219,16 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackin
                     <div className="flex justify-between">
                       <span className="font-medium text-gray-600">총 결제금액:</span>
                       <span className="font-bold">₩{selectedOrderForDetail.totalAmount.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">결제상태:</span>
+                      <Badge variant="outline" className={`text-xs ${getPaymentStatusStyle(selectedOrderForDetail.paymentStatus)}`}>
+                        {getPaymentStatusText(selectedOrderForDetail.paymentStatus)}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">결제방법:</span>
+                      <span>{getPaymentMethodText(selectedOrderForDetail.paymentMethod)}</span>
                     </div>
                   </CardContent>
                 </Card>
