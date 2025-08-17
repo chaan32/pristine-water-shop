@@ -22,9 +22,11 @@ import { useToast } from '@/hooks/use-toast';
 interface OrderHistory {
   id: number;
   productName: string;
-  orderDate: string;
-  orderStatus: 'preparing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentAmount: number;
+  paymentStatus: string;
+  paymentMethod: string;
+  productPrice: number;
+  shipmentFee: number;
+  shipmentStatus: 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 }
 
 interface OrderHistoryModalProps {
@@ -38,22 +40,18 @@ interface OrderHistoryModalProps {
 const OrderHistoryModal = ({ isOpen, onClose, memberId, memberName, memberType }: OrderHistoryModalProps) => {
   const [orderHistory, setOrderHistory] = useState<OrderHistory[]>([]);
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
 
-  const fetchOrderHistory = async (page: number = 1) => {
+  const fetchOrderHistory = async () => {
     if (!memberId) return;
 
     setLoading(true);
     try {
-      const response = await apiFetch(`/api/admin/members/${memberId}/orders?page=${page}&memberType=${memberType}`);
+      const response = await apiFetch(`/api/admin/members/${memberId}/orders`);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setOrderHistory(data.data.orders);
-          setTotalPages(data.data.totalPages);
-          setCurrentPage(page);
+          setOrderHistory(data.data);
         }
       } else {
         throw new Error('Failed to fetch order history');
@@ -72,34 +70,28 @@ const OrderHistoryModal = ({ isOpen, onClose, memberId, memberName, memberType }
 
   useEffect(() => {
     if (isOpen && memberId) {
-      fetchOrderHistory(1);
+      fetchOrderHistory();
     }
   }, [isOpen, memberId]);
 
   const getOrderStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
-      preparing: '준비중',
-      shipped: '배송중',
-      delivered: '배송완료',
-      cancelled: '취소됨'
+      PREPARING: '준비중',
+      SHIPPED: '배송중',
+      DELIVERED: '배송완료',
+      CANCELLED: '취소됨'
     };
     return statusMap[status] || status;
   };
 
   const getOrderStatusStyle = (status: string) => {
     const styleMap: { [key: string]: string } = {
-      preparing: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-      shipped: 'bg-blue-50 text-blue-700 border-blue-200',
-      delivered: 'bg-green-50 text-green-700 border-green-200',
-      cancelled: 'bg-red-50 text-red-700 border-red-200'
+      PREPARING: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+      SHIPPED: 'bg-blue-50 text-blue-700 border-blue-200',
+      DELIVERED: 'bg-green-50 text-green-700 border-green-200',
+      CANCELLED: 'bg-red-50 text-red-700 border-red-200'
     };
     return styleMap[status] || 'bg-gray-50 text-gray-700 border-gray-200';
-  };
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      fetchOrderHistory(page);
-    }
   };
 
   return (
@@ -121,8 +113,8 @@ const OrderHistoryModal = ({ isOpen, onClose, memberId, memberName, memberType }
                 <TableHeader>
                   <TableRow>
                     <TableHead>상품명</TableHead>
-                    <TableHead>주문일시</TableHead>
-                    <TableHead>주문상태</TableHead>
+                    <TableHead>배송상태</TableHead>
+                    <TableHead>결제상태</TableHead>
                     <TableHead className="text-right">결제금액</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -132,64 +124,21 @@ const OrderHistoryModal = ({ isOpen, onClose, memberId, memberName, memberType }
                       <TableCell className="font-medium max-w-xs truncate" title={order.productName}>
                         {order.productName}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(order.orderDate).toLocaleDateString('ko-KR', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={`text-xs ${getOrderStatusStyle(order.orderStatus)}`}>
-                          {getOrderStatusText(order.orderStatus)}
+                        <Badge variant="outline" className={`text-xs ${getOrderStatusStyle(order.shipmentStatus)}`}>
+                          {getOrderStatusText(order.shipmentStatus)}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {order.paymentStatus}
+                      </TableCell>
                       <TableCell className="text-right font-medium">
-                        ₩{order.paymentAmount.toLocaleString()}
+                        ₩{(order.productPrice + order.shipmentFee).toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              
-              {totalPages > 1 && (
-                <div className="mt-4 flex justify-center">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                        />
-                      </PaginationItem>
-                      
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                        return (
-                          <PaginationItem key={pageNum}>
-                            <PaginationLink
-                              onClick={() => handlePageChange(pageNum)}
-                              isActive={currentPage === pageNum}
-                              className="cursor-pointer"
-                            >
-                              {pageNum}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
-                      
-                      <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
             </>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
