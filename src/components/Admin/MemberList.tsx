@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Search, Eye, User, Building, Crown } from 'lucide-react';
 import OrderHistoryModal from './OrderHistoryModal';
+import MemberDetailModal from './MemberDetailModal';
 
 // 백엔드 API 응답 구조에 맞는 타입 정의
 interface OrderSummary {
@@ -71,6 +72,11 @@ const MemberList = () => {
     isOpen: false,
     memberId: null as number | null,
     memberName: '',
+    memberType: 'individual' as 'individual' | 'corporate'
+  });
+  const [memberDetailModal, setMemberDetailModal] = useState({
+    isOpen: false,
+    memberId: null as number | null,
     memberType: 'individual' as 'individual' | 'corporate'
   });
 
@@ -153,7 +159,19 @@ const MemberList = () => {
   };
 
   const handleViewDetail = (id: number, type: 'individual' | 'corporate') => {
-    console.log('회원 상세 조회:', { id, type });
+    setMemberDetailModal({
+      isOpen: true,
+      memberId: id,
+      memberType: type
+    });
+  };
+
+  const closeMemberDetailModal = () => {
+    setMemberDetailModal({
+      isOpen: false,
+      memberId: null,
+      memberType: 'individual'
+    });
   };
 
   const handleOrderHistoryClick = (member: Member, type: 'individual' | 'corporate') => {
@@ -417,6 +435,13 @@ const MemberList = () => {
         memberId={orderHistoryModal.memberId}
         memberName={orderHistoryModal.memberName}
         memberType={orderHistoryModal.memberType}
+      />
+
+      <MemberDetailModal
+        isOpen={memberDetailModal.isOpen}
+        onClose={closeMemberDetailModal}
+        memberId={memberDetailModal.memberId}
+        memberType={memberDetailModal.memberType}
       />
     </div>
   );
