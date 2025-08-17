@@ -29,7 +29,8 @@ const MyPage = () => {
   const [isReAuthOpen, setIsReAuthOpen] = useState(false);
   const [isPasswordChangeOpen, setIsPasswordChangeOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [selectedOrderForReview, setSelectedOrderForReview] = useState(null);
+  const [selectedProductForReview, setSelectedProductForReview] = useState(null);
+  const [selectedOrderName, setSelectedOrderName] = useState('');
 
 
 
@@ -194,8 +195,9 @@ const MyPage = () => {
     setIsOrderDetailOpen(true);
   };
 
-  const handleReviewClick = (order: any) => {
-    setSelectedOrderForReview(order);
+  const handleReviewClick = (product: any, orderName: string) => {
+    setSelectedProductForReview(product);
+    setSelectedOrderName(orderName);
     setIsReviewModalOpen(true);
   };
 
@@ -526,16 +528,21 @@ const MyPage = () => {
                                 </Button>
                               )}
                             </div>
-                            {order.shipmentStatus === 'DELIVERED' && (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                className="h-8 px-2 text-xs mt-1"
-                                onClick={() => handleReviewClick(order)}
-                              >
-                                <MessageSquare className="w-3 h-3 mr-1" />
-                                후기 남기기
-                              </Button>
+                            {order.shipmentStatus === 'DELIVERED' && order.products && (
+                              <div className="flex flex-col gap-1">
+                                {(Array.isArray(order.products) ? order.products : [order.products]).map((product, idx) => (
+                                  <Button
+                                    key={idx}
+                                    variant="default"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs"
+                                    onClick={() => handleReviewClick({ productId: product.productId || idx, productName: product.productName || product }, order.orderName)}
+                                  >
+                                    <MessageSquare className="w-3 h-3 mr-1" />
+                                    {product.productName || product} 후기
+                                  </Button>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -576,7 +583,8 @@ const MyPage = () => {
         <ReviewModal
           isOpen={isReviewModalOpen}
           onClose={() => setIsReviewModalOpen(false)}
-          order={selectedOrderForReview}
+          product={selectedProductForReview}
+          orderName={selectedOrderName}
           onReviewSubmitted={handleReviewSubmitted}
         />
 

@@ -9,11 +9,12 @@ import { apiFetch } from '@/lib/api';
 interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  order: any;
+  product: any;
+  orderName: string;
   onReviewSubmitted: () => void;
 }
 
-const ReviewModal = ({ isOpen, onClose, order, onReviewSubmitted }: ReviewModalProps) => {
+const ReviewModal = ({ isOpen, onClose, product, orderName, onReviewSubmitted }: ReviewModalProps) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,10 +32,11 @@ const ReviewModal = ({ isOpen, onClose, order, onReviewSubmitted }: ReviewModalP
 
     setIsSubmitting(true);
     try {
-      const response = await apiFetch('/api/orders/review', {
+      const response = await apiFetch('/api/products/review', {
         method: 'POST',
         body: JSON.stringify({
-          orderName: order?.orderName,
+          productId: product?.productId,
+          orderName: orderName,
           rating,
           comment: comment.trim()
         })
@@ -80,7 +82,12 @@ const ReviewModal = ({ isOpen, onClose, order, onReviewSubmitted }: ReviewModalP
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium block mb-2">주문번호</label>
-            <p className="text-sm text-muted-foreground">{order?.orderName}</p>
+            <p className="text-sm text-muted-foreground">{orderName}</p>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium block mb-2">제품명</label>
+            <p className="text-sm text-muted-foreground">{product?.productName}</p>
           </div>
 
           <div>
