@@ -22,7 +22,7 @@ const Footer = () => {
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <Droplets className="w-5 h-5 text-primary-foreground" />
               </div>
-              <h3 className="text-xl font-bold text-primary">AquaPure</h3>
+              <h3 className="text-xl font-bold text-primary">DRAGON COMPANY</h3>
             </div>
             
             <div className="space-y-2 text-sm text-muted-foreground">

@@ -70,7 +70,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   <Droplets className="w-5 h-5 text-primary-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-primary">AquaPure</h1>
+                  <h1 className="text-xl font-bold text-primary">DRAGON COMPANY</h1>
                   <p className="text-xs text-muted-foreground">관리자 패널</p>
                 </div>
               </Link>

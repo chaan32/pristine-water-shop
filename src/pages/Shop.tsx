@@ -194,7 +194,7 @@ const Shop = () => {
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-4">쇼핑몰</h1>
             <p className="text-lg text-muted-foreground">
-              AquaPure의 모든 제품을 한곳에서 만나보세요
+              DragonCompany의 모든 제품을 한곳에서 만나보세요
             </p>
           </div>
 
