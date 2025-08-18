@@ -32,6 +32,7 @@ const ReviewModal = ({ isOpen, onClose, product, orderName, onReviewSubmitted }:
 
     setIsSubmitting(true);
     try {
+      const accessToken = localStorage.getItem('accessToken');
       const response = await apiFetch('/api/shop/products/review', {
         method: 'POST',
         body: JSON.stringify({
@@ -39,7 +40,11 @@ const ReviewModal = ({ isOpen, onClose, product, orderName, onReviewSubmitted }:
           orderName: orderName,
           rating,
           comment: comment.trim()
-        })
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        }
       });
 
       if (response.ok) {
