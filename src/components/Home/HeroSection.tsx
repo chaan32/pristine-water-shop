@@ -36,7 +36,7 @@ const HeroSection = () => {
 
           {/* Description */}
           <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed">
-            AquaPure와 함께 시작하는 정수 필터의 새로운 경험.
+            DRAGON COMPANY와 함께 시작하는 정수 필터의 새로운 경험.
             <br />
             믿을 수 있는 품질로 당신의 건강을 지켜드립니다.
           </p>
@@ -46,13 +46,6 @@ const HeroSection = () => {
             <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground water-drop">
               제품 둘러보기
               <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-            >
-              브랜드 스토리
             </Button>
           </div>
 
@@ -64,7 +57,7 @@ const HeroSection = () => {
             </div>
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5" />
-              <span className="text-sm font-medium">20년 노하우</span>
+              <span className="text-sm font-medium">다년간 노하우</span>
             </div>
             <div className="flex items-center gap-2">
               <Droplets className="w-5 h-5" />

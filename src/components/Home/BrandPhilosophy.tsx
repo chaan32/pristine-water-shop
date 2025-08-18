@@ -32,7 +32,7 @@ const BrandPhilosophy = () => {
     {
       icon: Users,
       title: '고객 중심',
-      description: '20년간 쌓은 노하우로 최고의 서비스를 제공합니다',
+      description: '다년간 쌓은 노하우로 최고의 서비스를 제공합니다',
       color: 'text-orange-500'
     }
   ];
@@ -56,10 +56,10 @@ const BrandPhilosophy = () => {
               필터란 무엇인가?
             </h2>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              AquaPure는 단순한 필터가 아닙니다. 
+              Dragon Company의 필터는 단순한 필터가 아닙니다.
               우리는 건강한 삶의 시작이자, 가족을 위한 안전한 선택입니다.
               <br /><br />
-              20년간의 연구와 개발을 통해 완성된 정수 기술로 
+              다년간의 연구와 개발을 통해 완성된 정수 기술로
               물 속 유해물질을 99.9% 제거하면서도 
               인체에 필요한 미네랄은 그대로 보존합니다.
             </p>
@@ -74,10 +74,7 @@ const BrandPhilosophy = () => {
               ))}
             </div>
 
-            <Button size="lg" className="water-drop">
-              브랜드 스토리 자세히 보기
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+
           </div>
 
           {/* Right Content - Philosophy Cards */}
@@ -102,10 +99,7 @@ const BrandPhilosophy = () => {
 
         {/* Bottom Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-12 border-t border-border">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary mb-2">20+</div>
-            <div className="text-sm text-muted-foreground">운영 경력</div>
-          </div>
+
           <div className="text-center">
             <div className="text-3xl font-bold text-primary mb-2">99.9%</div>
             <div className="text-sm text-muted-foreground">정수율</div>

@@ -509,7 +509,7 @@ const Support = () => {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>대표번호:</span>
-                          <span className="font-medium">1588-1234</span>
+                          <span className="font-medium">010-4658-7418</span>
                         </div>
                         <div className="flex justify-between">
                           <span>운영시간:</span>
@@ -531,15 +531,15 @@ const Support = () => {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>일반 문의:</span>
-                          <span>info@aquapure.co.kr</span>
+                          <span>ttgy61@naver.com</span>
                         </div>
                         <div className="flex justify-between">
                           <span>기술 지원:</span>
-                          <span>support@aquapure.co.kr</span>
+                          <span>ttgy61@naver.com</span>
                         </div>
                         <div className="flex justify-between">
                           <span>제품 문의:</span>
-                          <span>product@aquapure.co.kr</span>
+                          <span>ttgy61@naver.com</span>
                         </div>
                       </div>
                     </div>

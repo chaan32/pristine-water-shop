@@ -88,11 +88,11 @@ const Header = () => {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <Phone className="w-3 h-3" />
-                <span>1588-1234</span>
+                <span>010-4658-7418</span>
               </div>
               <div className="flex items-center gap-1">
                 <Mail className="w-3 h-3" />
-                <span>info@waterfilter.co.kr</span>
+                <span>ttgy61@naver.com</span>
               </div>
             </div>
             <div className="hidden md:flex items-center gap-4">
@@ -151,25 +151,15 @@ const Header = () => {
       {/* Main Header */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
-          {/*/!* Logo *!/*/}
-          {/*<Link to="/" className="flex items-center gap-2 group">*/}
-          {/*  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center water-drop">*/}
-          {/*    <Droplets className="w-6 h-6 text-primary-foreground" />*/}
-          {/*  </div>*/}
-          {/*  <div>*/}
-          {/*    <h1 className="text-2xl font-bold text-primary">AquaPure</h1>*/}
-          {/*    <p className="text-xs text-muted-foreground">정수 필터 전문</p>*/}
-          {/*  </div>*/}
-          {/*</Link>*/}
           <Link to="/" className="flex items-center gap-2 group">
             <img
                 src="https://dragonwater-image-storage-by-haechan.s3.ap-northeast-2.amazonaws.com/%EB%A1%9C%EA%B3%A0/%E1%84%8E%E1%85%A9%E1%84%85%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A2%E1%86%A8%E1%84%85%E1%85%A9%E1%84%80%E1%85%A9.jpeg"
                 alt="드래곤 로고"
-                className="h-10"
+                className="h-16"
             />
             <div>
-              <h1 className="text-2xl font-bold text-primary">이름</h1>
-              <p className="text-xs text-muted-foreground">캐치프라이즈</p> {/* 필요에 따라 문구 수정 */}
+              <h1 className="text-2xl font-bold text-primary">DRAGON COMPANY</h1>
+              <p className="text-xs text-muted-foreground">수질의 혁신, 깨끗함의 기준</p> {/* 필요에 따라 문구 수정 */}
             </div>
           </Link>
 

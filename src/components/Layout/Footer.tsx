@@ -26,17 +26,17 @@ const Footer = () => {
             </div>
             
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p><span className="font-medium text-foreground">대표자:</span> 김정수</p>
+              <p><span className="font-medium text-foreground">대표자:</span> 문용현</p>
               <p className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>서울특별시 강남구 테헤란로 123, 456호 (역삼동, 물빌딩)</span>
+                <span>경기 안양시 동안구 귀인로 190번길 90-13</span>
               </p>
-              <p><span className="font-medium text-foreground">사업자등록번호:</span> 123-45-67890</p>
-              <p><span className="font-medium text-foreground">개인정보책임자:</span> 박정수 (privacy@aquapure.co.kr)</p>
+              <p><span className="font-medium text-foreground">사업자등록번호:</span> 289-02-03583</p>
+              <p><span className="font-medium text-foreground">개인정보책임자:</span> 문용현 (ttgy61@naver.com)</p>
               <p>
                 <span className="font-medium text-foreground">제휴문의:</span> 
                 <a href="mailto:partner@aquapure.co.kr" className="text-primary hover:underline ml-1">
-                  partner@aquapure.co.kr
+                  ttgy61@naver.com
                 </a>
               </p>
             </div>
@@ -52,7 +52,7 @@ const Footer = () => {
                   <Phone className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-primary">1588-1234</p>
+                  <p className="text-2xl font-bold text-primary">010-4658-7418</p>
                   <p className="text-sm text-muted-foreground">평일 9:00 ~ 18:00</p>
                 </div>
               </div>
@@ -62,7 +62,7 @@ const Footer = () => {
                   <Mail className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">info@aquapure.co.kr</p>
+                  <p className="font-medium text-foreground">ttgy61@naver.com</p>
                   <p className="text-sm text-muted-foreground">24시간 이메일 접수</p>
                 </div>
               </div>
@@ -82,7 +82,7 @@ const Footer = () => {
           {/* SNS & Quick Links - Right */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-foreground mb-6">소셜미디어</h4>
-            
+
             <div className="flex gap-3">
               <Button variant="outline" size="sm" className="w-10 h-10 p-0 water-drop">
                 <Facebook className="w-4 h-4" />
@@ -119,9 +119,10 @@ const Footer = () => {
 
         {/* Bottom Copyright */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-          <p>© 2024 AquaPure. All rights reserved.</p>
+          <p>© 2025 DRAGON COMPANY. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <span>웹사이트 운영: AquaPure Co., Ltd.</span>
+            <span>웹사이트 운영: haechan8864@naver.com</span>
+            {/*<span>웹사이트 운영: AquaPure Co., Ltd.</span>*/}
             <span>|</span>
             <span>Made with 💧 for Clean Water</span>
           </div>
