@@ -15,7 +15,7 @@ const Footer = () => {
   return (
     <footer className="bg-secondary border-t border-border mt-20">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Company Info - Left */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-6">
@@ -42,7 +42,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Customer Service - Center */}
+          {/* Customer Service - Right */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-foreground mb-6">고객센터</h4>
             
@@ -75,41 +75,6 @@ const Footer = () => {
                   <p className="font-medium text-foreground">운영시간</p>
                   <p className="text-sm text-muted-foreground">점심시간: 12:00 ~ 13:00</p>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SNS & Quick Links - Right */}
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-foreground mb-6">소셜미디어</h4>
-
-            <div className="flex gap-3">
-              <Button variant="outline" size="sm" className="w-10 h-10 p-0 water-drop">
-                <Facebook className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="sm" className="w-10 h-10 p-0 water-drop">
-                <Instagram className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="sm" className="w-10 h-10 p-0 water-drop">
-                <Youtube className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="space-y-3 mt-8">
-              <h5 className="font-medium text-foreground">빠른 링크</h5>
-              <div className="space-y-2">
-                <a href="#" className="block text-sm text-muted-foreground hover:text-primary transition-smooth">
-                  개인정보처리방침
-                </a>
-                <a href="#" className="block text-sm text-muted-foreground hover:text-primary transition-smooth">
-                  이용약관
-                </a>
-                <a href="#" className="block text-sm text-muted-foreground hover:text-primary transition-smooth">
-                  AS센터 안내
-                </a>
-                <a href="#" className="block text-sm text-muted-foreground hover:text-primary transition-smooth">
-                  대량구매 문의
-                </a>
               </div>
             </div>
           </div>
