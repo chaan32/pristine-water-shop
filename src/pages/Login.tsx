@@ -167,15 +167,15 @@ const Login = () => {
         <div className="max-w-md mx-auto">
           <Card className="water-drop">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold">로그인</CardTitle>
-              <p className="text-muted-foreground">AquaPure에 오신 것을 환영합니다</p>
+              <CardTitle className="text-2xl font-bold">DRAGON COMPANY</CardTitle>
+              <p className="text-muted-foreground"></p>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                    <Input 
-                    placeholder="아이디 (관리자: admin, 본사: headquarters, 지점: branch)" 
+                    placeholder="아이디 "
                     className="pl-10"
                     value={loginData.username}
                     onChange={(e) => setLoginData(prev => ({ ...prev, username: e.target.value }))}
@@ -185,7 +185,7 @@ const Login = () => {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                    <Input 
                     type="password" 
-                    placeholder="비밀번호 (관리자: admin, 본사: headquarters, 지점: branch)" 
+                    placeholder="비밀번호"
                     className="pl-10"
                     value={loginData.password}
                     onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
