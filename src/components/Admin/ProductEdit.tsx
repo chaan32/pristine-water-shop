@@ -278,6 +278,7 @@ const ProductEdit = () => {
         });
       }
     } catch (error) {
+      console.log(error);
       toast({
         title: "오류",
         description: "표현 추가에 실패했습니다.",
@@ -371,7 +372,6 @@ const ProductEdit = () => {
           discountPercent: parseInt(editForm.discountPercent),
           stock: parseInt(editForm.stock),
           status: editForm.status,
-          expressions: expressions
         })
       });
 
