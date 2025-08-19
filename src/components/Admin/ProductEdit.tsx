@@ -50,7 +50,7 @@ const ProductEdit = () => {
   const [isAddSubCategoryOpen, setIsAddSubCategoryOpen] = useState(false);
   
   // 상품 표현 관련
-  const [expressions, setExpressions] = useState<string[]>([]);
+  const [expressions, setExpressions] = useState<Record<string, string>>({});
   const [currentExpression, setCurrentExpression] = useState('');
   
   const { toast } = useToast();
@@ -247,6 +247,83 @@ const ProductEdit = () => {
     (product.category || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Expression 추가 함수
+  const handleAddExpression = async () => {
+    if (!currentExpression.trim() || !selectedProduct) return;
+    
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:8080/api/admin/expressions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          expression: currentExpression.trim()
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setExpressions(prev => ({
+          ...prev,
+          [data.id]: currentExpression.trim()
+        }));
+        setCurrentExpression('');
+        toast({
+          title: "표현 추가 완료",
+          description: "새로운 표현이 추가되었습니다.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "표현 추가에 실패했습니다.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Expression 삭제 함수
+  const handleDeleteExpression = async (expressionId: string) => {
+    if (!selectedProduct) return;
+    
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:8080/api/admin/expressions', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          expressionId: expressionId
+        })
+      });
+
+      if (response.ok) {
+        setExpressions(prev => {
+          const newExpressions = { ...prev };
+          delete newExpressions[expressionId];
+          return newExpressions;
+        });
+        toast({
+          title: "표현 삭제 완료",
+          description: "표현이 삭제되었습니다.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "표현 삭제에 실패했습니다.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleEdit = (product: any) => {
     setSelectedProduct(product);
     setEditForm({
@@ -261,7 +338,7 @@ const ProductEdit = () => {
       status: product.status || ''
     });
     setSelectedCategoryName(product.categoryName || product.category || '');
-    setExpressions(product.expressions || []);
+    setExpressions(product.expressions || {});
     setCurrentExpression('');
     setIsEditOpen(true);
   };
@@ -721,8 +798,7 @@ const ProductEdit = () => {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && currentExpression.trim()) {
                           e.preventDefault();
-                          setExpressions(prev => [...prev, currentExpression.trim()]);
-                          setCurrentExpression('');
+                          handleAddExpression();
                         }
                       }}
                     />
@@ -730,27 +806,22 @@ const ProductEdit = () => {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        if (currentExpression.trim()) {
-                          setExpressions(prev => [...prev, currentExpression.trim()]);
-                          setCurrentExpression('');
-                        }
-                      }}
+                      onClick={handleAddExpression}
                     >
                       추가
                     </Button>
                   </div>
-                  {expressions.length > 0 && (
+                  {Object.keys(expressions).length > 0 && (
                     <div className="space-y-1 border border-border rounded-lg p-3 bg-muted/20">
                       <p className="text-sm font-medium text-muted-foreground mb-2">등록된 표현들:</p>
-                      {expressions.map((expression, index) => (
-                        <div key={index} className="flex items-center justify-between text-sm bg-background rounded px-2 py-1">
+                      {Object.entries(expressions).map(([id, expression]) => (
+                        <div key={id} className="flex items-center justify-between text-sm bg-background rounded px-2 py-1">
                           <span>{expression}</span>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => setExpressions(prev => prev.filter((_, i) => i !== index))}
+                            onClick={() => handleDeleteExpression(id)}
                             className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
                           >
                             ×
