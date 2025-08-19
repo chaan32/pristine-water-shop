@@ -20,7 +20,8 @@ const ProductManagement = () => {
     discountPercent: '',
     discountPrice: '',
     stock: '',
-    categoryId: ''
+    categoryId: '',
+    mainCategoryId: ''
   });
 
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
@@ -171,7 +172,7 @@ const ProductManagement = () => {
     setSelectedMainCategoryId(mainCategory.id);
     setSelectedMainCategoryName(mainCategory.category);
     setSelectedCategoryName(''); // 서브 카테고리 선택 초기화
-    setFormData(prev => ({ ...prev, categoryId: '' })); // 제품 폼의 카테고리 ID 초기화
+    setFormData(prev => ({ ...prev, categoryId: '', mainCategoryId: mainCategory.id.toString() })); // 메인 카테고리 ID도 설정
     
     // 서브 카테고리가 있으면 조회, 없으면 빈 배열로 설정
     if (Object.keys(mainCategory.subCategories).length > 0) {
@@ -216,7 +217,8 @@ const ProductManagement = () => {
         discountPercent: formData.discountPercent ? parseInt(formData.discountPercent) : null,
         discountPrice: formData.discountPrice ? parseInt(formData.discountPrice) : null,
         stock: parseInt(formData.stock),
-        categoryId: formData.categoryId
+        categoryId: formData.categoryId,
+        mainCategoryId: formData.mainCategoryId
       };
 
       const response = await fetch('http://localhost:8080/api/admin/products/add', {
@@ -257,7 +259,8 @@ const ProductManagement = () => {
           discountPercent: '',
           discountPrice: '',
           stock: '',
-          categoryId: ''
+          categoryId: '',
+          mainCategoryId: ''
         });
         setSelectedCategoryName('');
         setSelectedMainCategoryId(null);
