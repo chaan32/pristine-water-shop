@@ -236,9 +236,18 @@ const ProductEdit = () => {
 
   // 서브 카테고리 선택 시
   const handleSubCategorySelect = (subCategory: { id: string; name: string }) => {
-    setSelectedCategoryName(`${selectedMainCategoryName} > ${subCategory.name}`);
-    handleInputChange('categoryId', subCategory.id);
-    handleInputChange('category', subCategory.name);
+    if (subCategory && subCategory.name && subCategory.id) {
+      setSelectedCategoryName(`${selectedMainCategoryName} > ${subCategory.name}`);
+      handleInputChange('categoryId', subCategory.id);
+      handleInputChange('category', subCategory.name);
+    } else {
+      console.error('서브카테고리 정보가 올바르지 않습니다:', subCategory);
+      toast({
+        title: "오류",
+        description: "서브카테고리 선택 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    }
   };
 
   useEffect(() => {
@@ -343,7 +352,7 @@ const ProductEdit = () => {
     }
   };
 
-  const handleEdit = (product: any) => {
+  const handleEdit = async (product: any) => {
     setSelectedProduct(product);
     setEditForm({
       name: product.name || '',
@@ -356,7 +365,30 @@ const ProductEdit = () => {
       stock: (product.stock || 0).toString(),
       status: product.status || ''
     });
-    setSelectedCategoryName(product.categoryName || product.category || '');
+    
+    // 기존 카테고리 정보로 메인카테고리와 서브카테고리 설정
+    if (product.mainCategory) {
+      const mainCategory = mainCategories.find(cat => cat.category === product.mainCategory);
+      if (mainCategory) {
+        setSelectedMainCategoryId(mainCategory.id);
+        setSelectedMainCategoryName(mainCategory.category);
+        
+        // 서브카테고리가 있으면 불러오기
+        if (product.subCategory) {
+          await fetchSubCategories(mainCategory.id);
+          setSelectedCategoryName(`${product.mainCategory} > ${product.subCategory}`);
+        } else {
+          setSelectedCategoryName(product.mainCategory);
+        }
+      }
+    } else {
+      // 카테고리 정보 초기화
+      setSelectedMainCategoryId(null);
+      setSelectedMainCategoryName('');
+      setSelectedCategoryName('');
+      setSubCategories([]);
+    }
+    
     setExpressions(product.expressions || {});
     setCurrentExpression('');
     setIsEditOpen(true);
