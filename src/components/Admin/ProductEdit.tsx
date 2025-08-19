@@ -15,11 +15,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown } from 'lucide-react';
+import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -240,12 +242,24 @@ const ProductEdit = () => {
     fetchMainCategories();
   }, []);
 
-  const filteredProducts = products.filter(product =>
-    (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.mainCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.subCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.category || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.mainCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.subCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = !categoryFilter || 
+      (product.mainCategory || '').toLowerCase().includes(categoryFilter.toLowerCase()) ||
+      (product.subCategory || '').toLowerCase().includes(categoryFilter.toLowerCase());
+    
+    const matchesStatus = !statusFilter || product.status === statusFilter;
+    
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  // 카테고리 목록 생성 (필터용)
+  const availableCategories = [...new Set(products.map(p => p.mainCategory).filter(Boolean))];
+  const availableStatuses = [...new Set(products.map(p => p.status).filter(Boolean))];
 
   // Expression 추가 함수
   const handleAddExpression = async () => {
@@ -452,7 +466,7 @@ const ProductEdit = () => {
       <Card>
         <CardHeader>
           <CardTitle>등록된 상품 목록</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
@@ -462,6 +476,75 @@ const ProductEdit = () => {
                 className="pl-8"
               />
             </div>
+            
+            {/* 카테고리 필터 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[120px] justify-between">
+                  <Filter className="w-4 h-4 mr-2" />
+                  {categoryFilter || "카테고리"}
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white dark:bg-gray-800 border">
+                <DropdownMenuItem 
+                  onClick={() => setCategoryFilter('')}
+                  className={!categoryFilter ? "bg-primary/10" : ""}
+                >
+                  전체 카테고리
+                </DropdownMenuItem>
+                {availableCategories.map((category) => (
+                  <DropdownMenuItem 
+                    key={category}
+                    onClick={() => setCategoryFilter(category)}
+                    className={categoryFilter === category ? "bg-primary/10" : ""}
+                  >
+                    {category}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* 상태 필터 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[100px] justify-between">
+                  {statusFilter || "상태"}
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white dark:bg-gray-800 border">
+                <DropdownMenuItem 
+                  onClick={() => setStatusFilter('')}
+                  className={!statusFilter ? "bg-primary/10" : ""}
+                >
+                  전체 상태
+                </DropdownMenuItem>
+                {availableStatuses.map((status) => (
+                  <DropdownMenuItem 
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={statusFilter === status ? "bg-primary/10" : ""}
+                  >
+                    {status}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* 필터 초기화 버튼 */}
+            {(categoryFilter || statusFilter) && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => {
+                  setCategoryFilter('');
+                  setStatusFilter('');
+                }}
+              >
+                필터 초기화
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -774,13 +857,29 @@ const ProductEdit = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="edit-status">상태</Label>
-                    <Input
-                      id="edit-status"
-                      value={editForm.status}
-                      onChange={(e) => handleInputChange('status', e.target.value)}
-                      placeholder="상품 상태"
-                    />
+                    <Label>상태</Label>
+                    <div className="flex gap-2">
+                      {['판매 중', '품절', '판매 중단'].map((status) => (
+                        <Button
+                          key={status}
+                          type="button"
+                          variant={editForm.status === status ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleInputChange('status', status)}
+                          className={`${
+                            editForm.status === status 
+                              ? status === '판매 중' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : status === '품절' 
+                                ? 'bg-destructive text-destructive-foreground' 
+                                : 'bg-secondary text-secondary-foreground'
+                              : 'hover:bg-accent hover:text-accent-foreground'
+                          }`}
+                        >
+                          {status}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
