@@ -264,7 +264,7 @@ const CorporateRequests = () => {
                       {getBusinessTypeText(request.businessType)}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{request.requestDate}</TableCell>
+                  <TableCell className="text-muted-foreground">{request.requestDate?.split('T')[0] || request.requestDate}</TableCell>
                   <TableCell>
                     <Button
                       variant="link"

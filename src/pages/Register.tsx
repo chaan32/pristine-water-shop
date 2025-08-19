@@ -14,11 +14,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { UserPlus, Building, User, Check, X, Upload, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface Headquarters {
-  id: string;
-  name: string;
-  businessNumber: string;
-}
+  interface Headquarters {
+    id: string;
+    name: string;
+    businessNumber: string;
+    businessNumber1?: string;
+    businessNumber2?: string;
+    businessNumber3?: string;
+  }
 
 const Register = () => {
   const { toast } = useToast();
@@ -46,7 +49,9 @@ const Register = () => {
     confirmPassword: '',
     email: '',
     companyName: '',
-    businessNumber: '',
+    businessNumber1: '',
+    businessNumber2: '',
+    businessNumber3: '',
     termsAccepted: false,
     privacyAccepted: false,
     corporateType: '', // 'headquarters', 'franchise', 'single'
@@ -57,7 +62,9 @@ const Register = () => {
     address: '',
     detailAddress: '',
     postalCode: '',
-    phone: '',
+    phone1: '',
+    phone2: '',
+    phone3: '',
     isPhoneVerified: false,
     // 프랜차이즈 지점 회원 전용 필드
     headquartersName: '',
@@ -107,7 +114,7 @@ const Register = () => {
 
   // 휴대폰 인증 함수
   const handlePhoneVerification = (type: 'individual' | 'corporate') => {
-    const phone = type === 'individual' ? individualForm.phone : corporateForm.phone;
+    const phone = type === 'individual' ? individualForm.phone : `${corporateForm.phone1}-${corporateForm.phone2}-${corporateForm.phone3}`;
     
     if (!phone.trim()) {
       toast({
@@ -223,9 +230,13 @@ const Register = () => {
     corporateForm.isIdAvailable &&
     corporateForm.email &&
     corporateForm.companyName &&
-    corporateForm.businessNumber &&
+    corporateForm.businessNumber1 &&
+    corporateForm.businessNumber2 &&
+    corporateForm.businessNumber3 &&
     corporateForm.address &&
-    corporateForm.phone &&
+    corporateForm.phone1 &&
+    corporateForm.phone2 &&
+    corporateForm.phone3 &&
     corporateForm.businessRegistration && // 사업자등록증 필수
     // 프랜차이즈 지점 회원인 경우 추가 검증
     (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName && corporateForm.managerName && corporateForm.managerPhone));
@@ -341,11 +352,15 @@ const Register = () => {
 
   // 본사 선택 함수
   const handleHeadquartersSelect = (headquarters: Headquarters) => {
+    // 사업자번호 분리 (00-000-00000 형식)
+    const businessParts = headquarters.businessNumber.split('-');
     setCorporateForm(prev => ({
       ...prev,
       headquartersName: headquarters.name,
       companyName: headquarters.name, // 회사명도 본사명으로 자동 채우기
-      businessNumber: headquarters.businessNumber, // 사업자번호도 자동 채우기
+      businessNumber1: businessParts[0] || '',
+      businessNumber2: businessParts[1] || '',
+      businessNumber3: businessParts[2] || '',
       headquartersId: headquarters.id
     }));
     setIsHeadquartersModalOpen(false);
@@ -466,9 +481,9 @@ const Register = () => {
         password: corporateForm.password,
         email: corporateForm.email,
         companyName: corporateForm.companyName,
-        businessNumber: corporateForm.businessNumber,
+        businessNumber: `${corporateForm.businessNumber1}-${corporateForm.businessNumber2}-${corporateForm.businessNumber3}`,
         businessType: corporateForm.businessType,
-        phone: corporateForm.phone,
+        phone: `${corporateForm.phone1}-${corporateForm.phone2}-${corporateForm.phone3}`,
         address: corporateForm.address,
         detailAddress: corporateForm.detailAddress,
         postalCode: corporateForm.postalCode,
@@ -914,11 +929,34 @@ const Register = () => {
                       value={corporateForm.companyName}
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
                     />
-                    <Input 
-                      placeholder="사업자등록번호" 
-                      value={corporateForm.businessNumber}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber: e.target.value }))}
-                    />
+                    <div className="space-y-2">
+                      <Label>사업자등록번호 (필수)</Label>
+                      <div className="flex gap-2 items-center">
+                        <Input 
+                          placeholder="000"
+                          maxLength={3}
+                          value={corporateForm.businessNumber1}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber1: e.target.value }))}
+                          className="w-20"
+                        />
+                        <span className="text-muted-foreground">-</span>
+                        <Input 
+                          placeholder="00"
+                          maxLength={2}
+                          value={corporateForm.businessNumber2}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber2: e.target.value }))}
+                          className="w-16"
+                        />
+                        <span className="text-muted-foreground">-</span>
+                        <Input 
+                          placeholder="00000"
+                          maxLength={5}
+                          value={corporateForm.businessNumber3}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber3: e.target.value }))}
+                          className="w-24"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -1001,12 +1039,37 @@ const Register = () => {
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, email: e.target.value }))}
                       disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                     />
-                    <Input 
-                      placeholder="회사 전화번호"
-                      value={corporateForm.phone}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, phone: e.target.value }))}
-                      disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                    />
+                    <div className="space-y-2">
+                      <Label>회사 전화번호 (필수)</Label>
+                      <div className="flex gap-2 items-center">
+                        <Input 
+                          placeholder="000"
+                          maxLength={3}
+                          value={corporateForm.phone1}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone1: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="w-20"
+                        />
+                        <span className="text-muted-foreground">-</span>
+                        <Input 
+                          placeholder="0000"
+                          maxLength={4}
+                          value={corporateForm.phone2}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone2: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="w-20"
+                        />
+                        <span className="text-muted-foreground">-</span>
+                        <Input 
+                          placeholder="0000"
+                          maxLength={4}
+                          value={corporateForm.phone3}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone3: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="w-20"
+                        />
+                      </div>
+                    </div>
                   </div>
                   
                   {/* 주소 입력 */}
