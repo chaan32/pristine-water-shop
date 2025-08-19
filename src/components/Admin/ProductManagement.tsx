@@ -200,8 +200,8 @@ const ProductManagement = () => {
     try {
       const token = localStorage.getItem('accessToken');
       const endpoint = editingCategory.type === 'main' 
-        ? `http://localhost:8080/api/admin/main/categories/${editingCategory.id}/${editingCategory.name}`
-        : `http://localhost:8080/api/admin/sub/categories/${editingCategory.id}/${editingCategory.name}`;
+        ? `http://localhost:8080/api/admin/main/categories/${editingCategory.id}/${editCategoryName.trim()}`
+        : `http://localhost:8080/api/admin/sub/categories/${editingCategory.id}/${editCategoryName.trim()}`;
       
       const response = await fetch(endpoint, {
         method: 'PUT',
