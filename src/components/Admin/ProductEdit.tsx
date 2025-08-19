@@ -238,6 +238,8 @@ const ProductEdit = () => {
 
   const filteredProducts = products.filter(product =>
     (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.mainCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.subCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (product.category || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -388,7 +390,8 @@ const ProductEdit = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>상품명</TableHead>
-                  <TableHead>카테고리</TableHead>
+                  <TableHead>메인 카테고리</TableHead>
+                  <TableHead>서브 카테고리</TableHead>
                   <TableHead>일반가격</TableHead>
                   <TableHead>사업자가격</TableHead>
                   <TableHead>할인가격</TableHead>
@@ -402,8 +405,30 @@ const ProductEdit = () => {
               <TableBody>
                 {filteredProducts.map((product, index) => (
                   <TableRow key={product.id || `product-${index}`}>
-                    <TableCell className="font-medium">{product.name || '-'}</TableCell>
-                    <TableCell>{product.categoryName || product.category || '-'}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="space-y-1">
+                        <div>{product.name || '-'}</div>
+                        <div className="flex gap-1 flex-wrap">
+                          {product.isNew && (
+                            <Badge variant="default" className="text-xs">
+                              NEW
+                            </Badge>
+                          )}
+                          {product.isRecommendation && (
+                            <Badge variant="secondary" className="text-xs">
+                              추천
+                            </Badge>
+                          )}
+                          {product.isBest && (
+                            <Badge variant="destructive" className="text-xs">
+                              BEST
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{product.mainCategory || '-'}</TableCell>
+                    <TableCell>{product.subCategory || '-'}</TableCell>
                     <TableCell>₩{(product.customerPrice || 0).toLocaleString()}</TableCell>
                     <TableCell>₩{(product.businessPrice || 0).toLocaleString()}</TableCell>
                     <TableCell>₩{(product.discountPrice || 0).toLocaleString()}</TableCell>
@@ -443,7 +468,7 @@ const ProductEdit = () => {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))}              
               </TableBody>
             </Table>
           )}
