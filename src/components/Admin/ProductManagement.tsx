@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Plus, ChevronDown } from 'lucide-react';
+import { Save, Plus, ChevronDown, Edit2 } from 'lucide-react';
 
 const ProductManagement = () => {
   const { toast } = useToast();
@@ -37,6 +37,11 @@ const ProductManagement = () => {
   const [newSubCategoryName, setNewSubCategoryName] = useState('');
   const [isAddMainCategoryOpen, setIsAddMainCategoryOpen] = useState(false);
   const [isAddSubCategoryOpen, setIsAddSubCategoryOpen] = useState(false);
+
+  // 카테고리 수정 관련
+  const [editingCategory, setEditingCategory] = useState<{ type: 'main' | 'sub', id: string, name: string } | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState('');
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
 
   // 메인 카테고리 조회
   const fetchMainCategories = async () => {
@@ -186,6 +191,57 @@ const ProductManagement = () => {
   const handleSubCategorySelect = (subCategory: { id: string; name: string }) => {
     setSelectedCategoryName(`${selectedMainCategoryName} > ${subCategory.name}`);
     handleInputChange('categoryId', subCategory.id);
+  };
+
+  // 카테고리 수정
+  const handleEditCategory = async () => {
+    if (!editCategoryName.trim() || !editingCategory) return;
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      const endpoint = editingCategory.type === 'main' 
+        ? `http://localhost:8080/api/admin/main/categories/${editingCategory.id}`
+        : `http://localhost:8080/api/admin/sub/categories/${editingCategory.id}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: editCategoryName.trim() }),
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "카테고리 수정 성공",
+          description: `${editingCategory.type === 'main' ? '메인' : '서브'} 카테고리가 수정되었습니다.`,
+        });
+        
+        setEditCategoryName('');
+        setEditingCategory(null);
+        setIsEditCategoryOpen(false);
+        
+        // 카테고리 목록 새로고침
+        fetchMainCategories();
+        if (editingCategory.type === 'sub' && selectedMainCategoryId) {
+          fetchSubCategories(selectedMainCategoryId);
+        }
+      }
+    } catch (error) {
+      console.error('카테고리 수정 실패:', error);
+      toast({
+        title: "카테고리 수정 실패",
+        description: "카테고리 수정 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openEditDialog = (type: 'main' | 'sub', id: string, name: string) => {
+    setEditingCategory({ type, id, name });
+    setEditCategoryName(name);
+    setIsEditCategoryOpen(true);
   };
 
   useEffect(() => {
@@ -526,11 +582,25 @@ const ProductManagement = () => {
                   등록된 메인 카테고리가 없습니다.
                 </p>
               ) : (
-                mainCategories.map((mainCategory) => (
+                mainCategories.map((mainCategory, mainIndex) => (
                   <div key={mainCategory.id} className="border border-border rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-semibold">{mainCategory.category}</h3>
-                      <Badge variant="outline">ID: {mainCategory.id}</Badge>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">No.{mainIndex + 1}</span>
+                        <h3 className="font-semibold">{mainCategory.category}</h3>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">
+                          서브 카테고리 {Object.keys(mainCategory.subCategories).length}개
+                        </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openEditDialog('main', mainCategory.id.toString(), mainCategory.category)}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                     
                     {/* 서브 카테고리 목록 */}
@@ -538,10 +608,19 @@ const ProductManagement = () => {
                       <div className="mt-2 ml-4">
                         <p className="text-sm font-medium text-muted-foreground mb-1">서브 카테고리:</p>
                         <div className="space-y-1">
-                          {Object.entries(mainCategory.subCategories).map(([subId, subName]) => (
+                          {Object.entries(mainCategory.subCategories).map(([subId, subName], subIndex) => (
                             <div key={subId} className="flex justify-between items-center text-sm">
-                              <span className="text-muted-foreground">• {subName}</span>
-                              <Badge variant="secondary" className="text-xs">ID: {subId}</Badge>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">no.{subIndex + 1}</span>
+                                <span className="text-muted-foreground">{subName}</span>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openEditDialog('sub', subId, subName)}
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </Button>
                             </div>
                           ))}
                         </div>
@@ -558,6 +637,45 @@ const ProductManagement = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* 카테고리 수정 다이얼로그 */}
+      <Dialog open={isEditCategoryOpen} onOpenChange={setIsEditCategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategory?.type === 'main' ? '메인' : '서브'} 카테고리 수정
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="editCategoryId">카테고리 ID</Label>
+              <Input
+                id="editCategoryId"
+                value={editingCategory?.id || ''}
+                disabled
+                className="bg-gray-100"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editCategoryName">카테고리명</Label>
+              <Input
+                id="editCategoryName"
+                value={editCategoryName}
+                onChange={(e) => setEditCategoryName(e.target.value)}
+                placeholder="카테고리명을 입력하세요"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setIsEditCategoryOpen(false)}>
+                취소
+              </Button>
+              <Button onClick={handleEditCategory}>
+                수정
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
