@@ -43,6 +43,10 @@ const ProductManagement = () => {
   const [editCategoryName, setEditCategoryName] = useState('');
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
 
+  // 카테고리 삭제 관련
+  const [deletingCategory, setDeletingCategory] = useState<{ type: 'main' | 'sub', id: string, name: string } | null>(null);
+  const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
+
   // 메인 카테고리 조회
   const fetchMainCategories = async () => {
     try {
@@ -244,17 +248,21 @@ const ProductManagement = () => {
     setIsEditCategoryOpen(true);
   };
 
-  // 카테고리 삭제
-  const handleDeleteCategory = async (type: 'main' | 'sub', id: string) => {
-    if (!confirm(`정말로 이 ${type === 'main' ? '메인' : '서브'} 카테고리를 삭제하시겠습니까?`)) {
-      return;
-    }
+  // 카테고리 삭제 다이얼로그 열기
+  const openDeleteDialog = (type: 'main' | 'sub', id: string, name: string) => {
+    setDeletingCategory({ type, id, name });
+    setIsDeleteCategoryOpen(true);
+  };
+
+  // 카테고리 삭제 실행
+  const handleDeleteCategory = async () => {
+    if (!deletingCategory) return;
     
     try {
       const token = localStorage.getItem('accessToken');
-      const endpoint = type === 'main' 
-        ? `http://localhost:8080/api/admin/main/categories/${id}`
-        : `http://localhost:8080/api/admin/sub/categories/${id}`;
+      const endpoint = deletingCategory.type === 'main' 
+        ? `http://localhost:8080/api/admin/main/categories/${deletingCategory.id}`
+        : `http://localhost:8080/api/admin/sub/categories/${deletingCategory.id}`;
       
       const response = await fetch(endpoint, {
         method: 'DELETE',
@@ -267,12 +275,15 @@ const ProductManagement = () => {
       if (response.ok) {
         toast({
           title: "카테고리 삭제 성공",
-          description: `${type === 'main' ? '메인' : '서브'} 카테고리가 삭제되었습니다.`,
+          description: `${deletingCategory.type === 'main' ? '메인' : '서브'} 카테고리가 삭제되었습니다.`,
         });
+        
+        setDeletingCategory(null);
+        setIsDeleteCategoryOpen(false);
         
         // 카테고리 목록 새로고침
         fetchMainCategories();
-        if (type === 'sub' && selectedMainCategoryId) {
+        if (deletingCategory.type === 'sub' && selectedMainCategoryId) {
           fetchSubCategories(selectedMainCategoryId);
         }
       }
@@ -645,7 +656,7 @@ const ProductManagement = () => {
                         <Button 
                           variant="destructive" 
                           size="sm"
-                          onClick={() => handleDeleteCategory('main', mainCategory.id.toString())}
+                          onClick={() => openDeleteDialog('main', mainCategory.id.toString(), mainCategory.category)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -674,7 +685,7 @@ const ProductManagement = () => {
                                 <Button 
                                   variant="destructive" 
                                   size="sm"
-                                  onClick={() => handleDeleteCategory('sub', subId)}
+                                  onClick={() => openDeleteDialog('sub', subId, subName)}
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
@@ -729,6 +740,31 @@ const ProductManagement = () => {
               </Button>
               <Button onClick={handleEditCategory}>
                 수정
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 카테고리 삭제 확인 다이얼로그 */}
+      <Dialog open={isDeleteCategoryOpen} onOpenChange={setIsDeleteCategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>카테고리 삭제 확인</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              정말로 <strong>"{deletingCategory?.name}"</strong> {deletingCategory?.type === 'main' ? '메인' : '서브'} 카테고리를 삭제하시겠습니까?
+            </p>
+            <p className="text-xs text-red-500">
+              삭제된 카테고리는 복구할 수 없습니다.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setIsDeleteCategoryOpen(false)}>
+                취소
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteCategory}>
+                삭제
               </Button>
             </div>
           </div>
