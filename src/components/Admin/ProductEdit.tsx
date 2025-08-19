@@ -656,75 +656,138 @@ const ProductEdit = () => {
           </DialogHeader>
 
           {selectedProduct && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 상품 정보 수정 폼 */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-name">제품명</Label>
-                    <Input
-                      id="edit-name"
-                      value={editForm.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="제품명을 입력하세요"
-                    />
-                  </div>
+            <div className="space-y-4">
+              {/* 기본 정보 */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">제품명</Label>
+                  <Input
+                    id="edit-name"
+                    value={editForm.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="제품명을 입력하세요"
+                  />
+                </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="edit-category">카테고리</Label>
+                  
+                  {/* 메인 카테고리 선택 */}
                   <div className="space-y-2">
-                    <Label htmlFor="edit-category">카테고리</Label>
-                    
-                    {/* 메인 카테고리 선택 */}
-                    <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="flex-1 justify-between">
+                            {selectedMainCategoryName || "메인 카테고리를 선택하세요"}
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                          {mainCategories.length === 0 ? (
+                            <DropdownMenuItem disabled className="text-gray-500">
+                              메인 카테고리가 없습니다
+                            </DropdownMenuItem>
+                          ) : (
+                            mainCategories.map((mainCategory) => (
+                              <DropdownMenuItem 
+                                key={mainCategory.id}
+                                onClick={() => handleMainCategorySelect(mainCategory)}
+                                className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
+                              >
+                                <span className="text-sm font-medium">{mainCategory.category}</span>
+                              </DropdownMenuItem>
+                            ))
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      
+                      <Dialog open={isAddMainCategoryOpen} onOpenChange={setIsAddMainCategoryOpen}>
+                        <Button variant="outline" size="icon" onClick={() => setIsAddMainCategoryOpen(true)}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>새 메인 카테고리 추가</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="newMainCategory">메인 카테고리명</Label>
+                              <Input
+                                id="newMainCategory"
+                                value={newMainCategoryName}
+                                onChange={(e) => setNewMainCategoryName(e.target.value)}
+                                placeholder="메인 카테고리명을 입력하세요"
+                              />
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                              <Button variant="outline" onClick={() => setIsAddMainCategoryOpen(false)}>
+                                취소
+                              </Button>
+                              <Button onClick={handleAddMainCategory}>
+                                추가
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+
+                    {/* 서브 카테고리 선택 */}
+                    {selectedMainCategoryId && (
                       <div className="flex gap-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="flex-1 justify-between">
-                              {selectedMainCategoryName || "메인 카테고리를 선택하세요"}
+                              {selectedCategoryName.includes(' > ') 
+                                ? selectedCategoryName.split(' > ')[1] 
+                                : "서브 카테고리를 선택하세요"
+                              }
                               <ChevronDown className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            {mainCategories.length === 0 ? (
+                            {subCategories.length === 0 ? (
                               <DropdownMenuItem disabled className="text-gray-500">
-                                메인 카테고리가 없습니다
+                                서브 카테고리가 없습니다
                               </DropdownMenuItem>
                             ) : (
-                              mainCategories.map((mainCategory) => (
+                              subCategories.map((subCategory) => (
                                 <DropdownMenuItem 
-                                  key={mainCategory.id}
-                                  onClick={() => handleMainCategorySelect(mainCategory)}
+                                  key={subCategory.id}
+                                  onClick={() => handleSubCategorySelect(subCategory)}
                                   className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
                                 >
-                                  <span className="text-sm font-medium">{mainCategory.category}</span>
+                                  <span className="text-sm font-medium">{subCategory.name}</span>
                                 </DropdownMenuItem>
                               ))
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                         
-                        <Dialog open={isAddMainCategoryOpen} onOpenChange={setIsAddMainCategoryOpen}>
-                          <Button variant="outline" size="icon" onClick={() => setIsAddMainCategoryOpen(true)}>
+                        <Dialog open={isAddSubCategoryOpen} onOpenChange={setIsAddSubCategoryOpen}>
+                          <Button variant="outline" size="icon" onClick={() => setIsAddSubCategoryOpen(true)}>
                             <Plus className="w-4 h-4" />
                           </Button>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>새 메인 카테고리 추가</DialogTitle>
+                              <DialogTitle>새 서브 카테고리 추가</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-4">
                               <div className="space-y-2">
-                                <Label htmlFor="newMainCategory">메인 카테고리명</Label>
+                                <Label>선택된 메인 카테고리: <Badge variant="secondary">{selectedMainCategoryName}</Badge></Label>
+                                <Label htmlFor="newSubCategory">서브 카테고리명</Label>
                                 <Input
-                                  id="newMainCategory"
-                                  value={newMainCategoryName}
-                                  onChange={(e) => setNewMainCategoryName(e.target.value)}
-                                  placeholder="메인 카테고리명을 입력하세요"
+                                  id="newSubCategory"
+                                  value={newSubCategoryName}
+                                  onChange={(e) => setNewSubCategoryName(e.target.value)}
+                                  placeholder="서브 카테고리명을 입력하세요"
                                 />
                               </div>
                               <div className="flex gap-2 justify-end">
-                                <Button variant="outline" onClick={() => setIsAddMainCategoryOpen(false)}>
+                                <Button variant="outline" onClick={() => setIsAddSubCategoryOpen(false)}>
                                   취소
                                 </Button>
-                                <Button onClick={handleAddMainCategory}>
+                                <Button onClick={handleAddSubCategory}>
                                   추가
                                 </Button>
                               </div>
@@ -732,231 +795,168 @@ const ProductEdit = () => {
                           </DialogContent>
                         </Dialog>
                       </div>
-
-                      {/* 서브 카테고리 선택 */}
-                      {selectedMainCategoryId && (
-                        <div className="flex gap-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" className="flex-1 justify-between">
-                                {selectedCategoryName.includes(' > ') 
-                                  ? selectedCategoryName.split(' > ')[1] 
-                                  : "서브 카테고리를 선택하세요"
-                                }
-                                <ChevronDown className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                              {subCategories.length === 0 ? (
-                                <DropdownMenuItem disabled className="text-gray-500">
-                                  서브 카테고리가 없습니다
-                                </DropdownMenuItem>
-                              ) : (
-                                subCategories.map((subCategory) => (
-                                  <DropdownMenuItem 
-                                    key={subCategory.id}
-                                    onClick={() => handleSubCategorySelect(subCategory)}
-                                    className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
-                                  >
-                                    <span className="text-sm font-medium">{subCategory.name}</span>
-                                  </DropdownMenuItem>
-                                ))
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          
-                          <Dialog open={isAddSubCategoryOpen} onOpenChange={setIsAddSubCategoryOpen}>
-                            <Button variant="outline" size="icon" onClick={() => setIsAddSubCategoryOpen(true)}>
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>새 서브 카테고리 추가</DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-4">
-                                <div className="space-y-2">
-                                  <Label>선택된 메인 카테고리: <Badge variant="secondary">{selectedMainCategoryName}</Badge></Label>
-                                  <Label htmlFor="newSubCategory">서브 카테고리명</Label>
-                                  <Input
-                                    id="newSubCategory"
-                                    value={newSubCategoryName}
-                                    onChange={(e) => setNewSubCategoryName(e.target.value)}
-                                    placeholder="서브 카테고리명을 입력하세요"
-                                  />
-                                </div>
-                                <div className="flex gap-2 justify-end">
-                                  <Button variant="outline" onClick={() => setIsAddSubCategoryOpen(false)}>
-                                    취소
-                                  </Button>
-                                  <Button onClick={handleAddSubCategory}>
-                                    추가
-                                  </Button>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {selectedCategoryName && (
-                      <p className="text-sm text-muted-foreground">
-                        선택된 카테고리: {selectedCategoryName}
-                      </p>
                     )}
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-customerPrice">개인 가격</Label>
-                      <Input
-                        id="edit-customerPrice"
-                        type="number"
-                        value={editForm.customerPrice}
-                        onChange={(e) => handleInputChange('customerPrice', e.target.value)}
-                        placeholder="개인 가격"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-businessPrice">사업자 가격</Label>
-                      <Input
-                        id="edit-businessPrice"
-                        type="number"
-                        value={editForm.businessPrice}
-                        onChange={(e) => handleInputChange('businessPrice', e.target.value)}
-                        placeholder="사업자 가격"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-discountPrice">할인 금액</Label>
-                      <Input
-                        id="edit-discountPrice"
-                        type="number"
-                        value={editForm.discountPrice}
-                        onChange={(e) => handleInputChange('discountPrice', e.target.value)}
-                        placeholder="할인 금액"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-discountPercent">할인율 (%)</Label>
-                      <Input
-                        id="edit-discountPercent"
-                        type="number"
-                        value={editForm.discountPercent}
-                        onChange={(e) => handleInputChange('discountPercent', e.target.value)}
-                        placeholder="할인율"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-stock">재고</Label>
-                      <Input
-                        id="edit-stock"
-                        type="number"
-                        value={editForm.stock}
-                        onChange={(e) => handleInputChange('stock', e.target.value)}
-                        placeholder="재고"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>상태</Label>
-                    <div className="flex gap-2">
-                      {['판매 중', '품절', '판매 중단'].map((status) => (
-                        <Button
-                          key={status}
-                          type="button"
-                          variant={editForm.status === status ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleInputChange('status', status)}
-                          className={`${
-                            editForm.status === status 
-                              ? status === '판매 중' 
-                                ? 'bg-primary text-primary-foreground' 
-                                : status === '품절' 
-                                ? 'bg-destructive text-destructive-foreground' 
-                                : 'bg-secondary text-secondary-foreground'
-                              : 'hover:bg-accent hover:text-accent-foreground'
-                          }`}
-                        >
-                          {status}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 상품 표현 관리 */}
-              <div className="space-y-4">
-                <Label htmlFor="expressions">상품 표현</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="expressions"
-                      value={currentExpression}
-                      onChange={(e) => setCurrentExpression(e.target.value)}
-                      placeholder="상품 표현을 입력하고 Enter를 눌러주세요"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && currentExpression.trim()) {
-                          e.preventDefault();
-                          handleAddExpression();
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddExpression}
-                    >
-                      추가
-                    </Button>
-                  </div>
-                  {Object.keys(expressions).length > 0 && (
-                    <div className="space-y-1 border border-border rounded-lg p-3 bg-muted/20">
-                      <p className="text-sm font-medium text-muted-foreground mb-2">등록된 표현들:</p>
-                      {Object.entries(expressions).map(([id, expression]) => (
-                        <div key={id} className="flex items-center justify-between text-sm bg-background rounded px-2 py-1">
-                          <span>{expression}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteExpression(id)}
-                            className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                          >
-                            ×
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                  
+                  {selectedCategoryName && (
+                    <p className="text-sm text-muted-foreground">
+                      선택된 카테고리: {selectedCategoryName}
+                    </p>
                   )}
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleSave} className="flex-1">
-                  <Save className="w-4 h-4 mr-2" />
-                  저장
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsImageModalOpen(true)}
-                  className="flex-1"
-                >
-                  <Image className="w-4 h-4 mr-2" />
-                  이미지 관리
-                </Button>
-                <Button variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1">
-                  취소
-                </Button>
+              {/* 가격 정보 */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-customerPrice">개인 가격</Label>
+                  <Input
+                    id="edit-customerPrice"
+                    type="number"
+                    value={editForm.customerPrice}
+                    onChange={(e) => handleInputChange('customerPrice', e.target.value)}
+                    placeholder="개인 가격"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-businessPrice">사업자 가격</Label>
+                  <Input
+                    id="edit-businessPrice"
+                    type="number"
+                    value={editForm.businessPrice}
+                    onChange={(e) => handleInputChange('businessPrice', e.target.value)}
+                    placeholder="사업자 가격"
+                  />
+                </div>
               </div>
-            </div>
-          )}
+
+              {/* 할인 및 재고 정보 */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-discountPrice">할인 금액</Label>
+                  <Input
+                    id="edit-discountPrice"
+                    type="number"
+                    value={editForm.discountPrice}
+                    onChange={(e) => handleInputChange('discountPrice', e.target.value)}
+                    placeholder="할인 금액"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-discountPercent">할인율 (%)</Label>
+                  <Input
+                    id="edit-discountPercent"
+                    type="number"
+                    value={editForm.discountPercent}
+                    onChange={(e) => handleInputChange('discountPercent', e.target.value)}
+                    placeholder="할인율"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-stock">재고</Label>
+                  <Input
+                    id="edit-stock"
+                    type="number"
+                    value={editForm.stock}
+                    onChange={(e) => handleInputChange('stock', e.target.value)}
+                    placeholder="재고"
+                  />
+                </div>
+              </div>
+
+                <div className="space-y-2">
+                  <Label>상태</Label>
+                  <div className="flex gap-2">
+                    {['판매 중', '품절', '판매 중단'].map((status) => (
+                      <Button
+                        key={status}
+                        type="button"
+                        variant={editForm.status === status ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleInputChange('status', status)}
+                        className={`${
+                          editForm.status === status 
+                            ? status === '판매 중' 
+                              ? 'bg-primary text-primary-foreground' 
+                              : status === '품절' 
+                              ? 'bg-destructive text-destructive-foreground' 
+                              : 'bg-secondary text-secondary-foreground'
+                            : 'hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                      >
+                        {status}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 상품 표현 관리 */}
+                <div className="space-y-4">
+                  <Label htmlFor="expressions">상품 표현</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="expressions"
+                        value={currentExpression}
+                        onChange={(e) => setCurrentExpression(e.target.value)}
+                        placeholder="상품 표현을 입력하고 Enter를 눌러주세요"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && currentExpression.trim()) {
+                            e.preventDefault();
+                            handleAddExpression();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddExpression}
+                      >
+                        추가
+                      </Button>
+                    </div>
+                    {Object.keys(expressions).length > 0 && (
+                      <div className="space-y-1 border border-border rounded-lg p-3 bg-muted/20">
+                        <p className="text-sm font-medium text-muted-foreground mb-2">등록된 표현들:</p>
+                        {Object.entries(expressions).map(([id, expression]) => (
+                          <div key={id} className="flex items-center justify-between text-sm bg-background rounded px-2 py-1">
+                            <span>{expression}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteExpression(id)}
+                              className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button onClick={handleSave} className="flex-1">
+                    <Save className="w-4 h-4 mr-2" />
+                    저장
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsImageModalOpen(true)}
+                    className="flex-1"
+                  >
+                    <Image className="w-4 h-4 mr-2" />
+                    이미지 관리
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1">
+                    취소
+                  </Button>
+                </div>
+              </div>
+            )}
         </DialogContent>
       </Dialog>
 

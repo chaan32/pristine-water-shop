@@ -232,12 +232,36 @@ const ProductContentManagement = () => {
   };
 
   const handleImageUpload = (file: File) => {
+    // 이미 등록된 컨텐츠가 있는지 확인
+    const hasExistingContent = contentData.title || contentData.htmlContent || thumbnailPreview || galleryPreviews.length > 0;
+    
+    if (hasExistingContent) {
+      toast({
+        title: "이미지 수정 제한",
+        description: "이미지 수정은 상품 수정 패널에서 진행해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setThumbnailFile(file);
     const previewUrl = URL.createObjectURL(file);
     setThumbnailPreview(previewUrl);
   };
 
   const handleGalleryImageUpload = (file: File) => {
+    // 이미 등록된 컨텐츠가 있는지 확인
+    const hasExistingContent = contentData.title || contentData.htmlContent || thumbnailPreview || galleryPreviews.length > 0;
+    
+    if (hasExistingContent) {
+      toast({
+        title: "이미지 수정 제한",
+        description: "이미지 수정은 상품 수정 패널에서 진행해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (galleryFiles.length >= 5) {
       toast({
         title: "이미지 제한",
