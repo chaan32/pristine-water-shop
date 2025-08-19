@@ -73,8 +73,11 @@ const ProductManagement = () => {
         const data = await response.json();
         console.log('서브 카테고리 응답:', data);
         
-        // Queue 형태의 응답을 배열로 변환
-        const subCategoryArray = Array.isArray(data) ? data : [];
+        // 서버 응답을 { id: string, name: string } 형태로 변환
+        const subCategoryArray = Array.isArray(data) ? data.map((item: any) => ({
+          id: item.id.toString(),
+          name: item.category || item.name
+        })) : [];
         setSubCategories(subCategoryArray);
       }
     } catch (error) {
