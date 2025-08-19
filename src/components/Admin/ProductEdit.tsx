@@ -15,8 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter } from 'lucide-react';
+import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ImageManagementModal from './ImageManagementModal';
 
 const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,6 +55,9 @@ const ProductEdit = () => {
   // 상품 표현 관련
   const [expressions, setExpressions] = useState<Record<string, string>>({});
   const [currentExpression, setCurrentExpression] = useState('');
+  
+  // 이미지 관리 모달 관련
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -934,10 +938,18 @@ const ProductEdit = () => {
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-2 pt-4">
                 <Button onClick={handleSave} className="flex-1">
                   <Save className="w-4 h-4 mr-2" />
                   저장
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsImageModalOpen(true)}
+                  className="flex-1"
+                >
+                  <Image className="w-4 h-4 mr-2" />
+                  이미지 관리
                 </Button>
                 <Button variant="outline" onClick={() => setIsEditOpen(false)} className="flex-1">
                   취소
@@ -947,6 +959,16 @@ const ProductEdit = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* 이미지 관리 모달 */}
+      {selectedProduct && (
+        <ImageManagementModal
+          isOpen={isImageModalOpen}
+          onOpenChange={setIsImageModalOpen}
+          productId={selectedProduct.id}
+          productName={selectedProduct.name}
+        />
+      )}
     </div>
   );
 };
