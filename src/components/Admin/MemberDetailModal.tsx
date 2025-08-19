@@ -45,6 +45,8 @@ interface MemberDetail {
     bizRegImageUrl: string;
     bizRegNumber: string;
     bizType: string;
+    managerName?: string;
+    managerPhone?: string;
   };
   individualInform?: {
     name: string;
@@ -238,6 +240,18 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType }: MemberDe
                           <p className="text-xs text-muted-foreground">({memberData.postalCode})</p>
                         )}
                       </div>
+                      {memberData.branchResDto.managerName && (
+                        <>
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">매니저명</label>
+                            <p className="text-sm">{memberData.branchResDto.managerName}</p>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">매니저 연락처</label>
+                            <p className="text-sm">{memberData.branchResDto.managerPhone}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </>
                 )}
