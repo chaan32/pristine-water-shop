@@ -200,8 +200,8 @@ const ProductManagement = () => {
     try {
       const token = localStorage.getItem('accessToken');
       const endpoint = editingCategory.type === 'main' 
-        ? `http://localhost:8080/api/admin/main/categories/${editingCategory.id}`
-        : `http://localhost:8080/api/admin/sub/categories/${editingCategory.id}`;
+        ? `http://localhost:8080/api/admin/main/categories/${editingCategory.id}/${editingCategory.name}`
+        : `http://localhost:8080/api/admin/sub/categories/${editingCategory.id}/${editingCategory.name}`;
       
       const response = await fetch(endpoint, {
         method: 'PUT',
@@ -209,7 +209,7 @@ const ProductManagement = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: editCategoryName.trim() }),
+        // body: JSON.stringify({ name: editCategoryName.trim() }),
       });
       
       if (response.ok) {
@@ -586,7 +586,7 @@ const ProductManagement = () => {
                   <div key={mainCategory.id} className="border border-border rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">No.{mainIndex + 1}</span>
+                        <span className="font-medium">{mainIndex + 1} )</span>
                         <h3 className="font-semibold">{mainCategory.category}</h3>
                       </div>
                       <div className="flex items-center gap-2">
@@ -606,12 +606,12 @@ const ProductManagement = () => {
                     {/* 서브 카테고리 목록 */}
                     {Object.keys(mainCategory.subCategories).length > 0 && (
                       <div className="mt-2 ml-4">
-                        <p className="text-sm font-medium text-muted-foreground mb-1">서브 카테고리:</p>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">서브 카테고리 :</p>
                         <div className="space-y-1">
                           {Object.entries(mainCategory.subCategories).map(([subId, subName], subIndex) => (
                             <div key={subId} className="flex justify-between items-center text-sm">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">no.{subIndex + 1}</span>
+                                <span className="font-medium">{subIndex + 1}.</span>
                                 <span className="text-muted-foreground">{subName}</span>
                               </div>
                               <Button 
