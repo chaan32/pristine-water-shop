@@ -49,6 +49,10 @@ const ProductEdit = () => {
   const [isAddMainCategoryOpen, setIsAddMainCategoryOpen] = useState(false);
   const [isAddSubCategoryOpen, setIsAddSubCategoryOpen] = useState(false);
   
+  // 상품 표현 관련
+  const [expressions, setExpressions] = useState<string[]>([]);
+  const [currentExpression, setCurrentExpression] = useState('');
+  
   const { toast } = useToast();
 
   // 상품 목록 조회
@@ -257,6 +261,8 @@ const ProductEdit = () => {
       status: product.status || ''
     });
     setSelectedCategoryName(product.categoryName || product.category || '');
+    setExpressions(product.expressions || []);
+    setCurrentExpression('');
     setIsEditOpen(true);
   };
 
@@ -287,7 +293,8 @@ const ProductEdit = () => {
           discountPrice: parseInt(editForm.discountPrice),
           discountPercent: parseInt(editForm.discountPercent),
           stock: parseInt(editForm.stock),
-          status: editForm.status
+          status: editForm.status,
+          expressions: expressions
         })
       });
 
@@ -392,7 +399,6 @@ const ProductEdit = () => {
                   <TableHead>상품명</TableHead>
                   <TableHead>메인 카테고리</TableHead>
                   <TableHead>서브 카테고리</TableHead>
-                  <TableHead>상품 표현</TableHead>
                   <TableHead>일반가격</TableHead>
                   <TableHead>사업자가격</TableHead>
                   <TableHead>할인가격</TableHead>
@@ -430,19 +436,6 @@ const ProductEdit = () => {
                     </TableCell>
                     <TableCell>{product.mainCategory || '-'}</TableCell>
                     <TableCell>{product.subCategory || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap max-w-[200px]">
-                        {product.expressions && product.expressions.length > 0 ? (
-                          product.expressions.map((expression: string, idx: number) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {expression}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </div>
-                    </TableCell>
                     <TableCell>₩{(product.customerPrice || 0).toLocaleString()}</TableCell>
                     <TableCell>₩{(product.businessPrice || 0).toLocaleString()}</TableCell>
                     <TableCell>₩{(product.discountPrice || 0).toLocaleString()}</TableCell>
@@ -712,6 +705,60 @@ const ProductEdit = () => {
                       placeholder="상품 상태"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* 상품 표현 관리 */}
+              <div className="space-y-4">
+                <Label htmlFor="expressions">상품 표현</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="expressions"
+                      value={currentExpression}
+                      onChange={(e) => setCurrentExpression(e.target.value)}
+                      placeholder="상품 표현을 입력하고 Enter를 눌러주세요"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && currentExpression.trim()) {
+                          e.preventDefault();
+                          setExpressions(prev => [...prev, currentExpression.trim()]);
+                          setCurrentExpression('');
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (currentExpression.trim()) {
+                          setExpressions(prev => [...prev, currentExpression.trim()]);
+                          setCurrentExpression('');
+                        }
+                      }}
+                    >
+                      추가
+                    </Button>
+                  </div>
+                  {expressions.length > 0 && (
+                    <div className="space-y-1 border border-border rounded-lg p-3 bg-muted/20">
+                      <p className="text-sm font-medium text-muted-foreground mb-2">등록된 표현들:</p>
+                      {expressions.map((expression, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm bg-background rounded px-2 py-1">
+                          <span>{expression}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setExpressions(prev => prev.filter((_, i) => i !== index))}
+                            className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
