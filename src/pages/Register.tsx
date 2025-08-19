@@ -62,7 +62,9 @@ const Register = () => {
     // 프랜차이즈 지점 회원 전용 필드
     headquartersName: '',
     branchName: '',
-    headquartersId: ''  // 본사 ID
+    headquartersId: '',  // 본사 ID
+    managerName: '',     // 매니저 이름
+    managerPhone: ''     // 매니저 연락처
   });
 
   // 본사 검색 모달 상태
@@ -226,7 +228,7 @@ const Register = () => {
     corporateForm.phone &&
     corporateForm.businessRegistration && // 사업자등록증 필수
     // 프랜차이즈 지점 회원인 경우 추가 검증
-    (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName));
+    (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName && corporateForm.managerName && corporateForm.managerPhone));
 
   const handleIdCheck = async (type: 'individual' | 'corporate') => {
     const id = type === 'individual' ? individualForm.id : corporateForm.id;
@@ -475,7 +477,9 @@ const Register = () => {
          ...(corporateForm.corporateType === 'franchise' && {
            headquartersId: corporateForm.headquartersId,
            headquartersName: corporateForm.headquartersName,
-           branchName: corporateForm.branchName
+           branchName: corporateForm.branchName,
+           managerName: corporateForm.managerName,
+           managerPhone: corporateForm.managerPhone
          })
       };
 
@@ -879,6 +883,26 @@ const Register = () => {
                           value={corporateForm.branchName}
                           onChange={(e) => setCorporateForm(prev => ({ ...prev, branchName: e.target.value }))}
                         />
+                      </div>
+
+                      {/* 매니저 정보 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>매니저 이름 (필수)</Label>
+                          <Input 
+                            placeholder="매니저 이름을 입력해주세요" 
+                            value={corporateForm.managerName}
+                            onChange={(e) => setCorporateForm(prev => ({ ...prev, managerName: e.target.value }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>매니저 연락처 (필수)</Label>
+                          <Input 
+                            placeholder="매니저 연락처를 입력해주세요" 
+                            value={corporateForm.managerPhone}
+                            onChange={(e) => setCorporateForm(prev => ({ ...prev, managerPhone: e.target.value }))}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
