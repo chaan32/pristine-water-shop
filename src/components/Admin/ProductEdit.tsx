@@ -423,7 +423,7 @@ const ProductEdit = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/products/${id}`, {
+      const response = await fetch(`http://localhost:8080/api/admin/products/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -614,7 +614,9 @@ const ProductEdit = () => {
                         {product.status || '상태미정'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{product.createdAt || '-'}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {product.createdAt ? product.createdAt.split('T')[0] : '-'}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
