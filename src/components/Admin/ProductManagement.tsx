@@ -25,15 +25,23 @@ const ProductManagement = () => {
 
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
 
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  // 메인 카테고리와 서브 카테고리 관리
+  const [mainCategories, setMainCategories] = useState<{ id: number; category: string; subCategories: Record<string, string> }[]>([]);
+  const [subCategories, setSubCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedMainCategoryId, setSelectedMainCategoryId] = useState<number | null>(null);
+  const [selectedMainCategoryName, setSelectedMainCategoryName] = useState('');
 
-  const fetchCategories = async () => {
+  // 새 카테고리 추가 관련
+  const [newMainCategoryName, setNewMainCategoryName] = useState('');
+  const [newSubCategoryName, setNewSubCategoryName] = useState('');
+  const [isAddMainCategoryOpen, setIsAddMainCategoryOpen] = useState(false);
+  const [isAddSubCategoryOpen, setIsAddSubCategoryOpen] = useState(false);
+
+  // 메인 카테고리 조회
+  const fetchMainCategories = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      
-      const response = await fetch('http://localhost:8080/api/admin/categories', {
+      const response = await fetch('http://localhost:8080/api/admin/main/categories', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -41,85 +49,143 @@ const ProductManagement = () => {
       });
       
       if (response.ok) {
-        const responseText = await response.text();
-        console.log('응답 길이:', responseText.length);
-        
-        // 순환 참조 패턴 강력 감지 - JSON.parse 전에 완전히 차단
-        const hasCircularRef = 
-          responseText.includes('{"id":1,"category":{"id":1,"category"') ||
-          responseText.includes('}]}}]}}]}}"') ||
-          responseText.length > 50000 ||
-          (responseText.match(/{"id":/g) || []).length > 20;
-        
-        if (hasCircularRef) {
-          console.warn('순환 참조 감지 - API에서만 가져오기');
-          setCategories([]);
-          return;
-        }
-        
-        // 정상적인 응답만 JSON 파싱 시도
-        if (responseText.trim() && responseText.length < 10000) {
-          try {
-            const data = JSON.parse(responseText);
-            if (data && Array.isArray(data) && data.length > 0) {
-              const normalizedCategories = data.map((item: any, index: number) => ({
-                id: item.id || item.categoryId || (index + 100).toString(),
-                name: item.name || item.categoryName || item.category || 'Unknown'
-              }));
-              setCategories(normalizedCategories);
-              return;
-            }
-          } catch (parseError) {
-            console.error('JSON 파싱 실패');
-          }
-        }
-        
-        setCategories([]);
-        
-      } else {
-        console.error('카테고리 요청 실패:', response.status);
-        setCategories([]);
+        const data = await response.json();
+        console.log('메인 카테고리 응답:', data);
+        setMainCategories(data);
       }
     } catch (error) {
-      console.error('카테고리 가져오기 실패:', error);
-      setCategories([]);
+      console.error('메인 카테고리 가져오기 실패:', error);
     }
   };
 
-  const handleAddCategory = async () => {
-    if (!newCategoryName.trim()) return;
+  // 서브 카테고리 조회 (특정 메인 카테고리에 대해)
+  const fetchSubCategories = async (mainCategoryId: number) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`http://localhost:8080/api/admin/sub/categories/${mainCategoryId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('서브 카테고리 응답:', data);
+        
+        // Queue 형태의 응답을 배열로 변환
+        const subCategoryArray = Array.isArray(data) ? data : [];
+        setSubCategories(subCategoryArray);
+      }
+    } catch (error) {
+      console.error('서브 카테고리 가져오기 실패:', error);
+      setSubCategories([]);
+    }
+  };
+
+  // 메인 카테고리 추가
+  const handleAddMainCategory = async () => {
+    if (!newMainCategoryName.trim()) return;
     
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/categories/add', {
+      const response = await fetch('http://localhost:8080/api/admin/main/categories/add', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: newCategoryName.trim() }),
+        body: JSON.stringify({ name: newMainCategoryName.trim() }),
       });
       
       if (response.ok) {
         const responseData = await response.json();
-        console.log('카테고리 추가 응답:', responseData);
+        console.log('메인 카테고리 추가 응답:', responseData);
         
-        const newCategory = { 
-          id: responseData.id || responseData.categoryId || Date.now().toString(),
-          name: newCategoryName.trim() 
-        };
-        setCategories(prev => [...prev, newCategory]);
-        setNewCategoryName('');
-        setIsAddCategoryOpen(false);
-        fetchCategories(); // 카테고리 목록 새로고침
+        toast({
+          title: "메인 카테고리 추가 성공",
+          description: "새로운 메인 카테고리가 추가되었습니다.",
+        });
+        
+        setNewMainCategoryName('');
+        setIsAddMainCategoryOpen(false);
+        fetchMainCategories(); // 메인 카테고리 목록 새로고침
       }
     } catch (error) {
-      console.error('카테고리 추가 실패:', error);
+      console.error('메인 카테고리 추가 실패:', error);
+      toast({
+        title: "메인 카테고리 추가 실패",
+        description: "메인 카테고리 추가 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
     }
   };
 
+  // 서브 카테고리 추가
+  const handleAddSubCategory = async () => {
+    if (!newSubCategoryName.trim() || !selectedMainCategoryId) return;
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('http://localhost:8080/api/admin/sub/categories/add', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          name: newSubCategoryName.trim(),
+          id: selectedMainCategoryId 
+        }),
+      });
+      
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('서브 카테고리 추가 응답:', responseData);
+        
+        toast({
+          title: "서브 카테고리 추가 성공",
+          description: "새로운 서브 카테고리가 추가되었습니다.",
+        });
+        
+        setNewSubCategoryName('');
+        setIsAddSubCategoryOpen(false);
+        fetchSubCategories(selectedMainCategoryId); // 서브 카테고리 목록 새로고침
+        fetchMainCategories(); // 메인 카테고리도 새로고침 (subCategories 업데이트)
+      }
+    } catch (error) {
+      console.error('서브 카테고리 추가 실패:', error);
+      toast({
+        title: "서브 카테고리 추가 실패",
+        description: "서브 카테고리 추가 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // 메인 카테고리 선택 시
+  const handleMainCategorySelect = (mainCategory: { id: number; category: string; subCategories: Record<string, string> }) => {
+    setSelectedMainCategoryId(mainCategory.id);
+    setSelectedMainCategoryName(mainCategory.category);
+    setSelectedCategoryName(''); // 서브 카테고리 선택 초기화
+    setFormData(prev => ({ ...prev, categoryId: '' })); // 제품 폼의 카테고리 ID 초기화
+    
+    // 서브 카테고리가 있으면 조회, 없으면 빈 배열로 설정
+    if (Object.keys(mainCategory.subCategories).length > 0) {
+      fetchSubCategories(mainCategory.id);
+    } else {
+      setSubCategories([]);
+    }
+  };
+
+  // 서브 카테고리 선택 시
+  const handleSubCategorySelect = (subCategory: { id: string; name: string }) => {
+    setSelectedCategoryName(`${selectedMainCategoryName} > ${subCategory.name}`);
+    handleInputChange('categoryId', subCategory.id);
+  };
+
   useEffect(() => {
-    fetchCategories();
+    fetchMainCategories();
   }, []);
 
   const handleInputChange = (field: string, value: string) => {
@@ -191,6 +257,9 @@ const ProductManagement = () => {
           categoryId: ''
         });
         setSelectedCategoryName('');
+        setSelectedMainCategoryId(null);
+        setSelectedMainCategoryName('');
+        setSubCategories([]);
         
       } else {
         const errorData = await response.json();
@@ -208,7 +277,6 @@ const ProductManagement = () => {
       });
     }
   };
-
 
   return (
     <div className="space-y-6">
@@ -239,67 +307,142 @@ const ProductManagement = () => {
 
             <div className="space-y-2">
               <Label htmlFor="category">카테고리</Label>
-              <div className="flex gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex-1 justify-between">
-                      {selectedCategoryName || "카테고리를 선택하세요"}
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                    {categories.length === 0 ? (
-                      <DropdownMenuItem disabled className="text-gray-500">
-                        카테고리가 없습니다
-                      </DropdownMenuItem>
-                    ) : (
-                      categories.map((category, index) => (
-                        <DropdownMenuItem 
-                          key={`${category.id}-${index}`}
-                           onClick={() => {
-                            handleInputChange('categoryId', category.id);
-                            setSelectedCategoryName(category.name);
-                          }}
-                          className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
-                        >
-                          <span className="text-sm font-medium">{category.name}</span>
+              
+              {/* 메인 카테고리 선택 */}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="flex-1 justify-between">
+                        {selectedMainCategoryName || "메인 카테고리를 선택하세요"}
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                      {mainCategories.length === 0 ? (
+                        <DropdownMenuItem disabled className="text-gray-500">
+                          메인 카테고리가 없습니다
                         </DropdownMenuItem>
-                      ))
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Dialog open={isAddCategoryOpen} onOpenChange={setIsAddCategoryOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>새 카테고리 추가</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="newCategory">카테고리명</Label>
-                        <Input
-                          id="newCategory"
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                          placeholder="카테고리명을 입력하세요"
-                        />
+                      ) : (
+                        mainCategories.map((mainCategory) => (
+                          <DropdownMenuItem 
+                            key={mainCategory.id}
+                            onClick={() => handleMainCategorySelect(mainCategory)}
+                            className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
+                          >
+                            <span className="text-sm font-medium">{mainCategory.category}</span>
+                          </DropdownMenuItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  <Dialog open={isAddMainCategoryOpen} onOpenChange={setIsAddMainCategoryOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>새 메인 카테고리 추가</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="newMainCategory">메인 카테고리명</Label>
+                          <Input
+                            id="newMainCategory"
+                            value={newMainCategoryName}
+                            onChange={(e) => setNewMainCategoryName(e.target.value)}
+                            placeholder="메인 카테고리명을 입력하세요"
+                          />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <Button variant="outline" onClick={() => setIsAddMainCategoryOpen(false)}>
+                            취소
+                          </Button>
+                          <Button onClick={handleAddMainCategory}>
+                            추가
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="outline" onClick={() => setIsAddCategoryOpen(false)}>
-                          취소
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                {/* 서브 카테고리 선택 */}
+                {selectedMainCategoryId && (
+                  <div className="flex gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="flex-1 justify-between">
+                          {selectedCategoryName.includes(' > ') 
+                            ? selectedCategoryName.split(' > ')[1] 
+                            : "서브 카테고리를 선택하세요"
+                          }
+                          <ChevronDown className="h-4 w-4" />
                         </Button>
-                        <Button onClick={handleAddCategory}>
-                          추가
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full min-w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        {subCategories.length === 0 ? (
+                          <DropdownMenuItem disabled className="text-gray-500">
+                            서브 카테고리가 없습니다
+                          </DropdownMenuItem>
+                        ) : (
+                          subCategories.map((subCategory) => (
+                            <DropdownMenuItem 
+                              key={subCategory.id}
+                              onClick={() => handleSubCategorySelect(subCategory)}
+                              className="cursor-pointer text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2"
+                            >
+                              <span className="text-sm font-medium">{subCategory.name}</span>
+                            </DropdownMenuItem>
+                          ))
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    
+                    <Dialog open={isAddSubCategoryOpen} onOpenChange={setIsAddSubCategoryOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <Plus className="w-4 h-4" />
                         </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>새 서브 카테고리 추가</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>선택된 메인 카테고리: <Badge variant="secondary">{selectedMainCategoryName}</Badge></Label>
+                            <Label htmlFor="newSubCategory">서브 카테고리명</Label>
+                            <Input
+                              id="newSubCategory"
+                              value={newSubCategoryName}
+                              onChange={(e) => setNewSubCategoryName(e.target.value)}
+                              placeholder="서브 카테고리명을 입력하세요"
+                            />
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <Button variant="outline" onClick={() => setIsAddSubCategoryOpen(false)}>
+                              취소
+                            </Button>
+                            <Button onClick={handleAddSubCategory}>
+                              추가
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )}
               </div>
+              
+              {selectedCategoryName && (
+                <p className="text-sm text-muted-foreground">
+                  선택된 카테고리: {selectedCategoryName}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -372,17 +515,36 @@ const ProductManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {categories.length === 0 ? (
+              {mainCategories.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
-                  등록된 카테고리가 없습니다.
+                  등록된 메인 카테고리가 없습니다.
                 </p>
               ) : (
-                categories.map((category, index) => (
-                  <div key={`${category.id}-${index}`} className="border border-border rounded-lg p-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-semibold">{category.name}</h3>
-                      <Badge variant="outline">ID: {category.id}</Badge>
+                mainCategories.map((mainCategory) => (
+                  <div key={mainCategory.id} className="border border-border rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-semibold">{mainCategory.category}</h3>
+                      <Badge variant="outline">ID: {mainCategory.id}</Badge>
                     </div>
+                    
+                    {/* 서브 카테고리 목록 */}
+                    {Object.keys(mainCategory.subCategories).length > 0 && (
+                      <div className="mt-2 ml-4">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">서브 카테고리:</p>
+                        <div className="space-y-1">
+                          {Object.entries(mainCategory.subCategories).map(([subId, subName]) => (
+                            <div key={subId} className="flex justify-between items-center text-sm">
+                              <span className="text-muted-foreground">• {subName}</span>
+                              <Badge variant="secondary" className="text-xs">ID: {subId}</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {Object.keys(mainCategory.subCategories).length === 0 && (
+                      <p className="text-xs text-muted-foreground ml-4">서브 카테고리가 없습니다.</p>
+                    )}
                   </div>
                 ))
               )}
