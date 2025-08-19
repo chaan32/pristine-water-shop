@@ -392,6 +392,7 @@ const ProductEdit = () => {
                   <TableHead>상품명</TableHead>
                   <TableHead>메인 카테고리</TableHead>
                   <TableHead>서브 카테고리</TableHead>
+                  <TableHead>상품 표현</TableHead>
                   <TableHead>일반가격</TableHead>
                   <TableHead>사업자가격</TableHead>
                   <TableHead>할인가격</TableHead>
@@ -429,6 +430,19 @@ const ProductEdit = () => {
                     </TableCell>
                     <TableCell>{product.mainCategory || '-'}</TableCell>
                     <TableCell>{product.subCategory || '-'}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap max-w-[200px]">
+                        {product.expressions && product.expressions.length > 0 ? (
+                          product.expressions.map((expression: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {expression}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>₩{(product.customerPrice || 0).toLocaleString()}</TableCell>
                     <TableCell>₩{(product.businessPrice || 0).toLocaleString()}</TableCell>
                     <TableCell>₩{(product.discountPrice || 0).toLocaleString()}</TableCell>
