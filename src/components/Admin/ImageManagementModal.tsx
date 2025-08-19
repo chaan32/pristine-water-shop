@@ -178,7 +178,7 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
   };
 
   // 썸네일 이미지 설정
-  const handleSetThumbnail = async (imageUrl: string) => {
+  const handleSetThumbnail = async (image: ProductImage) => {
     try {
       const accessToken = localStorage.getItem('accessToken');
       const response = await fetch('http://localhost:8080/api/admin/products/images/thumbnail', {
@@ -188,8 +188,9 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          productId: productId,
-          imageUrl: imageUrl
+          currentThumbnailUrl: thumbnailImage?.url,
+          newThumbnailId: image.id,
+          newThumbnailUrl: image.url
         })
       });
 
@@ -363,7 +364,7 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleSetThumbnail(image.url)}
+                                onClick={() => handleSetThumbnail(image)}
                                 className="flex-1"
                               >
                                 <Star className="w-4 h-4 mr-1" />
