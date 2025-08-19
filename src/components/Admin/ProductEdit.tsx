@@ -136,8 +136,11 @@ const ProductEdit = () => {
         const data = await response.json();
         console.log('서브 카테고리 응답:', data);
         
-        // Queue 형태의 응답을 배열로 변환
-        const subCategoryArray = Array.isArray(data) ? data : [];
+        // 응답을 표준 구조로 변환 { id: string, name: string }
+        const subCategoryArray = (Array.isArray(data) ? data : []).map((item: any) => ({
+          id: String(item?.id ?? item?.categoryId ?? item?.value ?? ''),
+          name: String(item?.name ?? item?.category ?? item?.label ?? ''),
+        }));
         setSubCategories(subCategoryArray);
       }
     } catch (error) {
