@@ -680,27 +680,34 @@ const Register = () => {
                   />
                   <div className="space-y-4">
                     <Label>휴대폰 번호 (필수)</Label>
-                    <Input 
-                      placeholder="010"
-                      maxLength={3}
-                      value={individualForm.phone1}
-                      onChange={(e) => setIndividualForm(prev => ({ ...prev, phone1: e.target.value }))}
-                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                    />
-                    <Input 
-                      placeholder="0000"
-                      maxLength={4}
-                      value={individualForm.phone2}
-                      onChange={(e) => setIndividualForm(prev => ({ ...prev, phone2: e.target.value }))}
-                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                    />
-                    <Input 
-                      placeholder="0000"
-                      maxLength={4}
-                      value={individualForm.phone3}
-                      onChange={(e) => setIndividualForm(prev => ({ ...prev, phone3: e.target.value }))}
-                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                    />
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="010"
+                        maxLength={3}
+                        value={individualForm.phone1}
+                        onChange={(e) => setIndividualForm(prev => ({ ...prev, phone1: e.target.value }))}
+                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                        className="flex-1"
+                      />
+                      <span className="flex items-center">-</span>
+                      <Input 
+                        placeholder="0000"
+                        maxLength={4}
+                        value={individualForm.phone2}
+                        onChange={(e) => setIndividualForm(prev => ({ ...prev, phone2: e.target.value }))}
+                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                        className="flex-1"
+                      />
+                      <span className="flex items-center">-</span>
+                      <Input 
+                        placeholder="0000"
+                        maxLength={4}
+                        value={individualForm.phone3}
+                        onChange={(e) => setIndividualForm(prev => ({ ...prev, phone3: e.target.value }))}
+                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                        className="flex-1"
+                      />
+                    </div>
                     <Button 
                       type="button"
                       variant="outline"
@@ -945,26 +952,33 @@ const Register = () => {
                       value={corporateForm.companyName}
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
                     />
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       <Label>사업자등록번호 (필수)</Label>
-                      <Input 
-                        placeholder="000"
-                        maxLength={3}
-                        value={corporateForm.businessNumber1}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber1: e.target.value }))}
-                      />
-                      <Input 
-                        placeholder="00"
-                        maxLength={2}
-                        value={corporateForm.businessNumber2}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber2: e.target.value }))}
-                      />
-                      <Input 
-                        placeholder="00000"
-                        maxLength={5}
-                        value={corporateForm.businessNumber3}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber3: e.target.value }))}
-                      />
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="00"
+                          maxLength={2}
+                          value={corporateForm.businessNumber1}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber1: e.target.value }))}
+                          className="flex-1"
+                        />
+                        <span className="flex items-center">-</span>
+                        <Input 
+                          placeholder="000"
+                          maxLength={3}
+                          value={corporateForm.businessNumber2}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber2: e.target.value }))}
+                          className="flex-1"
+                        />
+                        <span className="flex items-center">-</span>
+                        <Input 
+                          placeholder="00000"
+                          maxLength={5}
+                          value={corporateForm.businessNumber3}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber3: e.target.value }))}
+                          className="flex-1"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -1048,29 +1062,36 @@ const Register = () => {
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, email: e.target.value }))}
                       disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                     />
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       <Label>회사 전화번호 (필수)</Label>
-                      <Input 
-                        placeholder="000"
-                        maxLength={3}
-                        value={corporateForm.phone1}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone1: e.target.value }))}
-                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                      />
-                      <Input 
-                        placeholder="0000"
-                        maxLength={4}
-                        value={corporateForm.phone2}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone2: e.target.value }))}
-                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                      />
-                      <Input 
-                        placeholder="0000"
-                        maxLength={4}
-                        value={corporateForm.phone3}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone3: e.target.value }))}
-                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                      />
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="010"
+                          maxLength={3}
+                          value={corporateForm.phone1}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone1: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="flex-1"
+                        />
+                        <span className="flex items-center">-</span>
+                        <Input 
+                          placeholder="0000"
+                          maxLength={4}
+                          value={corporateForm.phone2}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone2: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="flex-1"
+                        />
+                        <span className="flex items-center">-</span>
+                        <Input 
+                          placeholder="0000"
+                          maxLength={4}
+                          value={corporateForm.phone3}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone3: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="flex-1"
+                        />
+                      </div>
                     </div>
                   </div>
                   
