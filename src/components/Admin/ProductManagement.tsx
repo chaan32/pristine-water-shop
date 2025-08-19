@@ -47,6 +47,10 @@ const ProductManagement = () => {
   const [deletingCategory, setDeletingCategory] = useState<{ type: 'main' | 'sub', id: string, name: string } | null>(null);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
 
+  // 상품 표현 관련
+  const [expressions, setExpressions] = useState<string[]>([]);
+  const [currentExpression, setCurrentExpression] = useState('');
+
   // 메인 카테고리 조회
   const fetchMainCategories = async () => {
     try {
@@ -326,8 +330,9 @@ const ProductManagement = () => {
         discountPercent: formData.discountPercent ? parseInt(formData.discountPercent) : null,
         discountPrice: formData.discountPrice ? parseInt(formData.discountPrice) : null,
         stock: parseInt(formData.stock),
-        categoryId: formData.categoryId,
-        mainCategoryId: formData.mainCategoryId
+        categoryId: parseInt(formData.categoryId),
+        mainCategoryId: parseInt(formData.mainCategoryId),
+        expressions: expressions
       };
 
       const response = await fetch('http://localhost:8080/api/admin/products/add', {
@@ -375,6 +380,8 @@ const ProductManagement = () => {
         setSelectedMainCategoryId(null);
         setSelectedMainCategoryName('');
         setSubCategories([]);
+        setExpressions([]);
+        setCurrentExpression('');
         
       } else {
         const errorData = await response.json();
@@ -613,6 +620,59 @@ const ProductManagement = () => {
                   onChange={(e) => handleInputChange('discountPercent', e.target.value)}
                   placeholder="할인 비율"
                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="expressions">상품 표현</Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="expressions"
+                    value={currentExpression}
+                    onChange={(e) => setCurrentExpression(e.target.value)}
+                    placeholder="상품 표현을 입력하고 Enter를 눌러주세요"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && currentExpression.trim()) {
+                        e.preventDefault();
+                        setExpressions(prev => [...prev, currentExpression.trim()]);
+                        setCurrentExpression('');
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (currentExpression.trim()) {
+                        setExpressions(prev => [...prev, currentExpression.trim()]);
+                        setCurrentExpression('');
+                      }
+                    }}
+                  >
+                    추가
+                  </Button>
+                </div>
+                {expressions.length > 0 && (
+                  <div className="space-y-1 border border-border rounded-lg p-3 bg-muted/20">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">등록된 표현들:</p>
+                    {expressions.map((expression, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm bg-background rounded px-2 py-1">
+                        <span>{expression}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExpressions(prev => prev.filter((_, i) => i !== index))}
+                          className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
