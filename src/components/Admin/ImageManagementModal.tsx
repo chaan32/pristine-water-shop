@@ -32,6 +32,14 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
+  // URL에서 이미지 ID 추출
+  const extractImageId = (url: string): string => {
+    // URL의 마지막 부분에서 UUID 형태의 ID 추출
+    const parts = url.split(/[-.]/);
+    const uuid = parts[parts.length - 1];
+    return uuid;
+  };
+
   // API 응답을 ProductImage[]로 변환
   const transformApiResponse = (data: ImageApiResponse): ProductImage[] => {
     const result: ProductImage[] = [];
@@ -144,6 +152,7 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
   // 이미지 삭제
   const handleImageDelete = async (imageUrl: string) => {
     try {
+      const imageId = extractImageId(imageUrl);
       const accessToken = localStorage.getItem('accessToken');
       const response = await fetch('http://localhost:8080/api/admin/products/images', {
         method: 'DELETE',
@@ -152,8 +161,7 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          productId: productId,
-          imageUrl: imageUrl
+          imageId: imageId
         })
       });
 
