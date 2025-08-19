@@ -945,40 +945,43 @@ const Register = () => {
                     </div>
                   )}
 
-                  {/* 회사 명 / 사업자등록번호 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 회사명 */}
+                  <div className="space-y-2">
+                    <Label>회사명 (필수)</Label>
                     <Input 
                       placeholder="회사명" 
                       value={corporateForm.companyName}
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
                     />
-                    <div className="space-y-2">
-                      <Label>사업자등록번호 (필수)</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          placeholder="00"
-                          maxLength={2}
-                          value={corporateForm.businessNumber1}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber1: e.target.value }))}
-                          className="flex-1"
-                        />
-                        <span className="flex items-center">-</span>
-                        <Input 
-                          placeholder="000"
-                          maxLength={3}
-                          value={corporateForm.businessNumber2}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber2: e.target.value }))}
-                          className="flex-1"
-                        />
-                        <span className="flex items-center">-</span>
-                        <Input 
-                          placeholder="00000"
-                          maxLength={5}
-                          value={corporateForm.businessNumber3}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber3: e.target.value }))}
-                          className="flex-1"
-                        />
-                      </div>
+                  </div>
+
+                  {/* 사업자등록번호 */}
+                  <div className="space-y-2">
+                    <Label>사업자등록번호 (필수)</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="00"
+                        maxLength={2}
+                        value={corporateForm.businessNumber1}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber1: e.target.value }))}
+                        className="flex-1"
+                      />
+                      <span className="flex items-center">-</span>
+                      <Input 
+                        placeholder="000"
+                        maxLength={3}
+                        value={corporateForm.businessNumber2}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber2: e.target.value }))}
+                        className="flex-1"
+                      />
+                      <span className="flex items-center">-</span>
+                      <Input 
+                        placeholder="00000"
+                        maxLength={5}
+                        value={corporateForm.businessNumber3}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber3: e.target.value }))}
+                        className="flex-1"
+                      />
                     </div>
                   </div>
 
@@ -1054,7 +1057,9 @@ const Register = () => {
                       )}
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 이메일 */}
+                  <div className="space-y-2">
+                    <Label>이메일 (필수)</Label>
                     <Input 
                       type="email" 
                       placeholder="이메일"
@@ -1062,36 +1067,38 @@ const Register = () => {
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, email: e.target.value }))}
                       disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                     />
-                    <div className="space-y-2">
-                      <Label>회사 전화번호 (필수)</Label>
-                      <div className="flex gap-2">
-                        <Input 
-                          placeholder="010"
-                          maxLength={3}
-                          value={corporateForm.phone1}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone1: e.target.value }))}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                          className="flex-1"
-                        />
-                        <span className="flex items-center">-</span>
-                        <Input 
-                          placeholder="0000"
-                          maxLength={4}
-                          value={corporateForm.phone2}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone2: e.target.value }))}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                          className="flex-1"
-                        />
-                        <span className="flex items-center">-</span>
-                        <Input 
-                          placeholder="0000"
-                          maxLength={4}
-                          value={corporateForm.phone3}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone3: e.target.value }))}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                          className="flex-1"
-                        />
-                      </div>
+                  </div>
+
+                  {/* 회사 전화번호 */}
+                  <div className="space-y-2">
+                    <Label>회사 전화번호 (필수)</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="010"
+                        maxLength={3}
+                        value={corporateForm.phone1}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone1: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                        className="flex-1"
+                      />
+                      <span className="flex items-center">-</span>
+                      <Input 
+                        placeholder="0000"
+                        maxLength={4}
+                        value={corporateForm.phone2}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone2: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                        className="flex-1"
+                      />
+                      <span className="flex items-center">-</span>
+                      <Input 
+                        placeholder="0000"
+                        maxLength={4}
+                        value={corporateForm.phone3}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone3: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                        className="flex-1"
+                      />
                     </div>
                   </div>
                   
