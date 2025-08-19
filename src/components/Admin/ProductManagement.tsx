@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Plus, ChevronDown, Edit2 } from 'lucide-react';
+import { Save, Plus, ChevronDown, Edit2, Trash2 } from 'lucide-react';
 
 const ProductManagement = () => {
   const { toast } = useToast();
@@ -242,6 +242,48 @@ const ProductManagement = () => {
     setEditingCategory({ type, id, name });
     setEditCategoryName(name);
     setIsEditCategoryOpen(true);
+  };
+
+  // 카테고리 삭제
+  const handleDeleteCategory = async (type: 'main' | 'sub', id: string) => {
+    if (!confirm(`정말로 이 ${type === 'main' ? '메인' : '서브'} 카테고리를 삭제하시겠습니까?`)) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('accessToken');
+      const endpoint = type === 'main' 
+        ? `http://localhost:8080/api/admin/main/categories/${id}`
+        : `http://localhost:8080/api/admin/sub/categories/${id}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "카테고리 삭제 성공",
+          description: `${type === 'main' ? '메인' : '서브'} 카테고리가 삭제되었습니다.`,
+        });
+        
+        // 카테고리 목록 새로고침
+        fetchMainCategories();
+        if (type === 'sub' && selectedMainCategoryId) {
+          fetchSubCategories(selectedMainCategoryId);
+        }
+      }
+    } catch (error) {
+      console.error('카테고리 삭제 실패:', error);
+      toast({
+        title: "카테고리 삭제 실패",
+        description: "카테고리 삭제 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {
@@ -600,6 +642,13 @@ const ProductManagement = () => {
                         >
                           <Edit2 className="w-4 h-4" />
                         </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => handleDeleteCategory('main', mainCategory.id.toString())}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                     
@@ -614,13 +663,22 @@ const ProductManagement = () => {
                                 <span className="font-medium">{subIndex + 1}.</span>
                                 <span className="text-muted-foreground">{subName}</span>
                               </div>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => openEditDialog('sub', subId, subName)}
-                              >
-                                <Edit2 className="w-3 h-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => openEditDialog('sub', subId, subName)}
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </Button>
+                                <Button 
+                                  variant="destructive" 
+                                  size="sm"
+                                  onClick={() => handleDeleteCategory('sub', subId)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             </div>
                           ))}
                         </div>
