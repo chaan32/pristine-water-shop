@@ -39,7 +39,9 @@ const Register = () => {
     address: '',
     detailAddress: '',
     postalCode: '',
-    phone: '',
+    phone1: '',
+    phone2: '',
+    phone3: '',
     isPhoneVerified: false
   });
 
@@ -114,7 +116,7 @@ const Register = () => {
 
   // 휴대폰 인증 함수
   const handlePhoneVerification = (type: 'individual' | 'corporate') => {
-    const phone = type === 'individual' ? individualForm.phone : `${corporateForm.phone1}-${corporateForm.phone2}-${corporateForm.phone3}`;
+    const phone = type === 'individual' ? `${individualForm.phone1}-${individualForm.phone2}-${individualForm.phone3}` : `${corporateForm.phone1}-${corporateForm.phone2}-${corporateForm.phone3}`;
     
     if (!phone.trim()) {
       toast({
@@ -441,7 +443,7 @@ const Register = () => {
         password: individualForm.password,
         name: individualForm.name,
         email: individualForm.email,
-        phone: individualForm.phone,
+        phone: `${individualForm.phone1}-${individualForm.phone2}-${individualForm.phone3}`,
         address: individualForm.address,
         detailAddress: individualForm.detailAddress,
         postalCode: individualForm.postalCode,
@@ -676,24 +678,38 @@ const Register = () => {
                     onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
                     disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
                   />
-                  <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <Input 
-                        placeholder="휴대폰 번호" 
-                        value={individualForm.phone}
-                        onChange={(e) => setIndividualForm(prev => ({ ...prev, phone: e.target.value }))}
-                        className="flex-1" 
-                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                      />
-                      <Button 
-                        type="button"
-                        variant="outline"
-                        onClick={() => handlePhoneVerification('individual')}
-                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable || individualForm.isPhoneVerified}
-                      >
-                        {individualForm.isPhoneVerified ? '인증완료' : '인증'}
-                      </Button>
-                    </div>
+                  <div className="space-y-4">
+                    <Label>휴대폰 번호 (필수)</Label>
+                    <Input 
+                      placeholder="010"
+                      maxLength={3}
+                      value={individualForm.phone1}
+                      onChange={(e) => setIndividualForm(prev => ({ ...prev, phone1: e.target.value }))}
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                    />
+                    <Input 
+                      placeholder="0000"
+                      maxLength={4}
+                      value={individualForm.phone2}
+                      onChange={(e) => setIndividualForm(prev => ({ ...prev, phone2: e.target.value }))}
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                    />
+                    <Input 
+                      placeholder="0000"
+                      maxLength={4}
+                      value={individualForm.phone3}
+                      onChange={(e) => setIndividualForm(prev => ({ ...prev, phone3: e.target.value }))}
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      onClick={() => handlePhoneVerification('individual')}
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable || individualForm.isPhoneVerified}
+                      className="w-full"
+                    >
+                      {individualForm.isPhoneVerified ? '인증완료' : '휴대폰 인증'}
+                    </Button>
                     {individualForm.isPhoneVerified && (
                       <div className="flex items-center gap-2 text-sm">
                         <Check className="w-4 h-4 text-green-600" />
@@ -929,33 +945,26 @@ const Register = () => {
                       value={corporateForm.companyName}
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, companyName: e.target.value }))}
                     />
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <Label>사업자등록번호 (필수)</Label>
-                      <div className="flex gap-2 items-center">
-                        <Input 
-                          placeholder="000"
-                          maxLength={3}
-                          value={corporateForm.businessNumber1}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber1: e.target.value }))}
-                          className="w-20"
-                        />
-                        <span className="text-muted-foreground">-</span>
-                        <Input 
-                          placeholder="00"
-                          maxLength={2}
-                          value={corporateForm.businessNumber2}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber2: e.target.value }))}
-                          className="w-16"
-                        />
-                        <span className="text-muted-foreground">-</span>
-                        <Input 
-                          placeholder="00000"
-                          maxLength={5}
-                          value={corporateForm.businessNumber3}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber3: e.target.value }))}
-                          className="w-24"
-                        />
-                      </div>
+                      <Input 
+                        placeholder="000"
+                        maxLength={3}
+                        value={corporateForm.businessNumber1}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber1: e.target.value }))}
+                      />
+                      <Input 
+                        placeholder="00"
+                        maxLength={2}
+                        value={corporateForm.businessNumber2}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber2: e.target.value }))}
+                      />
+                      <Input 
+                        placeholder="00000"
+                        maxLength={5}
+                        value={corporateForm.businessNumber3}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, businessNumber3: e.target.value }))}
+                      />
                     </div>
                   </div>
 
@@ -1039,36 +1048,29 @@ const Register = () => {
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, email: e.target.value }))}
                       disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                     />
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <Label>회사 전화번호 (필수)</Label>
-                      <div className="flex gap-2 items-center">
-                        <Input 
-                          placeholder="000"
-                          maxLength={3}
-                          value={corporateForm.phone1}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone1: e.target.value }))}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                          className="w-20"
-                        />
-                        <span className="text-muted-foreground">-</span>
-                        <Input 
-                          placeholder="0000"
-                          maxLength={4}
-                          value={corporateForm.phone2}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone2: e.target.value }))}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                          className="w-20"
-                        />
-                        <span className="text-muted-foreground">-</span>
-                        <Input 
-                          placeholder="0000"
-                          maxLength={4}
-                          value={corporateForm.phone3}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, phone3: e.target.value }))}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                          className="w-20"
-                        />
-                      </div>
+                      <Input 
+                        placeholder="000"
+                        maxLength={3}
+                        value={corporateForm.phone1}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone1: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                      />
+                      <Input 
+                        placeholder="0000"
+                        maxLength={4}
+                        value={corporateForm.phone2}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone2: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                      />
+                      <Input 
+                        placeholder="0000"
+                        maxLength={4}
+                        value={corporateForm.phone3}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone3: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                      />
                     </div>
                   </div>
                   
