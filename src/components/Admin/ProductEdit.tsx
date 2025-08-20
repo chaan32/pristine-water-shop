@@ -1075,7 +1075,7 @@ const ProductEdit = () => {
                         onChange={(e) => setCurrentExpression(e.target.value)}
                         placeholder="상품 표현을 입력하고 Enter를 눌러주세요"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && currentExpression.trim()) {
+                          if (e.key === 'Enter' && !e.nativeEvent.isComposing && currentExpression.trim()) {
                             e.preventDefault();
                             handleAddExpression();
                           }
