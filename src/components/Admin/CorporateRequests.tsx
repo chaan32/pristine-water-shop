@@ -30,6 +30,8 @@ interface ApproveRequest {
   isHeadquarters: boolean;
   approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   requestDate: string; // Date를 string으로 받아서 처리
+  managerName?: string;
+  managerPhone?: string;
 }
 
 const CorporateRequests = () => {
@@ -209,6 +211,8 @@ const CorporateRequests = () => {
                 <TableHead>회사명/지점명</TableHead>
                 <TableHead>이메일</TableHead>
                 <TableHead>연락처</TableHead>
+                <TableHead>매니저명</TableHead>
+                <TableHead>매니저연락처</TableHead>
                 <TableHead>사업자번호</TableHead>
                 <TableHead>업종</TableHead>
                 <TableHead>요청일</TableHead>
@@ -237,6 +241,8 @@ const CorporateRequests = () => {
                     {request.email}
                   </TableCell>
                   <TableCell>{request.phone}</TableCell>
+                  <TableCell>{request.managerName || 'X'}</TableCell>
+                  <TableCell>{request.managerPhone || 'X'}</TableCell>
                   <TableCell className="font-mono text-sm">{request.businessRegistrationNumber}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-xs">

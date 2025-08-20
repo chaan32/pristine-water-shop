@@ -305,7 +305,7 @@ const Shop = () => {
                         <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
                           <CardHeader className="p-0 relative">
                             {/* Status and Product Badges */}
-                            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                            <div className="absolute top-4 left-4 right-4 z-10 flex flex-wrap gap-2">
                               {product.salesStatus === "SOLD_OUT" && (
                                 <Badge variant="destructive">품절</Badge>
                               )}
