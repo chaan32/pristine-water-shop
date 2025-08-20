@@ -84,6 +84,9 @@ const ProductContentManagement = () => {
   const [faqList, setFaqList] = useState<{question: string, answer: string}[]>([]);
   const [newFaq, setNewFaq] = useState({question: '', answer: ''});
 
+  // 기존 콘텐츠 여부 추적
+  const [hasExistingContent, setHasExistingContent] = useState(false);
+
 
   // API에서 상품 목록 가져오기
   const fetchProducts = async () => {
@@ -155,6 +158,7 @@ const ProductContentManagement = () => {
           if (editor) editor.commands.setContent('');
           setThumbnailPreview('');
           setGalleryPreviews([]);
+          setHasExistingContent(false);
           return;
         }
         
@@ -175,6 +179,7 @@ const ProductContentManagement = () => {
         // 기존 이미지들 처리
         setThumbnailPreview(data?.thumbnailImageUrl || '');
         setGalleryPreviews(data?.galleryImageUrls || []);
+        setHasExistingContent(true); // 서버에서 기존 콘텐츠를 불러온 경우
         
         toast({
           title: "콘텐츠 불러오기 완료",
@@ -189,6 +194,7 @@ const ProductContentManagement = () => {
         }
         setThumbnailPreview('');
         setGalleryPreviews([]);
+        setHasExistingContent(false);
       } else {
         throw new Error('콘텐츠 불러오기 실패');
       }
@@ -232,12 +238,32 @@ const ProductContentManagement = () => {
   };
 
   const handleImageUpload = (file: File) => {
+    // 서버에서 불러온 기존 콘텐츠가 있는 경우에만 제한
+    if (hasExistingContent) {
+      toast({
+        title: "이미지 수정 제한",
+        description: "이미지 수정은 상품 수정 패널에서 진행해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setThumbnailFile(file);
     const previewUrl = URL.createObjectURL(file);
     setThumbnailPreview(previewUrl);
   };
 
   const handleGalleryImageUpload = (file: File) => {
+    // 서버에서 불러온 기존 콘텐츠가 있는 경우에만 제한
+    if (hasExistingContent) {
+      toast({
+        title: "이미지 수정 제한",
+        description: "이미지 수정은 상품 수정 패널에서 진행해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (galleryFiles.length >= 5) {
       toast({
         title: "이미지 제한",
