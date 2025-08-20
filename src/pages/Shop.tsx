@@ -54,7 +54,7 @@ const Shop = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/shop/categories');
+        const response = await fetch('http://localhost:8080/api/shop/all/categories');
         if (!response.ok) {
           throw new Error('카테고리 데이터를 가져오는데 실패했습니다.');
         }
@@ -129,7 +129,19 @@ const Shop = () => {
     let matchesCategory = true;
 
     if (filterCategory !== 'all') {
-      matchesCategory = product.categoryId === filterCategory;
+      // 메인 카테고리가 선택된 경우 (main-{id} 형태)
+      if (filterCategory.startsWith('main-')) {
+        const mainCategoryId = parseInt(filterCategory.replace('main-', ''));
+        // 해당 메인 카테고리의 모든 서브 카테고리에 속하는 상품들
+        const mainCategory = categories.find(cat => cat.mainCategoryId === mainCategoryId);
+        if (mainCategory) {
+          const subCategoryIds = mainCategory.subCategories.map(sub => sub.categoryId);
+          matchesCategory = subCategoryIds.includes(product.categoryId);
+        }
+      } else {
+        // 서브 카테고리가 선택된 경우
+        matchesCategory = product.categoryId === parseInt(filterCategory);
+      }
     }
 
     return matchesSearch && matchesCategory;
@@ -234,14 +246,28 @@ const Shop = () => {
                         전체 제품
                       </Button>
                       {categories.map((category) => (
+                        <div key={category.mainCategoryId}>
+                          {/* 메인 카테고리 */}
                           <Button
-                              key={category.categoryId}
-                              variant={filterCategory === category.categoryId ? 'default' : 'ghost'}
-                              className="w-full justify-start"
-                              onClick={() => setFilterCategory(category.categoryId)}
+                            variant={filterCategory === `main-${category.mainCategoryId}` ? 'default' : 'ghost'}
+                            className="w-full justify-start font-semibold text-sm"
+                            onClick={() => setFilterCategory(`main-${category.mainCategoryId}`)}
                           >
-                            {category.categoryName}
+                            {category.mainCategory}
                           </Button>
+                          
+                          {/* 서브 카테고리들 */}
+                          {category.subCategories.map((subCategory) => (
+                            <Button
+                              key={subCategory.categoryId}
+                              variant={filterCategory === String(subCategory.categoryId) ? 'default' : 'ghost'}
+                              className="w-full justify-start ml-4 text-xs text-muted-foreground hover:text-foreground"
+                              onClick={() => setFilterCategory(String(subCategory.categoryId))}
+                            >
+                              └ {subCategory.categoryName}
+                            </Button>
+                          ))}
+                        </div>
                       ))}
                     </div>
                   </Card>
