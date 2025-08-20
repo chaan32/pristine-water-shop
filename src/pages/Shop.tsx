@@ -125,6 +125,8 @@ const Shop = () => {
   };
 
   const filteredProducts = products.filter(product => {
+    // Only show ON_SALE and SOLD_OUT products
+    const matchesStatus = product.salesStatus === "ON_SALE" || product.salesStatus === "SOLD_OUT";
     const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
     let matchesCategory = true;
 
@@ -144,7 +146,7 @@ const Shop = () => {
       }
     }
 
-    return matchesSearch && matchesCategory;
+    return matchesStatus && matchesSearch && matchesCategory;
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -302,6 +304,21 @@ const Shop = () => {
                     {sortedProducts.map((product) => (
                         <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
                           <CardHeader className="p-0 relative">
+                            {/* Status and Product Badges */}
+                            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                              {product.salesStatus === "SOLD_OUT" && (
+                                <Badge variant="destructive">품절</Badge>
+                              )}
+                              {product.isBest && (
+                                <Badge className="bg-destructive text-destructive-foreground">BEST</Badge>
+                              )}
+                              {product.isNew && (
+                                <Badge className="bg-accent text-accent-foreground">NEW</Badge>
+                              )}
+                              {product.isRecommendation && (
+                                <Badge variant="secondary">추천</Badge>
+                              )}
+                            </div>
                             {/* Product Image */}
                             <div className="aspect-square bg-secondary overflow-hidden">
                               <img

@@ -22,11 +22,14 @@ interface ProductDetailDTO {
   shippingFee?: number | null;
   rating?: number | null;
   reviewCount?: number | null;
-  salesStatus?: string | null;
+  salesStatus?: "ON_SALE" | "SOLD_OUT" | "DISCONTINUED" | null;
   thumbnailImageUrl?: string | null;
   galleryImageUrls?: string[] | null;
   htmlContent?: string | null;
   title: string;
+  isBest?: boolean;
+  isNew?: boolean;
+  isRecommendation?: boolean;
 }
 // 백엔드 DTO Review
 interface ReviewDTO {
@@ -370,7 +373,18 @@ const ProductDetail = () => {
               <div>
                 {/* 상단 뱃지/제목 */}
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="outline">{product.salesStatus || '제품'}</Badge>
+                  {product.salesStatus === "SOLD_OUT" && (
+                    <Badge variant="destructive">품절</Badge>
+                  )}
+                  {product.isBest && (
+                    <Badge className="bg-destructive text-destructive-foreground">BEST</Badge>
+                  )}
+                  {product.isNew && (
+                    <Badge className="bg-accent text-accent-foreground">NEW</Badge>
+                  )}
+                  {product.isRecommendation && (
+                    <Badge variant="secondary">추천</Badge>
+                  )}
                 </div>
                 <h1 className="text-3xl font-bold text-foreground mb-4">{product.productName}</h1>
 

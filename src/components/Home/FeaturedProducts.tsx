@@ -18,6 +18,10 @@ type Product = {
   expressions: string[];
   rating: number;
   reviews: number;
+  salesStatus: "ON_SALE" | "SOLD_OUT" | "DISCONTINUED";
+  isBest: boolean;
+  isNew: boolean;
+  isRecommendation: boolean;
 };
 
 type DisplayData = {
@@ -65,10 +69,12 @@ const FeaturedProducts = () => {
   }
 
   const featuredProducts = [
-    displayData.bestProduct && { ...displayData.bestProduct, badge: 'BEST' },
-    displayData.newProduct && { ...displayData.newProduct, badge: 'NEW' },
-    displayData.recommendationProduct && { ...displayData.recommendationProduct, badge: null }
-  ].filter(Boolean) as (Product & { badge: string | null })[];
+    displayData.bestProduct,
+    displayData.newProduct,
+    displayData.recommendationProduct
+  ].filter(Boolean).filter(product => 
+    product.salesStatus === "ON_SALE" || product.salesStatus === "SOLD_OUT"
+  ) as Product[];
 
   return (
     <section className="py-16 bg-background">
@@ -88,18 +94,21 @@ const FeaturedProducts = () => {
           {featuredProducts.map((product) => (
             <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden flex flex-col h-full">
               <CardHeader className="p-0 relative">
-                {/* Badge */}
-                {product.badge && (
-                  <Badge 
-                    className={`absolute top-4 left-4 z-10 ${
-                      product.badge === 'BEST' 
-                        ? 'bg-destructive text-destructive-foreground' 
-                        : 'bg-accent text-accent-foreground'
-                    }`}
-                  >
-                    {product.badge}
-                  </Badge>
-                )}
+                {/* Status and Product Badges */}
+                <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                  {product.salesStatus === "SOLD_OUT" && (
+                    <Badge variant="destructive">품절</Badge>
+                  )}
+                  {product.isBest && (
+                    <Badge className="bg-destructive text-destructive-foreground">BEST</Badge>
+                  )}
+                  {product.isNew && (
+                    <Badge className="bg-accent text-accent-foreground">NEW</Badge>
+                  )}
+                  {product.isRecommendation && (
+                    <Badge variant="secondary">추천</Badge>
+                  )}
+                </div>
 
                 {/* Wishlist Button */}
                 <Button
