@@ -3,43 +3,72 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Star, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/api';
+
+type Product = {
+  productId: number;
+  categoryId: number;
+  productName: string;
+  mainCategory: string;
+  subCategory: string;
+  customerPrice: number;
+  businessPrice: number;
+  thumbnailImageUrl: string;
+  expressions: string[];
+  rating: number;
+  reviews: number;
+};
+
+type DisplayData = {
+  bestProduct: Product | null;
+  newProduct: Product | null;
+  recommendationProduct: Product | null;
+};
 
 const FeaturedProducts = () => {
+  const [displayData, setDisplayData] = useState<DisplayData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDisplayData = async () => {
+      try {
+        const response = await apiFetch('/api/shop/display');
+        if (response.ok) {
+          const data = await response.json();
+          setDisplayData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching display data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDisplayData();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="text-lg text-muted-foreground">로딩 중...</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!displayData) {
+    return null;
+  }
+
   const featuredProducts = [
-    {
-      id: 1,
-      name: '프리미엄 샤워 필터',
-      price: 89000,
-      originalPrice: 120000,
-      image: '/placeholder.svg',
-      rating: 4.8,
-      reviews: 234,
-      badge: 'BEST',
-      features: ['염소 제거 99.9%', '중금속 차단', '6개월 사용']
-    },
-    {
-      id: 2,
-      name: '주방용 직수 정수기',
-      price: 195000,
-      originalPrice: null,
-      image: '/placeholder.svg',
-      rating: 4.9,
-      reviews: 156,
-      badge: 'NEW',
-      features: ['4단계 필터링', 'LED 교체 알림', 'NSF 인증']
-    },
-    {
-      id: 3,
-      name: '산업용 대용량 필터',
-      price: 450000,
-      originalPrice: null,
-      image: '/placeholder.svg',
-      rating: 4.7,
-      reviews: 89,
-      badge: null,
-      features: ['1일 1000L 처리', '자동 역세척', '2년 보증']
-    }
-  ];
+    displayData.bestProduct && { ...displayData.bestProduct, badge: 'BEST' },
+    displayData.newProduct && { ...displayData.newProduct, badge: 'NEW' },
+    displayData.recommendationProduct && { ...displayData.recommendationProduct, badge: null }
+  ].filter(Boolean) as (Product & { badge: string | null })[];
 
   return (
     <section className="py-16 bg-background">
@@ -57,7 +86,7 @@ const FeaturedProducts = () => {
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {featuredProducts.map((product) => (
-            <Card key={product.id} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
+            <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
               <CardHeader className="p-0 relative">
                 {/* Badge */}
                 {product.badge && (
@@ -84,8 +113,8 @@ const FeaturedProducts = () => {
                 {/* Product Image */}
                 <div className="aspect-square bg-secondary overflow-hidden">
                   <img
-                    src={product.image}
-                    alt={product.name}
+                    src={product.thumbnailImageUrl}
+                    alt={product.productName}
                     className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
                   />
                 </div>
@@ -105,15 +134,15 @@ const FeaturedProducts = () => {
 
                 {/* Product Name */}
                 <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-smooth">
-                  {product.name}
+                  {product.productName}
                 </h3>
 
-                {/* Features */}
+                {/* Expressions */}
                 <ul className="space-y-1 mb-4">
-                  {product.features.map((feature, index) => (
+                  {product.expressions.map((expression, index) => (
                     <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
                       <div className="w-1 h-1 bg-accent rounded-full" />
-                      {feature}
+                      {expression}
                     </li>
                   ))}
                 </ul>
@@ -121,7 +150,7 @@ const FeaturedProducts = () => {
               </CardContent>
 
               <CardFooter className="p-6 pt-0">
-                <Link to={`/product/${product.id}`}>
+                <Link to={`/product/${product.productId}`}>
                   <Button className="w-full water-drop">
                     자세히 보기
                     <ArrowRight className="w-4 h-4 ml-2" />
