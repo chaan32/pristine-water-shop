@@ -1124,7 +1124,7 @@ const ProductEdit = () => {
               onValueChange={(value) => {
                 setMainPageProducts(prev => ({
                   ...prev,
-                  bestProducts: value ? [parseInt(value)] : []
+                  bestProducts: value !== 'none' ? [parseInt(value)] : []
                 }));
               }}
             >
@@ -1132,7 +1132,7 @@ const ProductEdit = () => {
                 <SelectValue placeholder="베스트 제품을 선택하세요" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 border">
-                <SelectItem value="">선택 해제</SelectItem>
+                <SelectItem value="none">선택 해제</SelectItem>
                 {products
                   .filter(product => product.isBest)
                   .map(product => (
@@ -1158,7 +1158,7 @@ const ProductEdit = () => {
               onValueChange={(value) => {
                 setMainPageProducts(prev => ({
                   ...prev,
-                  newProducts: value ? [parseInt(value)] : []
+                  newProducts: value !== 'none' ? [parseInt(value)] : []
                 }));
               }}
             >
@@ -1166,7 +1166,7 @@ const ProductEdit = () => {
                 <SelectValue placeholder="신제품을 선택하세요" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 border">
-                <SelectItem value="">선택 해제</SelectItem>
+                <SelectItem value="none">선택 해제</SelectItem>
                 {products
                   .filter(product => product.isNew)
                   .map(product => (
@@ -1192,7 +1192,7 @@ const ProductEdit = () => {
               onValueChange={(value) => {
                 setMainPageProducts(prev => ({
                   ...prev,
-                  recommendedProducts: value ? [parseInt(value)] : []
+                  recommendedProducts: value !== 'none' ? [parseInt(value)] : []
                 }));
               }}
             >
@@ -1200,7 +1200,7 @@ const ProductEdit = () => {
                 <SelectValue placeholder="추천 제품을 선택하세요" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 border">
-                <SelectItem value="">선택 해제</SelectItem>
+                <SelectItem value="none">선택 해제</SelectItem>
                 {products
                   .filter(product => product.isRecommendation)
                   .map(product => (
