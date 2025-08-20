@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Table,
   TableBody,
@@ -71,6 +72,50 @@ const ProductEdit = () => {
   });
   
   const { toast } = useToast();
+
+  // 메인페이지 구성 저장 API
+  const handleSaveMainPageProducts = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        toast({
+          title: "인증 오류",
+          description: "로그인이 필요합니다.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const response = await fetch('http://localhost:8080/api/admin/main-page-products', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          bestProducts: mainPageProducts.bestProducts,
+          newProducts: mainPageProducts.newProducts,
+          recommendedProducts: mainPageProducts.recommendedProducts
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('메인페이지 구성 저장에 실패했습니다.');
+      }
+
+      toast({
+        title: "메인페이지 구성 저장",
+        description: "메인페이지 제품 구성이 저장되었습니다.",
+      });
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "메인페이지 구성 저장에 실패했습니다.",
+        variant: "destructive"
+      });
+      console.error('Error saving main page products:', error);
+    }
+  };
 
   // 상품 목록 조회
   const fetchProducts = async () => {
@@ -1074,34 +1119,32 @@ const ProductEdit = () => {
               <Badge variant="destructive" className="text-xs">BEST</Badge>
               <Label className="font-medium">베스트 제품</Label>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {products
-                .filter(product => product.isBest)
-                .map(product => (
-                  <div key={product.id} className="flex items-center space-x-3 p-3 border border-border rounded-lg bg-background">
-                    <Switch
-                      checked={mainPageProducts.bestProducts.includes(product.id)}
-                      onCheckedChange={(checked) => {
-                        setMainPageProducts(prev => ({
-                          ...prev,
-                          bestProducts: checked 
-                            ? [...prev.bestProducts, product.id]
-                            : prev.bestProducts.filter(id => id !== product.id)
-                        }));
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{product.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {product.mainCategory} {'>'} {product.subCategory}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              {products.filter(product => product.isBest).length === 0 && (
-                <p className="text-sm text-muted-foreground col-span-full">BEST 뱃지가 설정된 제품이 없습니다.</p>
-              )}
-            </div>
+            <Select
+              value={mainPageProducts.bestProducts[0]?.toString() || ""}
+              onValueChange={(value) => {
+                setMainPageProducts(prev => ({
+                  ...prev,
+                  bestProducts: value ? [parseInt(value)] : []
+                }));
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="베스트 제품을 선택하세요" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border">
+                <SelectItem value="">선택 해제</SelectItem>
+                {products
+                  .filter(product => product.isBest)
+                  .map(product => (
+                    <SelectItem key={product.id} value={product.id.toString()}>
+                      {product.name} ({product.mainCategory} &gt; {product.subCategory})
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {products.filter(product => product.isBest).length === 0 && (
+              <p className="text-sm text-muted-foreground">BEST 뱃지가 설정된 제품이 없습니다.</p>
+            )}
           </div>
 
           {/* NEW 제품 선택 */}
@@ -1110,34 +1153,32 @@ const ProductEdit = () => {
               <Badge variant="default" className="text-xs">NEW</Badge>
               <Label className="font-medium">신제품</Label>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {products
-                .filter(product => product.isNew)
-                .map(product => (
-                  <div key={product.id} className="flex items-center space-x-3 p-3 border border-border rounded-lg bg-background">
-                    <Switch
-                      checked={mainPageProducts.newProducts.includes(product.id)}
-                      onCheckedChange={(checked) => {
-                        setMainPageProducts(prev => ({
-                          ...prev,
-                          newProducts: checked 
-                            ? [...prev.newProducts, product.id]
-                            : prev.newProducts.filter(id => id !== product.id)
-                        }));
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{product.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {product.mainCategory} {'>'} {product.subCategory}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              {products.filter(product => product.isNew).length === 0 && (
-                <p className="text-sm text-muted-foreground col-span-full">NEW 뱃지가 설정된 제품이 없습니다.</p>
-              )}
-            </div>
+            <Select
+              value={mainPageProducts.newProducts[0]?.toString() || ""}
+              onValueChange={(value) => {
+                setMainPageProducts(prev => ({
+                  ...prev,
+                  newProducts: value ? [parseInt(value)] : []
+                }));
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="신제품을 선택하세요" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border">
+                <SelectItem value="">선택 해제</SelectItem>
+                {products
+                  .filter(product => product.isNew)
+                  .map(product => (
+                    <SelectItem key={product.id} value={product.id.toString()}>
+                      {product.name} ({product.mainCategory} &gt; {product.subCategory})
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {products.filter(product => product.isNew).length === 0 && (
+              <p className="text-sm text-muted-foreground">NEW 뱃지가 설정된 제품이 없습니다.</p>
+            )}
           </div>
 
           {/* 추천 제품 선택 */}
@@ -1146,45 +1187,36 @@ const ProductEdit = () => {
               <Badge variant="secondary" className="text-xs">추천</Badge>
               <Label className="font-medium">추천 제품</Label>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {products
-                .filter(product => product.isRecommendation)
-                .map(product => (
-                  <div key={product.id} className="flex items-center space-x-3 p-3 border border-border rounded-lg bg-background">
-                    <Switch
-                      checked={mainPageProducts.recommendedProducts.includes(product.id)}
-                      onCheckedChange={(checked) => {
-                        setMainPageProducts(prev => ({
-                          ...prev,
-                          recommendedProducts: checked 
-                            ? [...prev.recommendedProducts, product.id]
-                            : prev.recommendedProducts.filter(id => id !== product.id)
-                        }));
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{product.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {product.mainCategory} {'>'} {product.subCategory}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              {products.filter(product => product.isRecommendation).length === 0 && (
-                <p className="text-sm text-muted-foreground col-span-full">추천 뱃지가 설정된 제품이 없습니다.</p>
-              )}
-            </div>
+            <Select
+              value={mainPageProducts.recommendedProducts[0]?.toString() || ""}
+              onValueChange={(value) => {
+                setMainPageProducts(prev => ({
+                  ...prev,
+                  recommendedProducts: value ? [parseInt(value)] : []
+                }));
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="추천 제품을 선택하세요" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border">
+                <SelectItem value="">선택 해제</SelectItem>
+                {products
+                  .filter(product => product.isRecommendation)
+                  .map(product => (
+                    <SelectItem key={product.id} value={product.id.toString()}>
+                      {product.name} ({product.mainCategory} &gt; {product.subCategory})
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {products.filter(product => product.isRecommendation).length === 0 && (
+              <p className="text-sm text-muted-foreground">추천 뱃지가 설정된 제품이 없습니다.</p>
+            )}
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button 
-              onClick={() => {
-                toast({
-                  title: "메인페이지 구성 저장",
-                  description: "메인페이지 제품 구성이 저장되었습니다.",
-                });
-              }}
-            >
+            <Button onClick={handleSaveMainPageProducts}>
               메인페이지 구성 저장
             </Button>
           </div>
