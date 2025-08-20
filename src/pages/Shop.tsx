@@ -316,6 +316,17 @@ const Shop = () => {
                           </CardHeader>
 
                           <CardContent className="p-6">
+                            {/* Rating */}
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="flex items-center gap-1">
+                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                <span className="text-sm font-medium">{product.rating?.toFixed(1) || '0.0'}</span>
+                              </div>
+                              <span className="text-sm text-muted-foreground">
+                                ({product.reviews || 0}개 리뷰)
+                              </span>
+                            </div>
+
                             {/* Product Name */}
                             <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-smooth">
                               {product.productName}
@@ -323,8 +334,20 @@ const Shop = () => {
 
                             {/* Category */}
                             <div className="text-sm text-muted-foreground mb-3">
-                              {product.categoryName}
+                              {product.mainCategory} {'>'} {product.subCategory}
                             </div>
+
+                            {/* Expressions/Features */}
+                            {product.expressions && product.expressions.length > 0 && (
+                              <ul className="space-y-1 mb-4">
+                                {product.expressions.map((expression, index) => (
+                                  <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <div className="w-1 h-1 bg-accent rounded-full" />
+                                    {expression}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
 
                             {/* Price */}
                             {renderPriceSection(product)}
