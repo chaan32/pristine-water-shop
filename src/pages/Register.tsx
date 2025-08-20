@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { UserPlus, Building, User, Check, X, Upload, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { authApi, registerApi } from '@/lib/api';
 
   interface Headquarters {
     id: string;
@@ -289,12 +290,7 @@ const Register = () => {
       - 400 Bad Request: 잘못된 아이디 형식
       - 500 Internal Server Error: 서버 내부 오류
       */
-      const response = await fetch(`http://localhost:8080/api/check-id/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await authApi.checkId(id);
 
       if (!response.ok) {
         throw new Error('서버 오류가 발생했습니다.');
@@ -372,7 +368,7 @@ const Register = () => {
   const fetchHeadquarters = async (term: string) => {
     setIsSearching(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/search/headquarters?term=${term}`);
+      const response = await registerApi.searchHeadquarters(term);
       if (!response.ok) {
         throw new Error('본사 검색에 실패했습니다.');
       }
@@ -452,13 +448,7 @@ const Register = () => {
         marketingAccepted: false
       };
 
-      const response = await fetch('http://localhost:8080/api/register/individual', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData)
-      });
+      const response = await registerApi.individual(requestData);
 
       if (response.ok) {
         navigate('/registration-success?type=individual');

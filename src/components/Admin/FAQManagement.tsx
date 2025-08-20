@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Save, Trash2 } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 
 interface Category { id: string; name: string }
 interface FAQItem { id: string; categoryId: string; question: string; answer: string }
@@ -26,9 +27,7 @@ const FAQManagement = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/admin/faq/categories', {
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-      });
+      const res = await adminApi.getFaqCategories();
       if (!res.ok) throw new Error('failed');
       const data = await res.json();
       setCategories(data);
@@ -47,9 +46,7 @@ const FAQManagement = () => {
   const fetchFaqs = async (categoryId: string) => {
     if (!categoryId) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/admin/faq?categoryId=${categoryId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-      });
+      const res = await adminApi.getFaqs(categoryId);
       if (!res.ok) throw new Error('failed');
       const data = await res.json();
       setFaqItems(data);
@@ -73,11 +70,7 @@ const FAQManagement = () => {
     const name = newCategoryName.trim();
     if (!name) return;
     try {
-      const res = await fetch('http://localhost:8080/api/admin/faq/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-        body: JSON.stringify({ name }),
-      });
+      const res = await adminApi.addFaqCategory({ name });
       if (!res.ok) throw new Error('failed');
       toast({ title: '카테고리 추가', description: '새 카테고리가 추가되었습니다.' });
       setNewCategoryName('');
@@ -102,11 +95,7 @@ const FAQManagement = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:8080/api/admin/faq/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-        body: JSON.stringify({ categoryId: selectedCategoryId, question: newQuestion, answer: newAnswer }),
-      });
+      const res = await adminApi.addFaq({ categoryId: selectedCategoryId, question: newQuestion, answer: newAnswer });
       if (!res.ok) throw new Error('failed');
       toast({ title: 'FAQ 등록', description: 'FAQ가 등록되었습니다.' });
       setNewQuestion('');
@@ -123,10 +112,7 @@ const FAQManagement = () => {
 
   const removeFaq = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/admin/faq/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-      });
+      const res = await adminApi.deleteFaq(id);
       if (!res.ok) throw new Error('failed');
       fetchFaqs(selectedCategoryId);
     } catch (e) {
@@ -158,21 +144,10 @@ const FAQManagement = () => {
       return;
     }
 
-    const accessToken = localStorage.getItem('accessToken');
-    const url = isEditing
-        ? `http://localhost:8080/api/admin/faq/${editingItemId}` // 수정 모드 API 엔드포인트
-        : 'http://localhost:8080/api/admin/faq/add'; // 추가 모드 API 엔드포인트
-    const method = isEditing ? 'PUT' : 'POST';
-
     try {
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ categoryId: selectedCategoryId, question: newQuestion, answer: newAnswer }),
-      });
+      const res = isEditing
+          ? await adminApi.updateFaq(editingItemId, { categoryId: selectedCategoryId, question: newQuestion, answer: newAnswer })
+          : await adminApi.addFaq({ categoryId: selectedCategoryId, question: newQuestion, answer: newAnswer });
       if (!res.ok) throw new Error('failed');
 
       toast({

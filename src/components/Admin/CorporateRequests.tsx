@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { CheckCircle, XCircle, Eye, Clock, Crown } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 
 // 실제 백엔드 ApproveResponseDto 구조에 맞는 타입 정의
 interface ApproveRequest {
@@ -39,14 +40,7 @@ const CorporateRequests = () => {
   // 실제 API에서 법인 승인 요청 목록 가져오기
   const fetchCorporateRequests = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/corporate-requests', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await adminApi.getCorporateRequests();
 
       if (response.ok) {
         const data = await response.json();
@@ -84,16 +78,8 @@ const CorporateRequests = () => {
   const handleApprove = async () => {
     if (selectedRequest) {
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        const response = await fetch(`http://localhost:8080/api/admin/corporate-requests/${selectedRequest.id}/approve`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            isHeadquarters: isHeadquartersChecked
-          })
+        const response = await adminApi.approveCorporateRequest(selectedRequest.id, {
+          isHeadquarters: isHeadquartersChecked
         });
 
         if (response.ok) {
@@ -115,14 +101,7 @@ const CorporateRequests = () => {
 
   const handleReject = async (id: number) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/admin/corporate-requests/${id}/reject`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await adminApi.rejectCorporateRequest(id);
 
       if (response.ok) {
         const data = await response.json();

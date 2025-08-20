@@ -10,7 +10,7 @@ import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard'
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
 import ReAuthDialog from '@/components/MyPage/ReAuthDialog';
 import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog';
-import { apiFetch, getAccessToken } from '@/lib/api';
+import { userApi, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
 
@@ -38,13 +38,7 @@ const MyPageContent = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/users/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await userApi.getMe();
 
       if (response.ok) {
         const result = await response.json();
@@ -78,13 +72,7 @@ const MyPageContent = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/users/orders?page=1&limit=10', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await userApi.getOrders(1, 10);
 
       if (response.ok) {
         const result = await response.json();
@@ -220,10 +208,7 @@ const MyPageContent = () => {
         return;
       }
 
-      const response = await apiFetch('/api/users/me', {
-        method: 'PUT',
-        body: JSON.stringify(editForm)
-      });
+      const response = await userApi.updateMe(editForm);
 
       if (response.ok) {
         const result = await response.json();

@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { LogIn, User, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { authApi } from '@/lib/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -78,19 +79,13 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: loginData.username,
-          password: loginData.password,
-          deviceInfo: {
-            userAgent: navigator.userAgent,
-            ip: 'auto' // 서버에서 자동 감지
-          }
-        })
+      const response = await authApi.login({
+        username: loginData.username,
+        password: loginData.password,
+        deviceInfo: {
+          userAgent: navigator.userAgent,
+          ip: 'auto' // 서버에서 자동 감지
+        }
       });
 
       const data = await response.json();

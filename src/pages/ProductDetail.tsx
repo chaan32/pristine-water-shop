@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star, Minus, Plus, ShoppingCart, Heart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { apiFetch, API_BASE_URL } from '@/lib/api';
+import { apiFetch, shopApi, cartApi } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 // 백엔드 DTO 타입
@@ -92,7 +92,7 @@ const ProductDetail = () => {
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/api/shop/${id}`);
+        const res = await shopApi.getProduct(id);
 
         if (!res.ok) {
           throw new Error('제품 상세 정보를 불러오지 못했습니다.');
@@ -125,7 +125,7 @@ const ProductDetail = () => {
 
       try{
         setReviewsLoading(true);
-        const res = await fetch(`${API_BASE_URL}/api/shop/${id}/comments`);
+        const res = await shopApi.getProductReviews(id);
         if (!res.ok) throw new Error('리뷰를 불러오지 못했습니다.');
         const data: ReviewDTO[] = await res.json();
 
@@ -156,7 +156,7 @@ const ProductDetail = () => {
 
       try {
         setQnasLoading(true); // Q&A 로딩 시작
-        const res = await fetch(`${API_BASE_URL}/api/shop/${id}/inquiries`);
+        const res = await shopApi.getProductInquiries(id);
         if (!res.ok) throw new Error('Q&A 목록을 불러오지 못했습니다.');
         const data: QnaDTO[] = await res.json();
 
@@ -244,12 +244,9 @@ const ProductDetail = () => {
 
     try {
       if (token) {
-        const res = await apiFetch('/api/cart/add', {
-          method: 'POST',
-          body: JSON.stringify({
-            productId: product.productId,
-            quantity,
-          }),
+        const res = await cartApi.add({
+          productId: product.productId,
+          quantity,
         });
         if (!res.ok) throw new Error('장바구니 추가에 실패했습니다.');
         window.dispatchEvent(new Event('cart:updated'));
@@ -297,13 +294,7 @@ const ProductDetail = () => {
     setIsSubmitting(true);
 
     try{
-      const res = await fetch(`${API_BASE_URL}/api/shop/inquiry`, {
-        method: 'POST',
-        headers:{
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(inquiryData),
-      });
+      const res = await shopApi.createInquiry(inquiryData);
 
       if (!res.ok) {
         const errorData = await res.json();

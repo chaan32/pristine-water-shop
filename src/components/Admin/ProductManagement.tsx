@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Save, Plus, ChevronDown, Edit2, Trash2 } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 
 const ProductManagement = () => {
   const { toast } = useToast();
@@ -54,13 +55,7 @@ const ProductManagement = () => {
   // 메인 카테고리 조회
   const fetchMainCategories = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/main/categories', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await adminApi.getMainCategories();
       
       if (response.ok) {
         const data = await response.json();
@@ -75,13 +70,7 @@ const ProductManagement = () => {
   // 서브 카테고리 조회 (특정 메인 카테고리에 대해)
   const fetchSubCategories = async (mainCategoryId: number) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/admin/sub/categories/${mainCategoryId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await adminApi.getSubCategories(mainCategoryId);
       
       if (response.ok) {
         const data = await response.json();
@@ -105,15 +94,7 @@ const ProductManagement = () => {
     if (!newMainCategoryName.trim()) return;
     
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/main/categories/add', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newMainCategoryName.trim() }),
-      });
+      const response = await adminApi.addMainCategory({ name: newMainCategoryName.trim() });
       
       if (response.ok) {
         const responseData = await response.json();
@@ -143,17 +124,9 @@ const ProductManagement = () => {
     if (!newSubCategoryName.trim() || !selectedMainCategoryId) return;
     
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/sub/categories/add', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          name: newSubCategoryName.trim(),
-          id: selectedMainCategoryId 
-        }),
+      const response = await adminApi.addSubCategory({ 
+        name: newSubCategoryName.trim(),
+        id: selectedMainCategoryId 
       });
       
       if (response.ok) {

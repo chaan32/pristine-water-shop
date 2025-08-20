@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowRight, Star, Search, Filter, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { apiFetch } from '@/lib/api';
+import { shopApi, cartApi } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 const Shop = () => {
@@ -32,7 +32,7 @@ const Shop = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:8080/api/shop/products');
+        const response = await shopApi.getProducts();
         if (!response.ok) {
           throw new Error('상품 데이터를 가져오는데 실패했습니다.');
         }
@@ -54,7 +54,7 @@ const Shop = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/shop/all/categories');
+        const response = await shopApi.getAllCategories();
         if (!response.ok) {
           throw new Error('카테고리 데이터를 가져오는데 실패했습니다.');
         }
@@ -165,10 +165,7 @@ const Shop = () => {
     const token = localStorage.getItem('accessToken');
     try {
       if (token) {
-        const res = await apiFetch('/api/cart/add', {
-          method: 'POST',
-          body: JSON.stringify({ productId: product.productId, quantity: 1 }),
-        });
+        const res = await cartApi.add({ productId: product.productId, quantity: 1 });
         if (!res.ok) throw new Error('장바구니 추가에 실패했습니다.');
       } else {
         const localCart = JSON.parse(localStorage.getItem('cart') || '[]');

@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import showerFilter from '@/assets/shower-filter.jpg';
 import kitchenFilter from '@/assets/kitchen-filter.jpg';
-import { apiFetch, API_BASE_URL } from '@/lib/api';
+import { cartApi, shopApi } from '@/lib/api';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const Cart = () => {
       }
 
       // 서버 장바구니 조회 (CartItemDto[])
-      const res = await apiFetch('/api/cart');
+      const res = await cartApi.get();
       if (!res.ok) {
         throw new Error('장바구니 조회 실패');
       }
@@ -42,7 +42,7 @@ const Cart = () => {
       const userType = localStorage.getItem('userType');
       const items = await Promise.all(
         dtos.map(async (dto) => {
-          const pdRes = await fetch(`${API_BASE_URL}/api/shop/${dto.productId}`);
+          const pdRes = await shopApi.getProduct(dto.productId.toString());
           if (!pdRes.ok) throw new Error('상품 정보를 불러오지 못했습니다.');
           const pd = await pdRes.json();
           const price =
@@ -92,10 +92,7 @@ const Cart = () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
-        const res = await apiFetch('/api/cart', {
-          method: 'POST',
-          body: JSON.stringify({ productId, quantity: newQuantity })
-        });
+        const res = await cartApi.update({ productId, quantity: newQuantity });
         if (!res.ok) {
           throw new Error('수량 변경 실패');
         }
@@ -135,9 +132,7 @@ const Cart = () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
-        const res = await apiFetch(`/api/cart/${productId}`, {
-          method: 'DELETE',
-        });
+        const res = await cartApi.remove(productId);
         if (!res.ok) {
           throw new Error('상품 삭제 실패');
         }
