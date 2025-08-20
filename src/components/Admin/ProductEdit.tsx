@@ -86,6 +86,11 @@ const ProductEdit = () => {
         return;
       }
 
+      // 선택된 상품 ID만 추출 (빈 배열이나 'none' 값 제외)
+      const selectedBestProducts = mainPageProducts.bestProducts.filter(id => id && id !== 'none').map(id => Number(id));
+      const selectedNewProducts = mainPageProducts.newProducts.filter(id => id && id !== 'none').map(id => Number(id));
+      const selectedRecommendedProducts = mainPageProducts.recommendedProducts.filter(id => id && id !== 'none').map(id => Number(id));
+
       const response = await fetch('http://localhost:8080/api/admin/main-page-products', {
         method: 'POST',
         headers: {
@@ -93,9 +98,9 @@ const ProductEdit = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          bestProducts: mainPageProducts.bestProducts.map(id => Number(id)),
-          newProducts: mainPageProducts.newProducts.map(id => Number(id)),
-          recommendedProducts: mainPageProducts.recommendedProducts.map(id => Number(id))
+          bestProducts: selectedBestProducts,
+          newProducts: selectedNewProducts,
+          recommendedProducts: selectedRecommendedProducts
         })
       });
 
