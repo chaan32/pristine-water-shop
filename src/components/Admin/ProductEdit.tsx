@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
 import ImageManagementModal from './ImageManagementModal';
 
 const ProductEdit = () => {
@@ -36,7 +37,10 @@ const ProductEdit = () => {
     discountPrice: '',
     discountPercent: '',
     stock: '',
-    status: ''
+    status: '',
+    isNew: false,
+    isRecommendation: false,
+    isBest: false
   });
   
   // 2단계 카테고리 관련 상태
@@ -58,6 +62,13 @@ const ProductEdit = () => {
   
   // 이미지 관리 모달 관련
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  
+  // 메인페이지 구성 상품 관련
+  const [mainPageProducts, setMainPageProducts] = useState({
+    bestProducts: [],
+    newProducts: [],
+    recommendedProducts: []
+  });
   
   const { toast } = useToast();
 
@@ -366,7 +377,10 @@ const ProductEdit = () => {
       discountPrice: (product.discountPrice || 0).toString(),
       discountPercent: (product.discountPercent || 0).toString(),
       stock: (product.stock || 0).toString(),
-      status: product.status || ''
+      status: product.status || '',
+      isNew: product.isNew || false,
+      isRecommendation: product.isRecommendation || false,
+      isBest: product.isBest || false
     });
     
     // 기존 카테고리 정보로 메인카테고리와 서브카테고리 설정
@@ -425,6 +439,9 @@ const ProductEdit = () => {
           discountPercent: parseInt(editForm.discountPercent),
           stock: parseInt(editForm.stock),
           status: editForm.status,
+          isNew: editForm.isNew,
+          isRecommendation: editForm.isRecommendation,
+          isBest: editForm.isBest
         })
       });
 
@@ -491,7 +508,7 @@ const ProductEdit = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -925,7 +942,44 @@ const ProductEdit = () => {
                   </div>
                 </div>
 
-                {/* 상품 표현 관리 */}
+                {/* 상품 뱃지 설정 */}
+                <div className="space-y-4">
+                  <Label>상품 뱃지 설정</Label>
+                  <div className="grid grid-cols-1 gap-4 p-4 border border-border rounded-lg bg-muted/20">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium">NEW 뱃지</Label>
+                        <p className="text-xs text-muted-foreground">신제품 표시</p>
+                      </div>
+                      <Switch
+                        checked={editForm.isNew}
+                        onCheckedChange={(checked) => handleInputChange('isNew', checked)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium">추천 뱃지</Label>
+                        <p className="text-xs text-muted-foreground">추천 제품 표시</p>
+                      </div>
+                      <Switch
+                        checked={editForm.isRecommendation}
+                        onCheckedChange={(checked) => handleInputChange('isRecommendation', checked)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium">BEST 뱃지</Label>
+                        <p className="text-xs text-muted-foreground">베스트 제품 표시</p>
+                      </div>
+                      <Switch
+                        checked={editForm.isBest}
+                        onCheckedChange={(checked) => handleInputChange('isBest', checked)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                 {/* 상품 표현 관리 */}
                 <div className="space-y-4">
                   <Label htmlFor="expressions">상품 표현</Label>
                   <div className="space-y-2">
@@ -1004,6 +1058,139 @@ const ProductEdit = () => {
           productName={selectedProduct.name}
         />
       )}
+
+      {/* 메인페이지 구성 상품 선택 */}
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>메인페이지 구성 상품</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            각 뱃지를 가진 제품 중에서 메인페이지에 표시할 제품을 선택하세요.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* BEST 제품 선택 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="destructive" className="text-xs">BEST</Badge>
+              <Label className="font-medium">베스트 제품</Label>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {products
+                .filter(product => product.isBest)
+                .map(product => (
+                  <div key={product.id} className="flex items-center space-x-3 p-3 border border-border rounded-lg bg-background">
+                    <Switch
+                      checked={mainPageProducts.bestProducts.includes(product.id)}
+                      onCheckedChange={(checked) => {
+                        setMainPageProducts(prev => ({
+                          ...prev,
+                          bestProducts: checked 
+                            ? [...prev.bestProducts, product.id]
+                            : prev.bestProducts.filter(id => id !== product.id)
+                        }));
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {product.mainCategory} {'>'} {product.subCategory}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              {products.filter(product => product.isBest).length === 0 && (
+                <p className="text-sm text-muted-foreground col-span-full">BEST 뱃지가 설정된 제품이 없습니다.</p>
+              )}
+            </div>
+          </div>
+
+          {/* NEW 제품 선택 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="text-xs">NEW</Badge>
+              <Label className="font-medium">신제품</Label>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {products
+                .filter(product => product.isNew)
+                .map(product => (
+                  <div key={product.id} className="flex items-center space-x-3 p-3 border border-border rounded-lg bg-background">
+                    <Switch
+                      checked={mainPageProducts.newProducts.includes(product.id)}
+                      onCheckedChange={(checked) => {
+                        setMainPageProducts(prev => ({
+                          ...prev,
+                          newProducts: checked 
+                            ? [...prev.newProducts, product.id]
+                            : prev.newProducts.filter(id => id !== product.id)
+                        }));
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {product.mainCategory} {'>'} {product.subCategory}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              {products.filter(product => product.isNew).length === 0 && (
+                <p className="text-sm text-muted-foreground col-span-full">NEW 뱃지가 설정된 제품이 없습니다.</p>
+              )}
+            </div>
+          </div>
+
+          {/* 추천 제품 선택 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">추천</Badge>
+              <Label className="font-medium">추천 제품</Label>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {products
+                .filter(product => product.isRecommendation)
+                .map(product => (
+                  <div key={product.id} className="flex items-center space-x-3 p-3 border border-border rounded-lg bg-background">
+                    <Switch
+                      checked={mainPageProducts.recommendedProducts.includes(product.id)}
+                      onCheckedChange={(checked) => {
+                        setMainPageProducts(prev => ({
+                          ...prev,
+                          recommendedProducts: checked 
+                            ? [...prev.recommendedProducts, product.id]
+                            : prev.recommendedProducts.filter(id => id !== product.id)
+                        }));
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {product.mainCategory} {'>'} {product.subCategory}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              {products.filter(product => product.isRecommendation).length === 0 && (
+                <p className="text-sm text-muted-foreground col-span-full">추천 뱃지가 설정된 제품이 없습니다.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button 
+              onClick={() => {
+                toast({
+                  title: "메인페이지 구성 저장",
+                  description: "메인페이지 제품 구성이 저장되었습니다.",
+                });
+              }}
+            >
+              메인페이지 구성 저장
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
     </div>
   );
 };
