@@ -73,6 +73,34 @@ const ProductEdit = () => {
   
   const { toast } = useToast();
 
+  // 메인페이지 구성 불러오기 API
+  const fetchMainPageProducts = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+
+      const response = await fetch('http://localhost:8080/api/admin/main-page-products', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // 단일 값 또는 null을 배열 형태로 변환
+        setMainPageProducts({
+          bestProducts: data.bestProducts ? [data.bestProducts] : [],
+          newProducts: data.newProducts ? [data.newProducts] : [],
+          recommendedProducts: data.recommendedProducts ? [data.recommendedProducts] : []
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching main page products:', error);
+    }
+  };
+
   // 메인페이지 구성 저장 API
   const handleSaveMainPageProducts = async () => {
     try {
@@ -323,6 +351,7 @@ const ProductEdit = () => {
   useEffect(() => {
     fetchProducts();
     fetchMainCategories();
+    fetchMainPageProducts();
   }, []);
 
   const filteredProducts = products.filter(product => {
