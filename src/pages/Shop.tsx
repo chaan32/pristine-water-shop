@@ -337,17 +337,23 @@ const Shop = () => {
                               {product.mainCategory} {'>'} {product.subCategory}
                             </div>
 
-                            {/* Expressions/Features */}
-                            {product.expressions && product.expressions.length > 0 && (
-                              <ul className="space-y-1 mb-4">
-                                {product.expressions.map((expression, index) => (
-                                  <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
-                                    <div className="w-1 h-1 bg-accent rounded-full" />
-                                    {expression}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
+                            {/* Expressions/Features - Fixed height for consistent button positioning */}
+                            <div className="h-20 mb-4">
+                              {product.expressions && product.expressions.length > 0 ? (
+                                <ul className="space-y-1">
+                                  {product.expressions.slice(0, 4).map((expression, index) => (
+                                    <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                                      <div className="w-1 h-1 bg-accent rounded-full" />
+                                      {expression}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className="text-sm text-muted-foreground opacity-50">
+                                  특징 정보 없음
+                                </div>
+                              )}
+                            </div>
 
                             {/* Price */}
                             {renderPriceSection(product)}
