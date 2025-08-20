@@ -93,9 +93,9 @@ const ProductEdit = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          bestProducts: mainPageProducts.bestProducts,
-          newProducts: mainPageProducts.newProducts,
-          recommendedProducts: mainPageProducts.recommendedProducts
+          bestProducts: mainPageProducts.bestProducts.map(id => Number(id)),
+          newProducts: mainPageProducts.newProducts.map(id => Number(id)),
+          recommendedProducts: mainPageProducts.recommendedProducts.map(id => Number(id))
         })
       });
 
