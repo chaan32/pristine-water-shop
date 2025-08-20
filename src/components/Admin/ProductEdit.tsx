@@ -60,6 +60,7 @@ const ProductEdit = () => {
   // 상품 표현 관련
   const [expressions, setExpressions] = useState<Record<string, string>>({});
   const [currentExpression, setCurrentExpression] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
   
   // 이미지 관리 모달 관련
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -373,9 +374,10 @@ const ProductEdit = () => {
   const availableCategories = [...new Set(products.map(p => p.mainCategory).filter(Boolean))];
   const availableStatuses = [...new Set(products.map(p => p.status).filter(Boolean))];
 
-  // Expression 추가 함수
-  const handleAddExpression = async () => {
-    if (!currentExpression.trim() || !selectedProduct) return;
+  // Expression 추가 함수 (IME 안전 처리)
+  const handleAddExpression = async (value?: string) => {
+    const expression = (value ?? currentExpression).trim();
+    if (!expression || !selectedProduct) return;
     
     try {
       const accessToken = localStorage.getItem('accessToken');
@@ -387,7 +389,7 @@ const ProductEdit = () => {
         },
         body: JSON.stringify({
           productId: selectedProduct.id,
-          expression: currentExpression.trim()
+          expression: expression
         })
       });
 
@@ -395,7 +397,7 @@ const ProductEdit = () => {
         const data = await response.json();
         setExpressions(prev => ({
           ...prev,
-          [data.id]: currentExpression.trim()
+          [data.id]: expression
         }));
         setCurrentExpression('');
         toast({
@@ -1074,10 +1076,14 @@ const ProductEdit = () => {
                         value={currentExpression}
                         onChange={(e) => setCurrentExpression(e.target.value)}
                         placeholder="상품 표현을 입력하고 Enter를 눌러주세요"
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.nativeEvent.isComposing && currentExpression.trim()) {
-                            e.preventDefault();
-                            handleAddExpression();
+                          if (e.key === 'Enter') e.preventDefault();
+                        }}
+                        onKeyUp={(e) => {
+                          if (e.key === 'Enter' && !isComposing) {
+                            handleAddExpression((e.target as HTMLInputElement).value);
                           }
                         }}
                       />
@@ -1085,7 +1091,7 @@ const ProductEdit = () => {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={handleAddExpression}
+                        onClick={() => handleAddExpression(currentExpression)}
                       >
                         추가
                       </Button>

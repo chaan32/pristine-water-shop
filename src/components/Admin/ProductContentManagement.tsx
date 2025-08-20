@@ -383,10 +383,11 @@ const ProductContentManagement = () => {
       </div>
     `;
 
-    // 에디터에 HTML 삽입하고 포커스 유지
-    setTimeout(() => {
-      editor?.chain().focus().insertContent(faqHtml).run();
-    }, 100);
+    // 에디터 맨 끝에 안전하게 삽입 (이미지/노드 선택 대체 방지)
+    editor?.chain()
+      .focus('end')
+      .insertContent('<p></p>' + faqHtml)
+      .run();
     
     toast({
       title: "FAQ 삽입 완료",
