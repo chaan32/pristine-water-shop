@@ -86,7 +86,7 @@ const FeaturedProducts = () => {
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {featuredProducts.map((product) => (
-            <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
+            <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden flex flex-col h-full">
               <CardHeader className="p-0 relative">
                 {/* Badge */}
                 {product.badge && (
@@ -120,7 +120,7 @@ const FeaturedProducts = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-6">
+              <CardContent className="p-6 flex-1 flex flex-col">
                 {/* Rating */}
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex items-center gap-1">
@@ -138,14 +138,16 @@ const FeaturedProducts = () => {
                 </h3>
 
                 {/* Expressions */}
-                <ul className="space-y-1 mb-4">
-                  {product.expressions.map((expression, index) => (
-                    <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
-                      <div className="w-1 h-1 bg-accent rounded-full" />
-                      {expression}
-                    </li>
-                  ))}
-                </ul>
+                <div className="flex-1">
+                  <ul className="space-y-1 min-h-[120px]">
+                    {product.expressions.map((expression, index) => (
+                      <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <div className="w-1 h-1 bg-accent rounded-full" />
+                        {expression}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
               </CardContent>
 
