@@ -124,8 +124,19 @@ const FeaturedProducts = () => {
                 {/* Rating */}
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{product.rating}</span>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star 
+                        key={star}
+                        className={`w-4 h-4 ${
+                          star <= Math.round(product.rating * 10) / 10
+                            ? 'fill-yellow-400 text-yellow-400' 
+                            : 'fill-gray-200 text-gray-200'
+                        }`} 
+                      />
+                    ))}
+                    <span className="text-sm font-medium ml-1">
+                      {Math.round(product.rating * 10) / 10}
+                    </span>
                   </div>
                   <span className="text-sm text-muted-foreground">
                     ({product.reviews}개 리뷰)
