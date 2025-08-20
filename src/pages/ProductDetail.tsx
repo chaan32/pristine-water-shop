@@ -26,6 +26,7 @@ interface ProductDetailDTO {
   thumbnailImageUrl?: string | null;
   galleryImageUrls?: string[] | null;
   htmlContent?: string | null;
+  title: string;
 }
 // 백엔드 DTO Review
 interface ReviewDTO {
@@ -470,7 +471,7 @@ const ProductDetail = () => {
                 </Button>
 
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  프리미엄 샤워 필터는 최신 다층 필터링 기술로 깨끗하고 건강한 물을 제공합니다.
+                  {product.title}
                 </p>
               </div>
             </div>
