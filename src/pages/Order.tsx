@@ -497,8 +497,8 @@ const Order = () => {
                     결제 수단
                   </h4>
                   <div className="space-y-2">
-                    {/* 개인 회원: 신용카드, 계좌이체 선택 가능 */}
-                    {userType === 'INDIVIDUAL' && (
+                    {/* 개인 회원, 본사: 신용카드, 계좌이체 */}
+                    {(userType === 'INDIVIDUAL' || userType === 'HEADQUARTER') && (
                       <>
                         <div
                           className="flex items-center space-x-2 cursor-pointer"
@@ -517,8 +517,8 @@ const Order = () => {
                       </>
                     )}
                     
-                    {/* 법인 본사/지점: 법인결제만 */}
-                    {(userType === 'HEADQUARTER' || userType === 'BRANCH') && (
+                    {/* 법인 지점: 법인결제만 */}
+                    {userType === 'BRANCH' && (
                       <div
                         className="flex items-center space-x-2 cursor-pointer"
                         onClick={() => setPaymentMethod('corporate_payment')}
