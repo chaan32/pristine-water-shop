@@ -496,50 +496,35 @@ const Order = () => {
                     <CreditCard className="w-4 h-4" />
                     결제 수단
                   </h4>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {/* 개인 회원: 신용카드, 계좌이체 선택 가능 */}
                     {userType === 'INDIVIDUAL' && (
                       <>
-                        <div className="flex items-center space-x-2">
-                          <input 
-                            type="radio" 
-                            id="card" 
-                            name="payment-method"
-                            value="card"
-                            checked={paymentMethod === 'card'}
-                            onChange={(e) => setPaymentMethod(e.target.value)}
-                            className="w-4 h-4 text-primary border-2 border-muted-foreground focus:ring-primary"
-                          />
-                          <label htmlFor="card" className="text-sm font-medium cursor-pointer">신용카드</label>
+                        <div
+                          className="flex items-center space-x-2 cursor-pointer"
+                          onClick={() => setPaymentMethod('card')}
+                        >
+                          <Checkbox id="card" checked={paymentMethod === 'card'} />
+                          <label htmlFor="card" className="text-sm cursor-pointer">신용카드</label>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <input 
-                            type="radio" 
-                            id="bank-transfer" 
-                            name="payment-method"
-                            value="bank_transfer"
-                            checked={paymentMethod === 'bank_transfer'}
-                            onChange={(e) => setPaymentMethod(e.target.value)}
-                            className="w-4 h-4 text-primary border-2 border-muted-foreground focus:ring-primary"
-                          />
-                          <label htmlFor="bank-transfer" className="text-sm font-medium cursor-pointer">계좌이체</label>
+                        <div
+                          className="flex items-center space-x-2 cursor-pointer"
+                          onClick={() => setPaymentMethod('bank_transfer')}
+                        >
+                          <Checkbox id="bank-transfer" checked={paymentMethod === 'bank_transfer'} />
+                          <label htmlFor="bank-transfer" className="text-sm cursor-pointer">계좌이체</label>
                         </div>
                       </>
                     )}
                     
                     {/* 법인 본사/지점: 법인결제만 */}
                     {(userType === 'HEADQUARTER' || userType === 'BRANCH') && (
-                      <div className="flex items-center space-x-2">
-                        <input 
-                          type="radio" 
-                          id="corporate" 
-                          name="payment-method"
-                          value="corporate_payment"
-                          checked={paymentMethod === 'corporate_payment'}
-                          onChange={(e) => setPaymentMethod(e.target.value)}
-                          className="w-4 h-4 text-primary border-2 border-muted-foreground focus:ring-primary"
-                        />
-                        <label htmlFor="corporate" className="text-sm font-medium cursor-pointer">법인결제</label>
+                      <div
+                        className="flex items-center space-x-2 cursor-pointer"
+                        onClick={() => setPaymentMethod('corporate_payment')}
+                      >
+                        <Checkbox id="corporate" checked={paymentMethod === 'corporate_payment'} />
+                        <label htmlFor="corporate" className="text-sm cursor-pointer">법인결제</label>
                       </div>
                     )}
                   </div>
