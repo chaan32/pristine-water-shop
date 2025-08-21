@@ -30,16 +30,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   const menuItems = [
     { title: '상품 등록', path: '/admin/products', icon: Package },
-    { title: '상품 수정', path: '/admin/products/edit', icon: Edit3 },
+    { title: '상품 관리', path: '/admin/products/edit', icon: Edit3 },
     { title: '상품 컨텐츠 관리', path: '/admin/products/content', icon: Edit3 },
-    { title: '매출 그래프', path: '/admin/sales', icon: BarChart3 },
-    { title: '주문 관리', path: '/admin/orders', icon: Truck },
-    { title: '회원 리스트', path: '/admin/members', icon: Users },
     { title: '법인 등록 요청', path: '/admin/corporate-requests', icon: Building2 },
+    { title: '회원 리스트', path: '/admin/members', icon: Users },
+    { title: '주문 관리', path: '/admin/orders', icon: Truck },
     { title: '1:1 문의 답변', path: '/admin/inquiries', icon: MessageSquare },
-    { title: '공지사항 관리', path: '/admin/notices', icon: Megaphone },
     { title: 'FAQ 관리', path: '/admin/faq', icon: HelpCircle },
-    { title: '환불/교환 관리', path: '/admin/refund-exchange', icon: RotateCcw }
+    { title: '환불/교환 관리', path: '/admin/refund-exchange', icon: RotateCcw },
+    { title: '공지사항 관리', path: '/admin/notices', icon: Megaphone },
+    { title: '매출 그래프', path: '/admin/sales', icon: BarChart3 }
   ];
 
   const isActivePath = (path: string) => {
