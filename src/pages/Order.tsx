@@ -32,6 +32,7 @@ const Order = () => {
   const [selectedCoupon, setSelectedCoupon] = useState('');
   const [loggedInUser, setLoggedInUser] = useState<UserInfo | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'bank', 'mobile'
+  const [userType, setUserType] = useState<string | null>(null);
   const { toast } = useToast();
 
   const [orderInfo, setOrderInfo] = useState({
@@ -47,6 +48,17 @@ const Order = () => {
 
 
   useEffect(() => {
+    // 사용자 타입을 localStorage에서 가져오기
+    const storedUserType = localStorage.getItem('userType');
+    setUserType(storedUserType);
+    
+    // 사용자 타입에 따라 기본 결제 방법 설정
+    if (storedUserType === 'INDIVIDUAL') {
+      setPaymentMethod('card');
+    } else if (storedUserType === 'HEADQUARTER' || storedUserType === 'BRANCH') {
+      setPaymentMethod('corporate_payment');
+    }
+
     // 페이지가 처음 로드될 때 로그인된 사용자의 정보를 가져옵니다.
     const fetchUserInfo = async () => {
       const userId = localStorage.getItem('userId');
@@ -485,30 +497,36 @@ const Order = () => {
                     결제 수단
                   </h4>
                   <div className="space-y-2">
-                    {/* 신용카드 */}
-                    <div
-                        className="flex items-center space-x-2 cursor-pointer"
-                        onClick={() => setPaymentMethod('card')}
-                    >
-                      <Checkbox id="card" checked={paymentMethod === 'card'} />
-                      <label htmlFor="card" className="text-sm cursor-pointer">신용카드</label>
-                    </div>
-                    {/* 계좌이체 */}
-                    <div
-                        className="flex items-center space-x-2 cursor-pointer"
-                        onClick={() => setPaymentMethod('bank_transfer')}
-                    >
-                      <Checkbox id="bank" checked={paymentMethod === 'bank_transfer'} />
-                      <label htmlFor="bank" className="text-sm cursor-pointer">계좌이체</label>
-                    </div>
-                    {/* 법인결제 */}
-                    <div
+                    {/* 개인 회원: 신용카드, 계좌이체 */}
+                    {userType === 'INDIVIDUAL' && (
+                      <>
+                        <div
+                          className="flex items-center space-x-2 cursor-pointer"
+                          onClick={() => setPaymentMethod('card')}
+                        >
+                          <Checkbox id="card" checked={paymentMethod === 'card'} />
+                          <label htmlFor="card" className="text-sm cursor-pointer">신용카드</label>
+                        </div>
+                        <div
+                          className="flex items-center space-x-2 cursor-pointer"
+                          onClick={() => setPaymentMethod('bank_transfer')}
+                        >
+                          <Checkbox id="bank-transfer" checked={paymentMethod === 'bank_transfer'} />
+                          <label htmlFor="bank-transfer" className="text-sm cursor-pointer">계좌이체</label>
+                        </div>
+                      </>
+                    )}
+                    
+                    {/* 법인 본사/지점: 법인결제만 */}
+                    {(userType === 'HEADQUARTER' || userType === 'BRANCH') && (
+                      <div
                         className="flex items-center space-x-2 cursor-pointer"
                         onClick={() => setPaymentMethod('corporate_payment')}
-                    >
-                      <Checkbox id="bank" checked={paymentMethod === 'corporate_payment'} />
-                      <label htmlFor="bank" className="text-sm cursor-pointer">법인결제</label>
-                    </div>
+                      >
+                        <Checkbox id="corporate" checked={paymentMethod === 'corporate_payment'} />
+                        <label htmlFor="corporate" className="text-sm cursor-pointer">법인결제</label>
+                      </div>
+                    )}
                   </div>
                 </div>
 
