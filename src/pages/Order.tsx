@@ -540,6 +540,7 @@ const Order = () => {
                       </div>
                     )}
                   </div>
+                </div>
 
 
                 <AlertDialog>
