@@ -490,7 +490,7 @@ const Order = () => {
                   </div>
                 </div>
 
-                {/* 결제 수단 */}
+                 결제 수단
                 <div>
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <CreditCard className="w-4 h-4" />
@@ -516,7 +516,7 @@ const Order = () => {
                         </div>
                       </>
                     )}
-                    
+
                     {/* 법인 지점: 법인결제만 */}
                     {userType === 'BRANCH' && (
                       <div
@@ -528,7 +528,7 @@ const Order = () => {
                       </div>
                     )}
                   </div>
-                </div>
+
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
