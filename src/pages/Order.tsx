@@ -53,9 +53,9 @@ const Order = () => {
     setUserType(storedUserType);
     
     // 사용자 타입에 따라 기본 결제 방법 설정
-    if (storedUserType === 'INDIVIDUAL') {
+    if (storedUserType === 'individual' || storedUserType === 'headquarters') {
       setPaymentMethod('card');
-    } else if (storedUserType === 'HEADQUARTER' || storedUserType === 'BRANCH') {
+    } else if (storedUserType === 'branch') {
       setPaymentMethod('corporate_payment');
     }
 
@@ -498,32 +498,44 @@ const Order = () => {
                   </h4>
                   <div className="space-y-2">
                     {/* 개인 회원, 본사: 신용카드, 계좌이체 */}
-                    {(userType === 'INDIVIDUAL' || userType === 'HEADQUARTER') && (
+                    {(userType === 'individual' || userType === 'headquarters') && (
                       <>
                         <div
                           className="flex items-center space-x-2 cursor-pointer"
                           onClick={() => setPaymentMethod('card')}
                         >
-                          <Checkbox id="card" checked={paymentMethod === 'card'} />
+                          <Checkbox 
+                            id="card" 
+                            checked={paymentMethod === 'card'}
+                            onCheckedChange={(checked) => checked && setPaymentMethod('card')}
+                          />
                           <label htmlFor="card" className="text-sm cursor-pointer">신용카드</label>
                         </div>
                         <div
                           className="flex items-center space-x-2 cursor-pointer"
                           onClick={() => setPaymentMethod('bank_transfer')}
                         >
-                          <Checkbox id="bank-transfer" checked={paymentMethod === 'bank_transfer'} />
+                          <Checkbox 
+                            id="bank-transfer" 
+                            checked={paymentMethod === 'bank_transfer'}
+                            onCheckedChange={(checked) => checked && setPaymentMethod('bank_transfer')}
+                          />
                           <label htmlFor="bank-transfer" className="text-sm cursor-pointer">계좌이체</label>
                         </div>
                       </>
                     )}
 
                     {/* 법인 지점: 법인결제만 */}
-                    {userType === 'BRANCH' && (
+                    {userType === 'branch' && (
                       <div
                         className="flex items-center space-x-2 cursor-pointer"
                         onClick={() => setPaymentMethod('corporate_payment')}
                       >
-                        <Checkbox id="corporate" checked={paymentMethod === 'corporate_payment'} />
+                        <Checkbox 
+                          id="corporate" 
+                          checked={paymentMethod === 'corporate_payment'}
+                          onCheckedChange={(checked) => checked && setPaymentMethod('corporate_payment')}
+                        />
                         <label htmlFor="corporate" className="text-sm cursor-pointer">법인결제</label>
                       </div>
                     )}
