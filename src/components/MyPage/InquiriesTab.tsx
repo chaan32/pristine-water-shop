@@ -94,6 +94,8 @@ const InquiriesTab = () => {
       case 'PENDING': return '답변대기';
       case 'ANSWERED': return '답변완료';
       case 'CLOSED': return '처리완료';
+      case 'approved': return '승인';
+      case 'rejected': return '거절';
       default: return status;
     }
   };
@@ -103,6 +105,8 @@ const InquiriesTab = () => {
       case 'PENDING': return 'destructive' as const;
       case 'ANSWERED': return 'default' as const;
       case 'CLOSED': return 'secondary' as const;
+      case 'approved': return 'default' as const;
+      case 'rejected': return 'destructive' as const;
       default: return 'outline' as const;
     }
   };
