@@ -151,9 +151,10 @@ const Support = () => {
           description: "문의가 성공적으로 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.",
         });
       } else {
+        console.log(response.status);
         switch (response.status) {
-          case 400: alert('입력 정보를 확인해주세요.'); break;
-          case 413: alert('첨부파일 용량이 너무 큽니다.'); break;
+          case 400: toast({ title: '입력 정보를 확인해주세요.', description: "환불/교환의 경우 주문 선택은 필수입니다.", variant: 'warning'}); break;
+          case 413: toast({ title: '입력 정보를 확인해주세요.', description: "첨부파일 용량이 너무 큽니다.", variant: 'warning'}); break;
           case 429: alert('일일 문의 제한을 초과했습니다. 내일 다시 시도해주세요.'); break;
           default: alert(data.message || '문의 접수 중 오류가 발생했습니다.');
         }
@@ -198,8 +199,7 @@ const Support = () => {
               return { id: cat.id, name: cat.name, items: await res.json() };
             } catch (e) {
               console.error('Failed to fetch FAQs for category:', cat.id, e);
-              const items = cat.id === '1' ? [{ id: 'a', question: '필터 교체 주기는?', answer: '평균 6개월마다 권장합니다.' }] : [];
-              return { id: cat.id, name: cat.name, items };
+              return {};
             }
           })
       );

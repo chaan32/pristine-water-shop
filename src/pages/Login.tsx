@@ -90,7 +90,12 @@ const Login = () => {
         try {
           const errorData = await response.json();
           const errorMessage = errorData.message || '로그인에 실패했습니다.';
-          toast({ title: '로그인 오류', description: errorMessage, variant: 'destructive'});
+          if (errorMessage === "법인 승인 검토 중입니다."){
+            toast({ title: '로그인 오류', description: errorMessage, variant: 'warning'});
+          }else{
+            toast({ title: '로그인 오류', description: errorMessage, variant: 'destructive'});
+          }
+
         } catch (parseError) {
           const errorMessage = await response.text();
           toast({ title: '로그인 오류', description: errorMessage || '로그인에 실패했습니다.', variant: 'destructive'});

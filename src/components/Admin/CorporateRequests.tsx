@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table';
 import { CheckCircle, XCircle, Eye, Clock, Crown } from 'lucide-react';
 import { adminApi } from '@/lib/api';
+import {toast} from "@/hooks/use-toast.ts";
 
 // 실제 백엔드 ApproveResponseDto 구조에 맞는 타입 정의
 interface ApproveRequest {
@@ -91,7 +92,7 @@ const CorporateRequests = () => {
             await fetchCorporateRequests();
             setShowApprovalDialog(false);
             setSelectedRequest(null);
-            alert('승인이 완료되었습니다.');
+            toast({ title: '법인 승인 완료', description: "승인이 완료 되었습니다.", variant: 'default'});
           }
         }
       } catch (error) {
