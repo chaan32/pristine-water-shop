@@ -33,6 +33,7 @@ const ReviewModal = ({ isOpen, onClose, product, orderName, onReviewSubmitted }:
     setIsSubmitting(true);
     try {
       const accessToken = localStorage.getItem('accessToken');
+      // API: POST /api/shop/products/review - Submit product review
       const response = await apiFetch('/api/shop/products/review', {
         method: 'POST',
         body: JSON.stringify({

@@ -152,10 +152,45 @@ export const adminApi = {
   updateNotice: (id: string, data: any) => apiFetch(`/api/admin/notices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteNotice: (id: string) => apiFetch(`/api/admin/notices/${id}`, { method: 'DELETE' }),
   
-  // Inquiries
+// Inquiries
   getProductInquiries: (params?: string) => apiFetch(`/api/admin/product-inquiries${params ? `?${params}` : ''}`),
   getProductInquiriesByProduct: (productId: string) => apiFetch(`/api/admin/product-inquiries/${productId}`),
   getGeneralInquiries: (params?: string) => apiFetch(`/api/admin/inquiries${params ? `?${params}` : ''}`),
   answerProductInquiry: (data: any) => apiFetch('/api/admin/product-inquiries/answer', { method: 'POST', body: JSON.stringify(data) }),
   answerGeneralInquiry: (data: any) => apiFetch('/api/admin/inquiries/answer', { method: 'POST', body: JSON.stringify(data) }),
+  
+  // Claims
+  getClaims: () => apiFetch('/api/admin/claims'),
+  approveClaim: (claimId: number, data?: any) => apiFetch(`/api/admin/claims/${claimId}/approved`, { method: 'POST', body: data ? JSON.stringify(data) : undefined }),
+  rejectClaim: (claimId: number, data: any) => apiFetch(`/api/admin/claims/${claimId}/rejected`, { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// Support APIs
+export const supportApi = {
+  getNotices: () => apiFetch('/api/notices'),
+  getNotice: (id: string) => apiFetch(`/api/notices/${id}`),
+  viewNotice: (id: string) => apiFetch(`/api/notices/${id}/view`, { method: 'POST' }),
+  createInquiry: (data: any) => apiFetch('/api/inquiries', { method: 'POST', body: JSON.stringify(data) }),
+  createInquiryWithFiles: (formData: FormData) => apiFetch('/api/inquiries', { method: 'POST', body: formData }),
+  getFaqCategories: () => apiFetch('/api/faq/categories'),
+  getFaqs: (categoryId: string) => apiFetch(`/api/faq?categoryId=${categoryId}`),
+};
+
+// Order APIs  
+export const orderApi = {
+  getRecipientInfo: (userId: string) => apiFetch(`/api/order/recipient/same/${userId}`),
+  createOrder: (data: any) => apiFetch('/api/order', { method: 'POST', body: JSON.stringify(data) }),
+  payOrder: (orderNumber: string) => apiFetch(`/api/order/${orderNumber}/pay`, { method: 'POST' }),
+  clearCart: () => apiFetch('/api/cart', { method: 'DELETE' }),
+};
+
+// Password APIs
+export const passwordApi = {
+  changePassword: (data: { newPassword: string }) => apiFetch('/api/auth/change/password', { method: 'PUT', body: JSON.stringify(data) }),
+  recheck: (data: { password: string }) => apiFetch('/api/auth/login/recheck', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// Review APIs
+export const reviewApi = {
+  createReview: (data: any) => apiFetch('/api/shop/products/review', { method: 'POST', body: JSON.stringify(data) }),
 };

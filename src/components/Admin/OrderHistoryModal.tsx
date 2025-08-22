@@ -47,6 +47,7 @@ const OrderHistoryModal = ({ isOpen, onClose, memberId, memberName, memberType }
 
     setLoading(true);
     try {
+      // API: GET /api/admin/members/{memberId}/orders - Get member order history
       const response = await apiFetch(`/api/admin/members/${memberId}/orders`);
       if (response.ok) {
         const data = await response.json();

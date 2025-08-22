@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { adminApi } from '@/lib/api';
 
 // 프론트엔드에서 사용할 데이터 타입 정의
 interface RefundExchangeRequest {
@@ -39,9 +40,8 @@ const RefundExchangeManagement = () => {
       setLoading(true);
       try {
         const token = localStorage.getItem('accessToken');
-        const response = await fetch('http://localhost:8080/api/admin/claims', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        // API: GET /api/admin/claims - Get all refund/exchange claims
+        const response = await adminApi.getClaims();
 
         if (!response.ok) {
           throw new Error('데이터를 불러오는 데 실패했습니다.');
@@ -87,18 +87,11 @@ const RefundExchangeManagement = () => {
       return;
     }
 
-    const token = localStorage.getItem('accessToken');
-    const endpoint = `http://localhost:8080/api/admin/claims/${claimId}/${newStatus}`;
-
     try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: newStatus === 'rejected' ? JSON.stringify({ reason: rejectionReason }) : undefined,
-      });
+    // API: POST /api/admin/claims/{claimId}/{status} - Approve or reject claim
+    const response = newStatus === 'approved' 
+      ? await adminApi.approveClaim(claimId)
+      : await adminApi.rejectClaim(claimId, { reason: rejectionReason });
 
       if (!response.ok) {
         throw new Error('상태 업데이트에 실패했습니다.');

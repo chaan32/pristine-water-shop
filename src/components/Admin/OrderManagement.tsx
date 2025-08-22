@@ -339,6 +339,7 @@ const OrderManagement = () => {
   const fetchOrders = async () => {
     if (!loading) setIsRefreshing(true);
     try {
+      // API: GET /api/admin/orders - Get all orders for admin
       const response = await apiFetch('/api/admin/orders');
 
       if (response.ok) {
@@ -385,6 +386,7 @@ const OrderManagement = () => {
 
     setSubmitting(true);
     try {
+      // API: POST /api/admin/orders/{orderId}/tracking - Update order tracking
       const response = await apiFetch(`/api/admin/orders/${selectedOrder.id}/tracking`, {
         method: 'POST',
         body: JSON.stringify({ trackingNumber: trackingNumber.trim() }),

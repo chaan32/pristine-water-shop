@@ -36,6 +36,7 @@ const ReAuthDialog = ({ isOpen, onClose, onSuccess, userLoginId }: ReAuthDialogP
     setLoading(true);
     try {
       const accessToken = localStorage.getItem('accessToken');
+      // API: POST /api/auth/login/recheck - Verify current password
       const response = await apiFetch('/api/auth/login/recheck', {
         method: 'POST',
         body: JSON.stringify({

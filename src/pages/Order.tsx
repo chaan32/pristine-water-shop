@@ -70,6 +70,7 @@ const Order = () => {
       }
       try {
         // 이전에 만드셨던 컨트롤러의 getRecipientInform 메서드 호출
+        // API: GET /api/order/recipient/same/{userId} - Get user shipping info
         const response = await apiFetch(`/api/order/recipient/same/${userId}`);
         const data = await response.json(); // .json()을 호출해서 실제 데이터를 꺼냅니다.
         setLoggedInUser(data);
@@ -193,13 +194,8 @@ const Order = () => {
     };
 
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/order', {
+      const response = await apiFetch('/api/order', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(orderData)
       });
 
@@ -215,12 +211,8 @@ const Order = () => {
         if (!isDirectPurchase) {
           // 장바구니 비우기 API 호출
           try {
-            await fetch('http://localhost:8080/api/cart', {
-              method: 'DELETE',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-              },
-            });
+            // API: DELETE /api/cart - Clear cart after order
+            await apiFetch('/api/cart', { method: 'DELETE' });
           } catch (error) {
             console.error('Cart clear error:', error);
           }

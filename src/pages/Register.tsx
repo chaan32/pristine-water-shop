@@ -389,6 +389,7 @@ const Register = () => {
           break;
       }
 
+      // API: POST /api/register/{type} - Register corporate account
       const response = await fetch(endpoint, {
         method: 'POST',
         headers,

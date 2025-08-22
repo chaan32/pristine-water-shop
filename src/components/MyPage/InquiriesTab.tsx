@@ -61,6 +61,7 @@ const InquiriesTab = () => {
     try {
       setLoading(true);
       const id = localStorage.getItem('userId');
+      // API: GET /api/users/inquiries/{userId} - Get user's inquiries
       const response = await apiFetch(`/api/users/inquiries/${id}`);
 
       if (response.ok) {

@@ -54,6 +54,7 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
     setLoading(true);
     try {
       const accessToken = localStorage.getItem('accessToken');
+      // API: PUT /api/auth/change/password - Change user password
       const response = await apiFetch('/api/auth/change/password', {
         method: 'PUT',
         body: JSON.stringify({

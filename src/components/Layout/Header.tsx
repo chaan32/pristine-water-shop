@@ -33,6 +33,7 @@ const Header = () => {
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
+        // API: GET /api/cart - Get user's cart items
         const res = await apiFetch('/api/cart');
         if (!res.ok) throw new Error('failed');
         const dtos = await res.json();

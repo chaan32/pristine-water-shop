@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bell, FileText, MessageCircle, HelpCircle, Send, Pin, Upload, X, ChevronDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
+import { supportApi, userApi } from '@/lib/api';
 
 interface Notice{
   id: number;
@@ -61,7 +62,8 @@ const Support = () => {
   const fetchNotices = async () => {
     setNoticesLoading(true);
     try{
-      const res = await fetch('http://localhost:8080/api/notices');
+      // API: GET /api/notices - Get all notices
+      const res = await supportApi.getNotices();
       if (!res.ok) {
         throw new Error('공지사항을 불러오는데 실패했습니다.');
       }
@@ -113,36 +115,24 @@ const Support = () => {
 
 
     try {
-      const token = localStorage.getItem('accessToken');
       let body;
-      let headers: HeadersInit = {};
 
       if (attachedFiles.length > 0) {
         const formData = new FormData();
-        // 수정된 submissionData를 사용
         const inquiryDataBlob = new Blob([JSON.stringify(submissionData)], { type: 'application/json' });
         formData.append('data', inquiryDataBlob);
         attachedFiles.forEach((file) => {
           formData.append(`attachments`, file);
         });
         body = formData;
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
       } else {
-        headers['Content-Type'] = 'application/json';
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-        // 수정된 submissionData를 사용
-        body = JSON.stringify(submissionData);
+        body = submissionData;
       }
-      console.log(body);
-      const response = await fetch('http://localhost:8080/api/inquiries', {
-        method: 'POST',
-        headers,
-        body
-      });
+      
+      // API: POST /api/inquiries - Submit inquiry
+      const response = attachedFiles.length > 0 
+        ? await supportApi.createInquiryWithFiles(body as FormData)
+        : await supportApi.createInquiry(submissionData);
 
       let data: any = null;
       const rawText = await response.text();
@@ -176,7 +166,8 @@ const Support = () => {
 
   const fetchFaqCategories = async () => {
     try {
-      const res = await fetch('http://localhost:8080/api/faq/categories');
+      // API: GET /api/faq/categories - Get FAQ categories
+      const res = await supportApi.getFaqCategories();
       if (!res.ok) throw new Error('Failed to fetch categories');
       const data = await res.json();
       setFaqCategories(data);
@@ -201,7 +192,8 @@ const Support = () => {
       const results = await Promise.all(
           cats.map(async (cat: any) => {
             try {
-              const res = await fetch(`http://localhost:8080/api/faq?categoryId=${cat.id}`);
+              // API: GET /api/faq?categoryId={id} - Get FAQs by category
+              const res = await supportApi.getFaqs(cat.id);
               if (!res.ok) throw new Error('Failed to fetch faqs');
               return { id: cat.id, name: cat.name, items: await res.json() };
             } catch (e) {
@@ -231,11 +223,8 @@ const Support = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:8080/api/users/orders', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        // API: GET /api/users/orders - Get user's orders for inquiry selection
+        const response = await userApi.getOrders();
 
         if (!response.ok) {
           throw new Error('주문 내역을 불러오는데 실패했습니다.');
