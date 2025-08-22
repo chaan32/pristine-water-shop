@@ -107,6 +107,18 @@ export const authApi = {
   
   checkId: (id: string) =>
     apiFetch(`/api/check-id/${id}`),
+  
+  sendAuthMail: (email: string) =>
+    apiFetch('/api/auth/send/authentication/mail', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  verifyAuthMail: (email: string, authCode: string) =>
+    apiFetch('/api/auth/try/mail', {
+      method: 'POST',
+      body: JSON.stringify({ email, authCode }),
+    }),
 };
 
 // User APIs  
