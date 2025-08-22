@@ -48,9 +48,10 @@ const ProductManagement = () => {
   const [deletingCategory, setDeletingCategory] = useState<{ type: 'main' | 'sub', id: string, name: string } | null>(null);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
 
-  // 상품 표현 관련
+  // 상품 표현 관련 (IME 안전)
   const [expressions, setExpressions] = useState<string[]>([]);
   const [currentExpression, setCurrentExpression] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
 
   // 메인 카테고리 조회
   const fetchMainCategories = async () => {
@@ -605,9 +606,13 @@ const ProductManagement = () => {
                     value={currentExpression}
                     onChange={(e) => setCurrentExpression(e.target.value)}
                     placeholder="상품 표현을 입력하고 Enter를 눌러주세요"
+                    onCompositionStart={() => setIsComposing(true)}
+                    onCompositionEnd={() => setIsComposing(false)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && currentExpression.trim()) {
-                        e.preventDefault();
+                      if (e.key === 'Enter') e.preventDefault();
+                    }}
+                    onKeyUp={(e) => {
+                      if (e.key === 'Enter' && !isComposing && currentExpression.trim()) {
                         setExpressions(prev => [...prev, currentExpression.trim()]);
                         setCurrentExpression('');
                       }

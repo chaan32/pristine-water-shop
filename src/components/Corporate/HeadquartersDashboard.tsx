@@ -15,6 +15,7 @@ import {
 import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight, CreditCard } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api';
 
 // --- 1. INTERFACES UPDATED ---
 // Individual product item within an order
@@ -108,16 +109,8 @@ const HeadquartersDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('accessToken');
-        if (!token) throw new Error('인증 토큰이 없습니다.');
-
-        const response = await fetch('http://localhost:8080/api/users/orders/headquarters', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        // API: GET /api/users/orders/headquarters
+        const response = await apiFetch('/api/users/orders/headquarters');
 
         if (!response.ok) throw new Error('데이터를 불러오는 데 실패했습니다.');
 
@@ -246,14 +239,9 @@ const HeadquartersDashboard = () => {
       const token = localStorage.getItem('accessToken');
       if (!token) throw new Error('인증 토큰이 없습니다.');
 
-      // 실제 결제 API 호출 (여기서는 시뮬레이션)
-      const response = await fetch(`http://localhost:8080/api/order/${orderNumber}/pay`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // 실제 결제 API 호출
+      // API: POST /api/order/:orderNumber/pay
+      const response = await apiFetch(`/api/order/${orderNumber}/pay`, { method: 'POST' });
 
       if (!response.ok) throw new Error('결제 처리에 실패했습니다.');
 

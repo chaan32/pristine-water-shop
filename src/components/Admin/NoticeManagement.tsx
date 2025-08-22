@@ -14,6 +14,7 @@ import Image from '@tiptap/extension-image';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Eye, Save, Trash2, Edit } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 
 interface Notice {
   id: number;
@@ -61,9 +62,8 @@ const NoticeManagement = () => {
   const fetchNotices = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:8080/api/admin/notices', {
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-      });
+      // API: GET /api/admin/notices
+      const res = await adminApi.getNotices();
       if (!res.ok) throw new Error('failed');
       const data = await res.json();
       setNotices(data);
@@ -108,20 +108,11 @@ const NoticeManagement = () => {
     }
 
     const isEditing = !!editingNotice;
-    const url = isEditing
-        ? `http://localhost:8080/api/admin/notices/${editingNotice?.id}`
-        : 'http://localhost:8080/api/admin/notices';
-    const method = isEditing ? 'PUT' : 'POST';
-
     try {
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({ title, content: htmlContent, pinned }),
-      });
+      // API: POST /api/admin/notices or PUT /api/admin/notices/:id
+      const res = isEditing
+        ? await adminApi.updateNotice(String(editingNotice!.id), { title, content: htmlContent, pinned })
+        : await adminApi.addNotice({ title, content: htmlContent, pinned });
       if (!res.ok) throw new Error('save failed');
 
       toast({ title: '성공', description: `공지사항이 성공적으로 ${isEditing ? '수정' : '등록'}되었습니다.` });
@@ -136,10 +127,8 @@ const NoticeManagement = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/admin/notices/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
-      });
+      // API: DELETE /api/admin/notices/:id
+      const res = await adminApi.deleteNotice(String(id));
       if (!res.ok) throw new Error('delete failed');
       toast({ title: '삭제됨', description: '공지사항이 삭제되었습니다.' });
       fetchNotices();

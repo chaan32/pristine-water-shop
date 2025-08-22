@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import {ArrowLeft, Bell, Pin, Calendar, Eye} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {Skeleton} from "@/components/ui/skeleton.tsx";
+import { apiFetch } from '@/lib/api';
 interface NoticeDetail{
     id: number;
     title: string;
@@ -32,20 +33,14 @@ const NoticeDetail = () => {
     const fetchNotice = async () => {
       try {
         setLoading(true);
-        fetch(`http://localhost:8080/api/notices/${id}/view`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          } });
+        // API: POST /api/notices/:id/view
+        apiFetch(`/api/notices/${id}/view`, { method: 'POST' });
 
-        // 3-2. 공지사항 상세 내용 API 호출
-        const response = await fetch(`http://localhost:8080/api/notices/${id}`);
+        // API: GET /api/notices/:id
+        const response = await apiFetch(`/api/notices/${id}`);
         if (!response.ok) {
           throw new Error('공지사항을 불러오는 데 실패했습니다.');
         }
-
-
-
         const data: NoticeDetail = await response.json();
         setNotice(data);
       } catch (e: any) {

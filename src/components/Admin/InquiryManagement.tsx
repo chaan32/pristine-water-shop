@@ -13,6 +13,8 @@ import {useToast} from "@/hooks/use-toast.ts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import { adminApi } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 
 // 문의 목록 백엔드 DTO
 interface AdminSIQnAResDto{
@@ -108,21 +110,15 @@ const getCategoryLabel = (value?: string) => {
 
       let url = '';
       if (filterType === 'status') {
-        url = `http://localhost:8080/api/admin/product-inquiries?answered=${statusFilter}`;
+        url = `/api/admin/product-inquiries?answered=${statusFilter}`;
       } else if (filterType === 'product' && productFilter) {
-        url = `http://localhost:8080/api/admin/product-inquiries/${productFilter}`;
+        url = `/api/admin/product-inquiries/${productFilter}`;
       } else {
-        url = `http://localhost:8080/api/admin/product-inquiries?answered=false`;
+        url = `/api/admin/product-inquiries?answered=false`;
       }
       try {
-        const accessToken = localStorage.getItem('accessToken');
-        const res = await fetch(url,{
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`
-            }
-        });
+        // API: GET {url}
+        const res = await apiFetch(url);
         if (!res.ok) {
           throw new Error('문의 목록을 불러오는 데 실패했습니다.');
         }
@@ -157,14 +153,9 @@ const getCategoryLabel = (value?: string) => {
       setSelectedGeneralInquiry(null);
       try {
         const accessToken = localStorage.getItem('accessToken');
-        const url = `http://localhost:8080/api/admin/inquiries?answered=${statusFilterGeneral}`;
-        const res = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          }
-        });
+      const url = `/api/admin/inquiries?answered=${statusFilterGeneral}`;
+      // API: GET {url}
+      const res = await apiFetch(url);
         if (!res.ok) throw new Error('일반 문의 목록을 불러오는 데 실패했습니다.');
         const rawData: any[] = await res.json();
         const formatted: GeneralInquiryDto[] = rawData.map((item: any) => ({
@@ -200,16 +191,15 @@ const getCategoryLabel = (value?: string) => {
 
     setIsSubmitting(true);
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const endpoint = isProduct
-        ? 'http://localhost:8080/api/admin/product-inquiries/answer'
-        : 'http://localhost:8080/api/admin/inquiries/answer';
       const inquiryId = isProduct
         ? (selectedInquiry as AdminSIQnAResDto).inquiriesId
         : (selectedGeneralInquiry as GeneralInquiryDto).inquiryId;
-      const res = await fetch(endpoint, {
+      const endpoint = isProduct
+        ? '/api/admin/product-inquiries/answer'
+        : '/api/admin/inquiries/answer';
+      // API: POST {endpoint}
+      const res = await apiFetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         body: JSON.stringify({ inquiryId, answer: replyText }),
       });
 
@@ -247,14 +237,8 @@ const getCategoryLabel = (value?: string) => {
   const fetchProducts = async () => {
     try {
       setLoadingProducts(true);
-      const token = localStorage.getItem('accessToken');
-
-      const response = await fetch('http://localhost:8080/api/admin/products', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: GET /api/admin/products
+      const response = await adminApi.getProducts();
 
       if (response.ok) {
         const data = await response.json();

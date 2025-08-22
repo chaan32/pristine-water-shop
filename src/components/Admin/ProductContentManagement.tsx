@@ -16,6 +16,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
+import { adminApi } from '@/lib/api';
 
 // TipTap 에디터 컴포넌트
 
@@ -92,14 +93,8 @@ const ProductContentManagement = () => {
   const fetchProducts = async () => {
     try {
       setLoadingProducts(true);
-      const token = localStorage.getItem('accessToken');
-      
-      const response = await fetch('http://localhost:8080/api/admin/products', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: GET /api/admin/products
+      const response = await adminApi.getProducts();
       
       if (response.ok) {
         const data = await response.json();
@@ -140,13 +135,8 @@ const ProductContentManagement = () => {
   // 제품의 기존 콘텐츠 불러오기
   const fetchProductContent = async (productId: string) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/admin/products/${productId}/content`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: GET /api/admin/products/:productId/content
+      const response = await adminApi.getProductContent(productId);
       
       if (response.ok) {
         const text = await response.text();
@@ -294,16 +284,8 @@ const ProductContentManagement = () => {
       const formData = new FormData();
       formData.append('image', file);
       
-      const token = localStorage.getItem('accessToken');
-      
-      // 백엔드 API로 이미지 업로드
-      const response = await fetch('http://localhost:8080/api/admin/products/upload/image', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData
-      });
+      // API: POST /api/admin/products/upload/image
+      const response = await adminApi.uploadImage(formData);
       
       if (response.ok) {
         const data = await response.json();
@@ -457,15 +439,9 @@ const ProductContentManagement = () => {
       console.log(`${key}:`, value);
     }
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/products/content', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          // Content-Type 헤더는 FormData 사용 시 자동으로 multipart/form-data로 설정됨
-        },
-        body: formData // FormData 객체 직접 전송 (multipart/form-data)
-      });
+      // API: POST /api/admin/products/content (multipart/form-data)
+      const response = await adminApi.saveProductContentFormData(formData);
+
 
       if (response.ok) {
         toast({

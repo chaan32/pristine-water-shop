@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import RefundExchangeForm from '@/components/Support/RefundExchangeForm';
 import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard';
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
-import { apiFetch, getAccessToken } from '@/lib/api';
+import { userApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
 import ReviewModal from '@/components/MyPage/ReviewModal';
@@ -46,13 +46,8 @@ const MyPage = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/users/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // API: GET /api/users/me
+      const response = await userApi.getMe();
 
       if (response.ok) {
         const result = await response.json();
@@ -86,13 +81,8 @@ const MyPage = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/users/orders?page=1&limit=10', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // API: GET /api/users/orders?page=1&limit=10
+      const response = await userApi.getOrders(1, 10);
 
       if (response.ok) {
         const result = await response.json();
@@ -252,19 +242,11 @@ const MyPage = () => {
     }));
   };
 
-  // 정보 수정 제출
+  // 정보 수정 제출 (중앙화 API)
   const handleUpdateInfo = async () => {
     try {
-      const token = getAccessToken();
-      if (!token) {
-        alert("로그인이 필요합니다.");
-        return;
-      }
-
-      const response = await apiFetch('/api/users/me', {
-        method: 'PUT',
-        body: JSON.stringify(editForm)
-      });
+      // API: PUT /api/users/me
+      const response = await userApi.updateMe(editForm);
 
       if (response.ok) {
         toast({

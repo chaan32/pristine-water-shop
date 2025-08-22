@@ -18,6 +18,7 @@ import {
 import { Search, Eye, User, Building, Crown } from 'lucide-react';
 import OrderHistoryModal from './OrderHistoryModal';
 import MemberDetailModal from './MemberDetailModal';
+import { adminApi } from '@/lib/api';
 
 // 백엔드 API 응답 구조에 맞는 타입 정의
 interface OrderSummary {
@@ -83,15 +84,8 @@ const MemberList = () => {
   // 통합된 API에서 회원 목록 가져오기
   const fetchMembers = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      
-      const response = await fetch('http://localhost:8080/api/admin/members', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: GET /api/admin/members
+      const response = await adminApi.getMembers();
 
       if (response.ok) {
         const data = await response.json();

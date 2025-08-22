@@ -16,8 +16,10 @@ export const authHeaders = () => {
 };
 
 export async function apiFetch(input: string, init: RequestInit = {}) {
+  const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
+  const baseHeaders: HeadersInit = isFormData ? {} : { 'Content-Type': 'application/json' };
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...baseHeaders,
     ...authHeaders(),
     ...(init.headers || {}),
   };
@@ -93,11 +95,12 @@ export const adminApi = {
   // Product Content
   getProductContent: (productId: string) => apiFetch(`/api/admin/products/${productId}/content`),
   saveProductContent: (data: any) => apiFetch('/api/admin/products/content', { method: 'POST', body: JSON.stringify(data) }),
-  uploadImage: (formData: FormData) => apiFetch('/api/admin/products/upload/image', { method: 'POST', body: formData, headers: {} }),
+  saveProductContentFormData: (formData: FormData) => apiFetch('/api/admin/products/content', { method: 'POST', body: formData }),
+  uploadImage: (formData: FormData) => apiFetch('/api/admin/products/upload/image', { method: 'POST', body: formData }),
   
   // Product Images
   getProductImages: (productId: string) => apiFetch(`/api/admin/products/${productId}/images`),
-  uploadProductImage: (formData: FormData) => apiFetch('/api/admin/products/images/upload', { method: 'POST', body: formData, headers: {} }),
+  uploadProductImage: (formData: FormData) => apiFetch('/api/admin/products/images/upload', { method: 'POST', body: formData }),
   updateProductImages: (data: any) => apiFetch('/api/admin/products/images', { method: 'PUT', body: JSON.stringify(data) }),
   setThumbnail: (data: any) => apiFetch('/api/admin/products/images/thumbnail', { method: 'POST', body: JSON.stringify(data) }),
   
@@ -114,6 +117,10 @@ export const adminApi = {
   // Expressions
   getExpressions: () => apiFetch('/api/admin/expressions'),
   addExpression: (data: { expression: string }) => apiFetch('/api/admin/expressions', { method: 'POST', body: JSON.stringify(data) }),
+  addProductExpression: (data: { productId: number | string; expression: string }) =>
+    apiFetch('/api/admin/expressions', { method: 'POST', body: JSON.stringify(data) }),
+  deleteProductExpression: (data: { productId: number | string; expressionId: string }) =>
+    apiFetch('/api/admin/expressions', { method: 'DELETE', body: JSON.stringify(data) }),
   
   // Main Page Products
   getMainPageProducts: () => apiFetch('/api/admin/main-page-products'),

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Star, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { apiFetch } from '@/lib/api';
+import { shopApi } from '@/lib/api';
 
 type Product = {
   productId: number;
@@ -37,7 +37,8 @@ const FeaturedProducts = () => {
   useEffect(() => {
     const fetchDisplayData = async () => {
       try {
-        const response = await apiFetch('/api/shop/display');
+        // API: GET /api/shop/display
+        const response = await shopApi.getDisplayProducts();
         if (response.ok) {
           const data = await response.json();
           setDisplayData(data);

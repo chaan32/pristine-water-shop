@@ -20,6 +20,7 @@ import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter, Image } 
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import ImageManagementModal from './ImageManagementModal';
+import { adminApi, apiFetch } from '@/lib/api';
 
 const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,16 +78,8 @@ const ProductEdit = () => {
   // 메인페이지 구성 불러오기 API
   const fetchMainPageProducts = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) return;
-
-      const response = await fetch('http://localhost:8080/api/admin/main-page-products', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: GET /api/admin/main-page-products
+      const response = await adminApi.getMainPageProducts();
 
       if (response.ok) {
         const data = await response.json();
@@ -105,16 +98,6 @@ const ProductEdit = () => {
   // 메인페이지 구성 저장 API
   const handleSaveMainPageProducts = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        toast({
-          title: "인증 오류",
-          description: "로그인이 필요합니다.",
-          variant: "destructive"
-        });
-        return;
-      }
-
       // 선택된 상품 ID 또는 null 추출
       const selectedBestProduct = mainPageProducts.bestProducts.length > 0 && mainPageProducts.bestProducts[0] !== 'none' 
         ? Number(mainPageProducts.bestProducts[0]) 
@@ -126,18 +109,13 @@ const ProductEdit = () => {
         ? Number(mainPageProducts.recommendedProducts[0]) 
         : null;
 
-      const response = await fetch('http://localhost:8080/api/admin/main-page-products', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          bestProducts: selectedBestProduct,
-          newProducts: selectedNewProduct,
-          recommendedProducts: selectedRecommendedProduct
-        })
+      // API: POST /api/admin/main-page-products
+      const response = await adminApi.updateMainPageProducts({
+        bestProducts: selectedBestProduct,
+        newProducts: selectedNewProduct,
+        recommendedProducts: selectedRecommendedProduct
       });
+
 
       if (!response.ok) {
         throw new Error('메인페이지 구성 저장에 실패했습니다.');
@@ -160,23 +138,8 @@ const ProductEdit = () => {
   // 상품 목록 조회
   const fetchProducts = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        toast({
-          title: "인증 오류",
-          description: "로그인이 필요합니다.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const response = await fetch('http://localhost:8080/api/admin/products/edit', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: GET /api/admin/products/edit
+      const response = await apiFetch('/api/admin/products/edit');
 
       if (!response.ok) {
         throw new Error('상품 목록을 가져오는데 실패했습니다.');
@@ -199,14 +162,8 @@ const ProductEdit = () => {
   // 메인 카테고리 조회
   const fetchMainCategories = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/main/categories', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      // API: GET /api/admin/main/categories
+      const response = await adminApi.getMainCategories();
       if (response.ok) {
         const data = await response.json();
         console.log('메인 카테고리 응답:', data);
@@ -220,13 +177,8 @@ const ProductEdit = () => {
   // 서브 카테고리 조회 (특정 메인 카테고리에 대해)
   const fetchSubCategories = async (mainCategoryId: number) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/admin/sub/categories/${mainCategoryId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: GET /api/admin/sub/categories/:mainCategoryId
+      const response = await adminApi.getSubCategories(mainCategoryId);
       
       if (response.ok) {
         const data = await response.json();
@@ -250,15 +202,8 @@ const ProductEdit = () => {
     if (!newMainCategoryName.trim()) return;
     
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/main/categories/add', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newMainCategoryName.trim() }),
-      });
+      // API: POST /api/admin/main/categories/add
+      const response = await adminApi.addMainCategory({ name: newMainCategoryName.trim() });
       
       if (response.ok) {
         toast({
@@ -285,17 +230,10 @@ const ProductEdit = () => {
     if (!newSubCategoryName.trim() || !selectedMainCategoryId) return;
     
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/sub/categories/add', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          name: newSubCategoryName.trim(),
-          id: selectedMainCategoryId 
-        }),
+      // API: POST /api/admin/sub/categories/add
+      const response = await adminApi.addSubCategory({ 
+        name: newSubCategoryName.trim(),
+        id: selectedMainCategoryId 
       });
       
       if (response.ok) {
@@ -380,17 +318,10 @@ const ProductEdit = () => {
     if (!expression || !selectedProduct) return;
     
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/expressions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          expression: expression
-        })
+      // API: POST /api/admin/expressions
+      const response = await adminApi.addProductExpression({
+        productId: selectedProduct.id,
+        expression
       });
 
       if (response.ok) {
@@ -420,17 +351,10 @@ const ProductEdit = () => {
     if (!selectedProduct) return;
     
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/expressions', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          productId: selectedProduct.id,
-          expressionId: expressionId
-        })
+      // API: DELETE /api/admin/expressions
+      const response = await adminApi.deleteProductExpression({
+        productId: selectedProduct.id,
+        expressionId: expressionId
       });
 
       if (response.ok) {
@@ -510,26 +434,20 @@ const ProductEdit = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/admin/products/edit/${selectedProduct.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: editForm.name,
-          category: editForm.category,
-          categoryId: editForm.categoryId,
-          customerPrice: parseInt(editForm.customerPrice),
-          businessPrice: parseInt(editForm.businessPrice),
-          discountPrice: parseInt(editForm.discountPrice),
-          discountPercent: parseInt(editForm.discountPercent),
-          stock: parseInt(editForm.stock),
-          status: editForm.status,
-          isNew: editForm.isNew,
-          isRecommendation: editForm.isRecommendation,
-          isBest: editForm.isBest
-        })
+      // API: PUT /api/admin/products/edit/:id
+      const response = await adminApi.updateProduct(String(selectedProduct.id), {
+        name: editForm.name,
+        category: editForm.category,
+        categoryId: editForm.categoryId,
+        customerPrice: parseInt(editForm.customerPrice),
+        businessPrice: parseInt(editForm.businessPrice),
+        discountPrice: parseInt(editForm.discountPrice),
+        discountPercent: parseInt(editForm.discountPercent),
+        stock: parseInt(editForm.stock),
+        status: editForm.status,
+        isNew: editForm.isNew,
+        isRecommendation: editForm.isRecommendation,
+        isBest: editForm.isBest
       });
 
       if (!response.ok) {
@@ -566,13 +484,8 @@ const ProductEdit = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/admin/products/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: DELETE /api/admin/products/:id
+      const response = await adminApi.deleteProduct(String(id));
 
       if (!response.ok) {
         throw new Error('상품 삭제에 실패했습니다.');

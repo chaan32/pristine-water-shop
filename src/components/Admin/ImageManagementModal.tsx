@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, Trash2, Image as ImageIcon, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { adminApi } from '@/lib/api';
 
 interface ImageManagementModalProps {
   isOpen: boolean;
@@ -73,13 +74,8 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
   const fetchImages = async () => {
     try {
       setLoading(true);
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:8080/api/admin/products/${productId}/images`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      // API: GET /api/admin/products/:productId/images
+      const response = await adminApi.getProductImages(String(productId));
 
       if (response.ok) {
         const data: ImageApiResponse = await response.json();
@@ -112,14 +108,8 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
     formData.append('productId', productId.toString());
 
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/products/images/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: formData
-      });
+      // API: POST /api/admin/products/images/upload
+      const response = await adminApi.uploadProductImage(formData);
 
       if (response.ok) {
         toast({
@@ -146,17 +136,9 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
   // 이미지 삭제
   const handleImageDelete = async (image: ProductImage) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/products/images', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          imageId: image.id
-        })
-      });
+      // API: DELETE /api/admin/products/images
+      const response = await adminApi.updateProductImages({ imageId: image.id, _method: 'DELETE' });
+
 
       if (response.ok) {
         toast({
@@ -180,18 +162,11 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
   // 썸네일 이미지 설정
   const handleSetThumbnail = async (image: ProductImage) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:8080/api/admin/products/images/thumbnail', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          currentThumbnailUrl: thumbnailImage?.url,
-          newThumbnailId: image.id,
-          newThumbnailUrl: image.url
-        })
+      // API: POST /api/admin/products/images/thumbnail
+      const response = await adminApi.setThumbnail({
+        currentThumbnailUrl: thumbnailImage?.url,
+        newThumbnailId: image.id,
+        newThumbnailUrl: image.url,
       });
 
       if (response.ok) {
