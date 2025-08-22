@@ -23,7 +23,74 @@ export async function apiFetch(input: string, init: RequestInit = {}) {
     ...authHeaders(),
     ...(init.headers || {}),
   };
-  return fetch(`${API_BASE_URL}${input}`, { ...init, headers });
+
+  // 요청 데이터 로깅
+  const method = init.method || 'GET';
+  const url = `${API_BASE_URL}${input}`;
+  
+  let requestData = null;
+  if (init.body) {
+    if (isFormData) {
+      // FormData는 직접 출력할 수 없으므로 키 목록만 표시
+      const formDataEntries: any = {};
+      try {
+        for (const [key, value] of (init.body as FormData).entries()) {
+          if (value instanceof File) {
+            formDataEntries[key] = `[File: ${value.name}]`;
+          } else {
+            formDataEntries[key] = value;
+          }
+        }
+        requestData = formDataEntries;
+      } catch (e) {
+        requestData = '[FormData object]';
+      }
+    } else {
+      try {
+        requestData = JSON.parse(init.body as string);
+      } catch (e) {
+        requestData = init.body;
+      }
+    }
+  }
+
+  console.log(`🚀 API Request = { 
+    url: "${input}", 
+    method: "${method}",
+    data: ${JSON.stringify(requestData, null, 2)} 
+  }`);
+
+  const response = await fetch(url, { ...init, headers });
+
+  // 응답 데이터 로깅
+  try {
+    const clonedResponse = response.clone();
+    const responseData = await clonedResponse.json();
+    console.log(`📨 API Response = { 
+      url: "${input}",
+      status: ${response.status},
+      data: ${JSON.stringify(responseData, null, 2)} 
+    }`);
+  } catch (e) {
+    // JSON이 아닌 응답의 경우
+    try {
+      const clonedResponse = response.clone();
+      const textData = await clonedResponse.text();
+      console.log(`📨 API Response = { 
+        url: "${input}",
+        status: ${response.status},
+        data: "${textData}" 
+      }`);
+    } catch (textError) {
+      console.log(`📨 API Response = { 
+        url: "${input}",
+        status: ${response.status},
+        data: "[Unable to parse response]" 
+      }`);
+    }
+  }
+
+  return response;
 }
 
 // Shared DTOs
