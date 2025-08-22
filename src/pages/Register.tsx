@@ -15,7 +15,7 @@ import { UserPlus, Building, User, Check, X, Upload, Search } from 'lucide-react
 import { useToast } from '@/hooks/use-toast';
 import { authApi, registerApi } from '@/lib/api';
 
-  interface Headquarters {
+interface Headquarters {
     id: string;
     name: string;
     businessNumber: string;
@@ -45,7 +45,6 @@ const Register = () => {
     phone3: '',
     isPhoneVerified: false
   });
-
   const [corporateForm, setCorporateForm] = useState({
     id: '',
     password: '',
@@ -76,7 +75,6 @@ const Register = () => {
     managerName: '',     // 매니저 이름
     managerPhone: ''     // 매니저 연락처
   });
-
   // 본사 검색 모달 상태
   const [isHeadquartersModalOpen, setIsHeadquartersModalOpen] = useState(false);
   const [headquartersSearchTerm, setHeadquartersSearchTerm] = useState('');
@@ -101,20 +99,6 @@ const Register = () => {
 
 
 
-
-  // 임시 본사 데이터 (실제로는 API에서 가져옴)
-  const mockHeadquarters = [
-    { id: '1', name: '스타벅스 코리아', businessNumber: '123-45-67890' },
-    { id: '2', name: '맥도날드 코리아', businessNumber: '234-56-78901' },
-    { id: '3', name: '롯데리아', businessNumber: '345-67-89012' },
-    { id: '4', name: 'KFC 코리아', businessNumber: '456-78-90123' },
-    { id: '5', name: '버거킹 코리아', businessNumber: '567-89-01234' },
-  ];
-
-  const filteredHeadquarters = mockHeadquarters.filter(hq => 
-    hq.name.toLowerCase().includes(headquartersSearchTerm.toLowerCase())
-  );
-
   // 휴대폰 인증 함수
   const handlePhoneVerification = (type: 'individual' | 'corporate') => {
     const phone = type === 'individual' ? `${individualForm.phone1}-${individualForm.phone2}-${individualForm.phone3}` : `${corporateForm.phone1}-${corporateForm.phone2}-${corporateForm.phone3}`;
@@ -127,56 +111,6 @@ const Register = () => {
       });
       return;
     }
-
-    /*
-    ==================== API 요청 명세 (휴대폰 인증) ====================
-    Method: POST
-    URL: http://localhost:8080/api/verify/phone
-    Headers: {
-      'Content-Type': 'application/json'
-    }
-    
-    Request Body:
-    {
-      "phone": string,          // 휴대폰 번호 (하이픈 포함/미포함 모두 지원)
-      "type": "sms" | "call"   // 인증 방식 (SMS 또는 음성통화)
-    }
-    
-    ==================== 예상 응답 명세 ====================
-    성공 시 (200 OK):
-    {
-      "success": true,
-      "message": "인증번호가 발송되었습니다.",
-      "verificationId": string, // 인증 세션 ID
-      "expiresAt": string      // 만료 시간 (ISO 8601 형식)
-    }
-    
-    실패 시:
-    - 400 Bad Request: 잘못된 휴대폰 번호 형식
-    - 429 Too Many Requests: 요청 횟수 초과
-    - 500 Internal Server Error: 서버 내부 오류
-    
-    ==================== 인증번호 확인 API ====================
-    Method: POST
-    URL: http://localhost:8080/api/verify/phone/confirm
-    Headers: {
-      'Content-Type': 'application/json'
-    }
-    
-    Request Body:
-    {
-      "verificationId": string, // 인증 세션 ID
-      "code": string           // 사용자가 입력한 인증번호
-    }
-    
-    응답:
-    성공 시 (200 OK):
-    {
-      "success": true,
-      "message": "휴대폰 인증이 완료되었습니다.",
-      "verified": true
-    }
-    */
     
     // 임시 인증 처리 (실제로는 PASS API 호출)
     setTimeout(() => {
@@ -268,28 +202,6 @@ const Register = () => {
     }
 
     try {
-      /*
-      ==================== API 요청 명세 ====================
-      Method: GET
-      URL: http://localhost:8080/api/check-id/{id}
-      Headers: {
-        'Content-Type': 'application/json'
-      }
-      
-      Path Parameters:
-      - id: string (중복 확인할 아이디)
-      
-      ==================== 예상 응답 명세 ====================
-      성공 시 (200 OK):
-      {
-        "available": boolean,  // true: 사용 가능, false: 사용 불가
-        "message": string      // 선택적, 응답 메시지
-      }
-      
-      실패 시:
-      - 400 Bad Request: 잘못된 아이디 형식
-      - 500 Internal Server Error: 서버 내부 오류
-      */
       const response = await authApi.checkId(id);
 
       if (!response.ok) {
@@ -390,49 +302,6 @@ const Register = () => {
   // 회원가입 처리 함수
   const handleIndividualRegister = async () => {
     try {
-      /*
-      ==================== API 요청 명세 ====================
-      Method: POST
-      URL: http://localhost:8080/api/register/individual
-      Headers: {
-        'Content-Type': 'application/json'
-      }
-      
-      Request Body:
-      {
-        "memberType": "individual",
-        "id": string,              // 아이디 (중복 확인 완료된 상태)
-        "password": string,        // 비밀번호
-        "name": string,           // 이름
-        "email": string,          // 이메일
-        "phone": string,          // 휴대폰 번호
-        "address": string,        // 주소
-        "detailAddress": string,  // 상세주소
-        "termsAccepted": boolean, // 이용약관 동의
-        "privacyAccepted": boolean, // 개인정보처리방침 동의
-        "marketingAccepted": boolean // 마케팅 수신 동의
-      }
-      
-      ==================== 예상 응답 명세 ====================
-      성공 시 (201 Created):
-      {
-        "success": true,
-        "message": "회원가입이 완료되었습니다.",
-        "memberId": string,       // 생성된 회원 ID
-        "data": {
-          "id": string,
-          "name": string,
-          "email": string,
-          "memberType": "individual",
-          "createdAt": string     // ISO 8601 형식
-        }
-      }
-      
-      실패 시:
-      - 400 Bad Request: 필수 필드 누락 또는 유효성 검사 실패
-      - 409 Conflict: 이미 존재하는 아이디/이메일
-      - 500 Internal Server Error: 서버 내부 오류
-      */
       const requestData = {
         memberType: "individual",
         id: individualForm.id,
@@ -540,18 +409,6 @@ const Register = () => {
     }
   };
 
-  // 본사 선택 함수
-  // const handleHeadquartersSelect = (headquarters: { id: string; name: string; businessNumber: string }) => {
-  //   setCorporateForm(prev => ({
-  //     ...prev,
-  //     headquartersName: headquarters.name,
-  //     companyName: headquarters.name,
-  //     businessNumber: headquarters.businessNumber,
-  //     headquartersId: headquarters.id  // 본사 ID 추가
-  //   }));
-  //   setIsHeadquartersModalOpen(false);
-  //   setHeadquartersSearchTerm('');
-  // };
 
 
   return (

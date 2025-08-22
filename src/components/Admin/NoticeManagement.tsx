@@ -68,11 +68,7 @@ const NoticeManagement = () => {
       const data = await res.json();
       setNotices(data);
     } catch (e) {
-      // Fallback demo data
-      setNotices([
-        { id: 1, title: '[중요] 설날 연휴 배송 안내', content: '<p>연휴 기간 배송 안내</p>', pinned: true, createdAt: '2024-01-20' },
-        { id: 2, title: '서비스 점검 안내', content: '<p>정기 점검 공지</p>', pinned: false, createdAt: '2024-01-10' },
-      ]);
+      toast({ title: '불러오기 오류', description: '공지사항을 불러오는 데 실패했어요.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }

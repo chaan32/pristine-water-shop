@@ -8,6 +8,7 @@ import { LogIn, User, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { authApi } from '@/lib/api';
+import {toast} from "@/hooks/use-toast.ts";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,53 +26,6 @@ const Login = () => {
   }, [navigate]);
 
   const handleLogin = async () => {
-    /*
-    ==================== API 요청 명세 ====================
-    Method: POST
-    URL: http://localhost:8080/api/auth/login
-    Headers: {
-      'Content-Type': 'application/json'
-    }
-    
-    Request Body:
-    {
-      "username": string,        // 아이디
-      "password": string,        // 비밀번호
-      "deviceInfo": {           // 선택사항
-        "userAgent": string,
-        "ip": string
-      }
-    }
-    
-    ==================== 예상 응답 명세 ====================
-    성공 시 (200 OK):
-    {
-      "success": true,
-      "message": "로그인 성공",
-      "data": {
-        "accessToken": string,      // JWT 액세스 토큰
-        "refreshToken": string,     // JWT 리프레시 토큰
-        "user": {
-          "id": string,
-          "username": string,
-          "name": string,
-          "email": string,
-          "userType": "admin" | "individual" | "corporate" | "headquarters" | "branch",
-          "companyName": string,    // 법인 회원인 경우
-          "isHeadquarters": boolean, // 본사 여부
-          "parentCompany": string,  // 지점인 경우 본사명
-          "permissions": string[]   // 권한 목록
-        },
-        "expiresIn": number        // 토큰 만료 시간(초)
-      }
-    }
-    
-    실패 시:
-    - 401 Unauthorized: 아이디/비밀번호 불일치
-    - 403 Forbidden: 계정 잠김/비활성화
-    - 429 Too Many Requests: 로그인 시도 횟수 초과
-    - 500 Internal Server Error: 서버 내부 오류
-    */
     
     if (!loginData.username || !loginData.password) {
       alert('아이디와 비밀번호를 입력해주세요.');
@@ -87,14 +41,14 @@ const Login = () => {
           ip: 'auto' // 서버에서 자동 감지
         }
       });
+      console.log(response);
 
-      const data = await response.json();
 
-      if (response.ok && data.success) {
+      if (response.ok) {
+        const data = await response.json();
         // 실제 API 응답 구조에 따른 토큰 저장
         localStorage.setItem('accessToken', data.data.accessToken);
         localStorage.setItem('secretToken', data.data.secretToken);
-        
         // 실제 API 응답 구조에 따른 사용자 정보 저장
         const user = data.data.user;
         localStorage.setItem('userType', user.userType || '');
@@ -133,24 +87,14 @@ const Login = () => {
             navigate('/');
         }
       } else {
+        const errorMessage = await response.text();
         // 에러 처리
-        switch (response.status) {
-          case 401:
-            alert('아이디 또는 비밀번호가 올바르지 않습니다.');
-            break;
-          case 403:
-            alert('계정이 잠겨있거나 비활성화되었습니다. 고객센터에 문의해주세요.');
-            break;
-          case 429:
-            alert('로그인 시도 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.');
-            break;
-          default:
-            alert(data.message || '로그인 중 오류가 발생했습니다.');
-        }
+
+        toast({ title: '로그인 오류', description: errorMessage, variant: 'destructive'});
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
+      toast({ title: '알 수 없는 오류', description: '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.', variant: 'destructive' });
     }
   };
 
