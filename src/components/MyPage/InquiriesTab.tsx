@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageCircle, Package, Calendar, Eye, AlertTriangle, ShoppingCart } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import ClaimDetailDialog from './ClaimDetailDialog';
 
 interface GeneralInquiry {
   inquiryId: number;
@@ -51,6 +52,8 @@ const InquiriesTab = () => {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [selectedType, setSelectedType] = useState<'general' | 'product' | 'claim'>('general');
+  const [isClaimDetailOpen, setIsClaimDetailOpen] = useState(false);
+  const [selectedClaim, setSelectedClaim] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -245,21 +248,17 @@ const InquiriesTab = () => {
             </div>
           )}
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedItem(claim);
-                setSelectedType('claim');
-              }}
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              상세보기
-            </Button>
-          </DialogTrigger>
-        </Dialog>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSelectedClaim(claim);
+            setIsClaimDetailOpen(true);
+          }}
+        >
+          <Eye className="h-4 w-4 mr-1" />
+          상세보기
+        </Button>
       </div>
     </div>
   );
@@ -347,10 +346,8 @@ const InquiriesTab = () => {
             <DialogTitle className="flex items-center gap-2">
               {selectedType === 'general' && <MessageCircle className="h-5 w-5" />}
               {selectedType === 'product' && <Package className="h-5 w-5" />}
-              {selectedType === 'claim' && <AlertTriangle className="h-5 w-5" />}
               {selectedType === 'general' && '일반문의 상세내용'}
               {selectedType === 'product' && '제품문의 상세내용'}
-              {selectedType === 'claim' && '클레임 상세내용'}
             </DialogTitle>
           </DialogHeader>
           {selectedItem && (
@@ -359,18 +356,10 @@ const InquiriesTab = () => {
                 <Badge variant="outline">
                   {selectedType === 'general' && '일반문의'}
                   {selectedType === 'product' && '제품문의'}
-                  {selectedType === 'claim' && '클레임'}
                 </Badge>
-                {selectedType !== 'claim' && (
-                  <Badge variant={selectedItem.isAnswered ? 'default' : 'destructive'}>
-                    {selectedItem.isAnswered ? '답변완료' : '답변대기'}
-                  </Badge>
-                )}
-                {selectedType === 'claim' && (
-                  <Badge variant={getStatusVariant(selectedItem.status)}>
-                    {getStatusText(selectedItem.status)}
-                  </Badge>
-                )}
+                <Badge variant={selectedItem.isAnswered ? 'default' : 'destructive'}>
+                  {selectedItem.isAnswered ? '답변완료' : '답변대기'}
+                </Badge>
                 {(selectedItem.orderNumber) && (
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <ShoppingCart className="h-3 w-3" />
@@ -397,14 +386,10 @@ const InquiriesTab = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">
-                  {selectedType === 'claim' ? '내용' : '문의내용'}
-                </h4>
+                <h4 className="font-semibold mb-2">문의내용</h4>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <p className="whitespace-pre-wrap">
-                    {selectedType === 'general' ? selectedItem.question : 
-                     selectedType === 'product' ? selectedItem.question : 
-                     selectedItem.content}
+                    {selectedType === 'general' ? selectedItem.question : selectedItem.question}
                   </p>
                 </div>
               </div>
@@ -421,6 +406,12 @@ const InquiriesTab = () => {
           )}
         </DialogContent>
       </Dialog>
+      
+      <ClaimDetailDialog
+        isOpen={isClaimDetailOpen}
+        onClose={() => setIsClaimDetailOpen(false)}
+        claim={selectedClaim}
+      />
     </div>
   );
 };

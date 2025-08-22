@@ -144,6 +144,18 @@ const MyPage = () => {
     return statusMap[status] || status;
   };
 
+  const getShipmentStatusVariant = (status: string) => {
+    const variantMap: { [key: string]: 'default' | 'secondary' | 'outline' | 'preparing' } = {
+      'PENDING': 'outline',
+      'PREPARING': 'preparing',
+      'PROCESSING': 'secondary',
+      'SHIPPED': 'default',
+      'DELIVERED': 'default',
+      'CANCELLED': 'outline'
+    };
+    return variantMap[status] || 'secondary';
+  };
+
   const getStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
       'pending': '결제 대기',
@@ -282,11 +294,11 @@ const MyPage = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="info" className="w-full">
+          <Tabs defaultValue="orders" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="info">회원정보</TabsTrigger>
               <TabsTrigger value="orders">주문내역</TabsTrigger>
               <TabsTrigger value="inquiries">문의내역</TabsTrigger>
+              <TabsTrigger value="info">회원정보</TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="mt-8">
@@ -477,39 +489,42 @@ const MyPage = () => {
                               {typeof order.products === 'string' ? order.products : order.products?.join(', ')}
                             </p>
                           </div>
-                          <div className="md:col-span-2 flex flex-wrap gap-8">
-                            {/* ✅ 결제 상태 Badge를 추가합니다. */}
-                            <Badge variant={order.paymentStatus === 'PAID' ? 'default' : 'outline'}>
+                          <div className="md:col-span-2 flex flex-col gap-2">
+                            <Badge 
+                              variant={order.paymentStatus === 'PAID' ? 'default' : 'outline'}
+                              className="w-fit"
+                            >
                               {getPaymentStatusText(order.paymentStatus)}
                             </Badge>
-                            <Badge variant={order.status === '배송완료' ? 'default' : 'secondary'}>
+                            <Badge 
+                              variant={getShipmentStatusVariant(order.shipmentStatus)}
+                              className="w-fit"
+                            >
                               {order.status}
                             </Badge>
                           </div>
                           <div className="md:col-span-2">
                             <p className="text-sm font-bold">{order.total?.toLocaleString()}원</p>
                           </div>
-                          <div className="md:col-span-1 flex flex-col gap-1">
-                            <div className="flex gap-1">
+                          <div className="md:col-span-1 flex flex-col gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs"
+                              onClick={() => handleOrderDetailClick(order)}
+                            >
+                              상세보기
+                            </Button>
+                            {order.trackingNumber && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-8 px-2 text-xs"
-                                onClick={() => handleOrderDetailClick(order)}
+                                className="w-full text-xs"
+                                onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
                               >
-                                상세보기
+                                배송추적
                               </Button>
-                              {order.trackingNumber && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 px-2 text-xs"
-                                  onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
-                                >
-                                  배송추적
-                                </Button>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </div>
                       </CardContent>

@@ -111,6 +111,7 @@ const RefundExchangeManagement = () => {
       toast({ title: "오류", description: "작업 처리 중 문제가 발생했습니다.", variant: "destructive" });
     } finally {
       setIsDetailOpen(false);
+      setRejectionReason(''); // 처리 완료 후 이유 필드 초기화
     }
   };
 
