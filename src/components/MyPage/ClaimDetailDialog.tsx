@@ -1,30 +1,7 @@
-import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle, ShoppingCart, Calendar, Package } from 'lucide-react';
-import { apiFetch } from '@/lib/api';
-import { Skeleton } from '@/components/ui/skeleton';
-
-interface OrderInfo {
-  orderId: number;
-  orderName: string;
-  createdAt: string;
-  price: number;
-  shipmentFee: number;
-  shipmentStatus: string;
-  paymentStatus: string;
-  trackingNumber?: string;
-  products: string;
-  items: Array<{
-    productName: string;
-    productId: number;
-    productPerPrice: number;
-    productTotalPrice: number;
-    quantity: number;
-    productImageUrl: string;
-  }>;
-}
 
 interface ClaimDetailDialogProps {
   isOpen: boolean;
@@ -33,31 +10,6 @@ interface ClaimDetailDialogProps {
 }
 
 const ClaimDetailDialog = ({ isOpen, onClose, claim }: ClaimDetailDialogProps) => {
-  const [orderInfo, setOrderInfo] = useState<OrderInfo | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen && claim?.orderNumber) {
-      fetchOrderInfo();
-    }
-  }, [isOpen, claim]);
-
-  const fetchOrderInfo = async () => {
-    try {
-      setLoading(true);
-      // API: GET /api/users/orders/{orderName} - Get order details by order name
-      const response = await apiFetch(`/api/users/orders/${claim.orderNumber}`);
-      
-      if (response.ok) {
-        const result = await response.json();
-        setOrderInfo(result.data);
-      }
-    } catch (error) {
-      console.error('Error fetching order info:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -77,27 +29,6 @@ const ClaimDetailDialog = ({ isOpen, onClose, claim }: ClaimDetailDialogProps) =
     }
   };
 
-  const getShipmentStatusText = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      'PENDING': '배송 대기',
-      'PREPARING': '발송 대기중',
-      'PROCESSING': '상품 준비중',
-      'SHIPPED': '배송중',
-      'DELIVERED': '배송완료',
-      'CANCELLED': '배송 취소'
-    };
-    return statusMap[status] || status;
-  };
-
-  const getPaymentStatusText = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      'PENDING': '결제 대기',
-      'PAID': '결제 완료',
-      'UNPAID': '결제 실패',
-      'REFUNDED': '환불 완료'
-    };
-    return statusMap[status] || status;
-  };
 
   if (!claim) return null;
 
@@ -175,79 +106,47 @@ const ClaimDetailDialog = ({ isOpen, onClose, claim }: ClaimDetailDialogProps) =
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {loading ? (
-                  <div className="space-y-3">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
+                <div className="space-y-4">
+                  <div className="text-sm">
+                    <span className="font-semibold">주문번호:</span>
+                    <span className="ml-2 text-muted-foreground">{claim.orderNumber}</span>
                   </div>
-                ) : orderInfo ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-semibold">주문번호:</span>
-                        <span className="ml-2 text-muted-foreground">{orderInfo.orderName}</span>
-                      </div>
-                      <div>
-                        <span className="font-semibold">주문일:</span>
-                        <span className="ml-2 text-muted-foreground">
-                          {new Date(orderInfo.createdAt).toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-semibold">결제상태:</span>
-                        <Badge variant={orderInfo.paymentStatus === 'PAID' ? 'default' : 'outline'} className="ml-2">
-                          {getPaymentStatusText(orderInfo.paymentStatus)}
-                        </Badge>
-                      </div>
-                      <div>
-                        <span className="font-semibold">배송상태:</span>
-                        <Badge variant="secondary" className="ml-2">
-                          {getShipmentStatusText(orderInfo.shipmentStatus)}
-                        </Badge>
-                      </div>
-                      {orderInfo.trackingNumber && (
-                        <div>
-                          <span className="font-semibold">송장번호:</span>
-                          <span className="ml-2 text-muted-foreground">{orderInfo.trackingNumber}</span>
-                        </div>
-                      )}
-                      <div>
-                        <span className="font-semibold">총 금액:</span>
-                        <span className="ml-2 font-bold text-lg">
-                          {(orderInfo.price + orderInfo.shipmentFee).toLocaleString()}원
-                        </span>
-                      </div>
-                    </div>
 
-                    {/* 주문 상품 목록 */}
+                  {/* 주문 상품 목록 */}
+                  {claim.items && claim.items.length > 0 ? (
                     <div>
                       <h4 className="font-semibold mb-3">주문 상품</h4>
                       <div className="space-y-3">
-                        {orderInfo.items.map((item, index) => (
+                        {claim.items.map((item: any, index: number) => (
                           <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                            <img 
-                              src={item.productImageUrl} 
-                              alt={item.productName}
-                              className="w-16 h-16 object-cover rounded"
-                            />
+                            {item.productImageUrl && (
+                              <img 
+                                src={item.productImageUrl} 
+                                alt={item.productName}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                            )}
                             <div className="flex-1">
                               <h5 className="font-medium">{item.productName}</h5>
-                              <p className="text-sm text-muted-foreground">
-                                수량: {item.quantity}개 × {item.productPerPrice.toLocaleString()}원
-                              </p>
+                              {item.quantity && item.productPerPrice && (
+                                <p className="text-sm text-muted-foreground">
+                                  수량: {item.quantity}개 × {item.productPerPrice.toLocaleString()}원
+                                </p>
+                              )}
                             </div>
-                            <div className="text-right">
-                              <p className="font-semibold">{item.productTotalPrice.toLocaleString()}원</p>
-                            </div>
+                            {item.productTotalPrice && (
+                              <div className="text-right">
+                                <p className="font-semibold">{item.productTotalPrice.toLocaleString()}원</p>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">주문 정보를 불러올 수 없습니다.</p>
-                )}
+                  ) : (
+                    <p className="text-muted-foreground">주문 상품 정보가 없습니다.</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
