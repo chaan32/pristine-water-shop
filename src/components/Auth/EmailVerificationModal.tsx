@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
+import { authApi } from '@/lib/api';
 import { Mail, CheckCircle } from 'lucide-react';
 
 interface EmailVerificationModalProps {
@@ -52,13 +53,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/send/authentication/mail', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      const response = await authApi.sendAuthMail(email);
 
       if (response.ok) {
         setIsCodeSent(true);
@@ -94,16 +89,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
 
     setIsVerifying(true);
     try {
-      const response = await fetch('/api/auth/try/mail', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email,
-          authCode 
-        }),
-      });
+      const response = await authApi.verifyAuthMail(email, authCode);
 
       if (response.ok) {
         toast({
