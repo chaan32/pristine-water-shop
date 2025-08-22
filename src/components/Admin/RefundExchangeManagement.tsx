@@ -118,6 +118,7 @@ const RefundExchangeManagement = () => {
   const handleOpenChange = (isOpen: boolean) => {
     setIsDetailOpen(isOpen);
     if (!isOpen) {
+      setSelectedRequest(null);
       setRejectionReason('');
     }
   }
@@ -143,6 +144,7 @@ const RefundExchangeManagement = () => {
 
   const handleViewDetail = (request: RefundExchangeRequest) => {
     setSelectedRequest(request);
+    setRejectionReason(''); // 새로운 요청 선택 시 이유 필드 초기화
     setIsDetailOpen(true);
   };
 

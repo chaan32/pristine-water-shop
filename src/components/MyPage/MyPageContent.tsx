@@ -138,9 +138,9 @@ const MyPageContent = () => {
     const variantMap: { [key: string]: 'default' | 'secondary' | 'outline' | 'preparing' } = {
       'PENDING': 'outline',
       'PREPARING': 'preparing',
-      'PROCESSING': 'secondary',
+      'PROCESSING': 'secondary', 
       'SHIPPED': 'default',
-      'DELIVERED': 'default',
+      'DELIVERED': 'secondary',
       'CANCELLED': 'outline'
     };
     return variantMap[status] || 'secondary';

@@ -27,7 +27,7 @@ const ClaimDetailDialog = ({ isOpen, onClose, claim }: ClaimDetailDialogProps) =
       case 'PENDING': return 'destructive' as const;
       case 'ANSWERED': return 'default' as const;
       case 'CLOSED': return 'secondary' as const;
-      case 'approved': return 'default' as const;
+      case 'approved': return 'approved' as const;
       case 'rejected': return 'destructive' as const;
       default: return 'outline' as const;
     }

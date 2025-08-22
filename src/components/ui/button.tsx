@@ -16,6 +16,7 @@ const buttonVariants = cva(
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        preparing: "bg-yellow-500 text-white hover:bg-yellow-600",
         pending: "bg-status-pending text-status-pending-foreground hover:bg-status-pending/90",
         answered: "bg-status-answered text-status-answered-foreground hover:bg-status-answered/90",
         pendingOutline:
