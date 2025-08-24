@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from '@/components/Admin/AdminLayout';
+import { getUserInfo } from '@/lib/api';
 import ProductManagement from '@/components/Admin/ProductManagement';
 import ProductEdit from '@/components/Admin/ProductEdit';
 import ProductContentManagement from '@/components/Admin/ProductContentManagement';
@@ -15,10 +16,9 @@ import FAQManagement from '@/components/Admin/FAQManagement';
 
 const Admin = () => {
   // 실제 관리자 로그인 상태 체크
-  const userType = localStorage.getItem('userType');
-  const accessToken = localStorage.getItem('accessToken');
+  const userInfo = getUserInfo();
   
-  if (!accessToken || userType !== 'admin') {
+  if (!userInfo || userInfo.role !== 'ADMIN') {
     return <Navigate to="/login" replace />;
   }
 

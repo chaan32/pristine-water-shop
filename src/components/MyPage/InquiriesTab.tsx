@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageCircle, Package, Calendar, Eye, AlertTriangle, ShoppingCart } from 'lucide-react';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getUserInfo } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import ClaimDetailDialog from './ClaimDetailDialog';
 
@@ -63,7 +63,8 @@ const InquiriesTab = () => {
   const fetchInquiries = async () => {
     try {
       setLoading(true);
-      const id = localStorage.getItem('userId');
+      const userInfo = getUserInfo();
+      const id = userInfo?.id;
       // API: GET /api/users/inquiries/{userId} - Get user's inquiries
       const response = await apiFetch(`/api/users/inquiries/${id}`);
 

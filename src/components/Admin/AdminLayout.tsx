@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getUserInfo } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -25,7 +26,8 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const adminName = localStorage.getItem('userName') || '관리자';
+  const userInfo = getUserInfo();
+  const adminName = userInfo?.email || '관리자';
   const location = useLocation();
 
   const menuItems = [

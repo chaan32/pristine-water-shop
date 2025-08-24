@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowRight, Star, Search, Filter, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { shopApi, cartApi } from '@/lib/api';
+import { shopApi, cartApi, getUserInfo } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 const Shop = () => {
@@ -23,8 +23,8 @@ const Shop = () => {
 
   // 사용자 type 정보 가져오기
   useEffect(() => {
-    const storedUserType = localStorage.getItem('userType');
-    setUserType(storedUserType); // null이면 비로그인 상태
+    const userInfo = getUserInfo();
+    setUserType(userInfo?.role); // null이면 비로그인 상태
   }, []);
 
   // 상품 데이터 가져오기

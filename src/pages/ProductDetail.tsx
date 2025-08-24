@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star, Minus, Plus, ShoppingCart, Heart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { apiFetch, shopApi, cartApi } from '@/lib/api';
+import { apiFetch, shopApi, cartApi, getUserInfo } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 // 백엔드 DTO 타입
@@ -88,7 +88,8 @@ const ProductDetail = () => {
 
 
 
-  const userType = useMemo(() => localStorage.getItem('userType'), []); // null이면 비로그인
+  const userInfo = getUserInfo();
+  const userType = userInfo?.role; // null이면 비로그인
 
   // 상세 데이터 로드 - DTO 기반
   useEffect(() => {
@@ -273,15 +274,15 @@ const ProductDetail = () => {
 
   // 문의 등록 핸들러 함수 작성하기
   const handleInquirySubmit = async () =>{
-    const userId = localStorage.getItem('userId');
-    const token = localStorage.getItem('accessToken');
+    const userInfo = getUserInfo();
+    const userId = userInfo?.id;
 
     if (!newQuestion.trim()){
       alert('문의 내용을 입력해주세요');
       return;
     }
 
-    if (!userId || !token) {
+    if (!userInfo) {
       alert('로그인이 필요합니다');
       return;
     }

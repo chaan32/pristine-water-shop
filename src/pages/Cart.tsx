@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import showerFilter from '@/assets/shower-filter.jpg';
 import kitchenFilter from '@/assets/kitchen-filter.jpg';
-import { cartApi, shopApi } from '@/lib/api';
+import { cartApi, shopApi, getUserInfo } from '@/lib/api';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -39,7 +39,8 @@ const Cart = () => {
       const dtos: Array<{ productId: number; quantity: number }> = await res.json();
 
       // 각 상품 상세를 병렬로 조회하여 표시용 데이터 구성
-      const userType = localStorage.getItem('userType');
+      const userInfo = getUserInfo();
+      const userType = userInfo?.role;
       const items = await Promise.all(
         dtos.map(async (dto) => {
           const pdRes = await shopApi.getProduct(dto.productId.toString());

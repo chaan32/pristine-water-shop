@@ -56,20 +56,17 @@ const MyPage = () => {
         if (result.data) {
           setUserInfo(result.data);
           setEditForm(result.data);
-          localStorage.setItem('userInfo', JSON.stringify(result.data));
         }
       } else {
         throw new Error('사용자 정보 조회 실패');
       }
     } catch (error) {
       console.error('User info fetch error:', error);
-      // 에러 시 로컬 스토리지 정보 사용
-      const storedUserInfo = localStorage.getItem('userInfo');
-      if (storedUserInfo) {
-        const userData = JSON.parse(storedUserInfo);
-        setUserInfo(userData);
-        setEditForm(userData);
-      }
+      toast({
+        title: "오류",
+        description: "사용자 정보를 불러오는데 실패했습니다.",
+        variant: "destructive",
+      });
     }
   };
 

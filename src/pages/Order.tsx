@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
-import {apiFetch} from "@/lib/api.ts";
+import {apiFetch, getUserInfo} from "@/lib/api.ts";
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -48,21 +48,21 @@ const Order = () => {
 
 
   useEffect(() => {
-    // 사용자 타입을 localStorage에서 가져오기
-    const storedUserType = localStorage.getItem('userType');
-    setUserType(storedUserType);
+    // 사용자 타입을 JWT에서 가져오기
+    const userInfo = getUserInfo();
+    setUserType(userInfo?.role);
     
     // 사용자 타입에 따라 기본 결제 방법 설정
-    if (storedUserType === 'individual' || storedUserType === 'headquarters') {
+    if (userInfo?.role === 'individual' || userInfo?.role === 'headquarters') {
       setPaymentMethod('card');
-    } else if (storedUserType === 'branch') {
+    } else if (userInfo?.role === 'branch') {
       setPaymentMethod('corporate_payment');
     }
 
     // 페이지가 처음 로드될 때 로그인된 사용자의 정보를 가져옵니다.
     const fetchUserInfo = async () => {
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
+      const userInfo = getUserInfo();
+      if (!userInfo?.id) {
         // 로그인 상태가 아니면 아무 작업도 하지 않습니다.
         // 실제로는 로그인 페이지로 보내는 로직을 추가할 수 있습니다.
         console.log("로그인된 사용자가 없습니다.");
@@ -71,7 +71,7 @@ const Order = () => {
       try {
         // 이전에 만드셨던 컨트롤러의 getRecipientInform 메서드 호출
         // API: GET /api/order/recipient/same/{userId} - Get user shipping info
-        const response = await apiFetch(`/api/order/recipient/same/${userId}`);
+        const response = await apiFetch(`/api/order/recipient/same/${userInfo.id}`);
         const data = await response.json(); // .json()을 호출해서 실제 데이터를 꺼냅니다.
         setLoggedInUser(data);
       } catch (error) {
@@ -160,9 +160,9 @@ const Order = () => {
       alert('필수 정보를 모두 입력해주세요.');
       return;
     }
-    const userId = localStorage.getItem('userId');
+    const userInfo = getUserInfo();
     const orderData = {
-      userId: userId || null, // 로그인된 사용자 ID, 없으면 null
+      userId: userInfo?.id || null, // 로그인된 사용자 ID, 없으면 null
       // 1. OrderReqDto.items -> List<OrderItemDto>
       items: items.map((item: any) => ({
         productId: item.productId || item.id,
