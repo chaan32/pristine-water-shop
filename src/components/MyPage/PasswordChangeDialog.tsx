@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface PasswordChangeDialogProps {
@@ -53,7 +53,7 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
 
     setLoading(true);
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      const accessToken = getAccessToken();
       // API: PUT /api/auth/change/password - Change user password
       const response = await apiFetch('/api/auth/change/password', {
         method: 'PUT',

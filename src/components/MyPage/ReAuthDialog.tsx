@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface ReAuthDialogProps {
@@ -35,7 +35,7 @@ const ReAuthDialog = ({ isOpen, onClose, onSuccess, userLoginId }: ReAuthDialogP
 
     setLoading(true);
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      const accessToken = getAccessToken();
       // API: POST /api/auth/login/recheck - Verify current password
       const response = await apiFetch('/api/auth/login/recheck', {
         method: 'POST',

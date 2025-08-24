@@ -15,7 +15,7 @@ import {
 import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight, CreditCard } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import { toast } from 'sonner';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getAccessToken } from '@/lib/api';
 
 // --- 1. INTERFACES UPDATED ---
 // Individual product item within an order
@@ -236,7 +236,7 @@ const HeadquartersDashboard = () => {
 
   const handlePayment = async (orderNumber: string) => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       if (!token) throw new Error('인증 토큰이 없습니다.');
 
       // 실제 결제 API 호출

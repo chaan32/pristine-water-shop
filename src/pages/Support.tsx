@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bell, FileText, MessageCircle, HelpCircle, Send, Pin, Upload, X, ChevronDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
-import { supportApi, userApi } from '@/lib/api';
+import { supportApi, userApi, getAccessToken } from '@/lib/api';
 
 interface Notice{
   id: number;
@@ -217,7 +217,7 @@ const Support = () => {
 
     const fetchOrders = async () => {
       setOrdersLoading(true);
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       if (!token) {
         setOrdersLoading(false);
         return;

@@ -39,10 +39,6 @@ export const setTokens = (accessToken: string, refreshToken: string) => {
 export const clearTokens = () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
-  // 사용자 정보는 더 이상 localStorage에 저장하지 않음
-  localStorage.removeItem('userId');
-  localStorage.removeItem('userType');
-  localStorage.removeItem('userEmail');
 };
 
 // JWT 디코딩 및 사용자 정보 추출

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowRight, Star, Search, Filter, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { shopApi, cartApi, getUserInfo } from '@/lib/api';
+import { shopApi, cartApi, getUserInfo, getAccessToken } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 const Shop = () => {
@@ -164,7 +164,7 @@ const Shop = () => {
   });
 
   const handleAddToCart = async (product: any) => {
-    const token = localStorage.getItem('accessToken');
+    const token = getAccessToken();
     try {
       if (token) {
         const res = await cartApi.add({ productId: product.productId, quantity: 1 });

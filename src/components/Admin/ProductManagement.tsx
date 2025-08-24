@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Save, Plus, ChevronDown, Edit2, Trash2 } from 'lucide-react';
-import { adminApi } from '@/lib/api';
+import { adminApi, getAccessToken } from '@/lib/api';
 
 const ProductManagement = () => {
   const { toast } = useToast();
@@ -180,7 +180,7 @@ const ProductManagement = () => {
     if (!editCategoryName.trim() || !editingCategory) return;
     
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       const endpoint = editingCategory.type === 'main' 
         ? `http://localhost:8080/api/admin/main/categories/${editingCategory.id}/${editCategoryName.trim()}`
         : `http://localhost:8080/api/admin/sub/categories/${editingCategory.id}/${editCategoryName.trim()}`;
@@ -237,7 +237,7 @@ const ProductManagement = () => {
     if (!deletingCategory) return;
     
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       const endpoint = deletingCategory.type === 'main' 
         ? `http://localhost:8080/api/admin/main/categories/${deletingCategory.id}`
         : `http://localhost:8080/api/admin/sub/categories/${deletingCategory.id}`;
@@ -295,7 +295,7 @@ const ProductManagement = () => {
     }
 
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       
       const productData = {
         name: formData.name,

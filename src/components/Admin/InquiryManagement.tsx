@@ -13,7 +13,7 @@ import {useToast} from "@/hooks/use-toast.ts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-import { adminApi } from '@/lib/api';
+import { adminApi, getAccessToken } from '@/lib/api';
 import { apiFetch } from '@/lib/api';
 
 // 문의 목록 백엔드 DTO
@@ -152,7 +152,7 @@ const getCategoryLabel = (value?: string) => {
       setError(null);
       setSelectedGeneralInquiry(null);
       try {
-        const accessToken = localStorage.getItem('accessToken');
+        const accessToken = getAccessToken();
       const url = `/api/admin/inquiries?answered=${statusFilterGeneral}`;
       // API: GET {url}
       const res = await apiFetch(url);

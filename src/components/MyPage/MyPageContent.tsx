@@ -10,7 +10,7 @@ import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard'
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
 import ReAuthDialog from '@/components/MyPage/ReAuthDialog';
 import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog';
-import { userApi, getAccessToken } from '@/lib/api';
+import { userApi, getAccessToken, clearTokens } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
 
@@ -33,7 +33,7 @@ const MyPageContent = () => {
 
   const fetchUserInfo = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       if (!token) {
         return;
       }
@@ -63,7 +63,7 @@ const MyPageContent = () => {
 
   const fetchOrders = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       if (!token) {
         alert("로그인이 필요합니다.");
         return;
@@ -253,8 +253,7 @@ const MyPageContent = () => {
 
   const handlePasswordChangeSuccess = () => {
     // 비밀번호 변경 성공시 로그아웃
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userInfo');
+    clearTokens();
     toast({
       title: "비밀번호 변경 완료",
       description: "보안을 위해 로그아웃됩니다. 다시 로그인해주세요.",

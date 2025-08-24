@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getAccessToken } from '@/lib/api';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -32,7 +32,7 @@ const ReviewModal = ({ isOpen, onClose, product, orderName, onReviewSubmitted }:
 
     setIsSubmitting(true);
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      const accessToken = getAccessToken();
       // API: POST /api/shop/products/review - Submit product review
       const response = await apiFetch('/api/shop/products/review', {
         method: 'POST',

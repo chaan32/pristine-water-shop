@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star, Minus, Plus, ShoppingCart, Heart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { apiFetch, shopApi, cartApi, getUserInfo } from '@/lib/api';
+import { apiFetch, shopApi, cartApi, getUserInfo, getAccessToken } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
 // 백엔드 DTO 타입
@@ -244,7 +244,7 @@ const ProductDetail = () => {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    const token = localStorage.getItem('accessToken');
+    const token = getAccessToken();
 
     try {
       if (token) {

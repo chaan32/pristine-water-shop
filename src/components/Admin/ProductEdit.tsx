@@ -20,7 +20,7 @@ import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter, Image } 
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import ImageManagementModal from './ImageManagementModal';
-import { adminApi, apiFetch } from '@/lib/api';
+import { adminApi, apiFetch, getAccessToken } from '@/lib/api';
 
 const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -424,7 +424,7 @@ const ProductEdit = () => {
 
   const handleSave = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      const accessToken = getAccessToken();
       if (!accessToken) {
         toast({
           title: "인증 오류",
@@ -474,7 +474,7 @@ const ProductEdit = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
+      const accessToken = getAccessToken();
       if (!accessToken) {
         toast({
           title: "인증 오류",

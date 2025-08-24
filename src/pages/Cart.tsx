@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import showerFilter from '@/assets/shower-filter.jpg';
 import kitchenFilter from '@/assets/kitchen-filter.jpg';
-import { cartApi, shopApi, getUserInfo } from '@/lib/api';
+import { cartApi, shopApi, getUserInfo, getAccessToken } from '@/lib/api';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ const Cart = () => {
 
   const fetchCartItems = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       if (!token) {
         // 비로그인 상태에서는 localStorage에서 장바구니 정보 조회
         const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -91,7 +91,7 @@ const Cart = () => {
     const newQuantity = Math.max(1, currentItem.quantity + change);
     
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       if (token) {
         const res = await cartApi.update({ productId, quantity: newQuantity });
         if (!res.ok) {
@@ -131,7 +131,7 @@ const Cart = () => {
   */
   const removeItem = async (productId: number) => {
     try {
-      const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
       if (token) {
         const res = await cartApi.remove(productId);
         if (!res.ok) {

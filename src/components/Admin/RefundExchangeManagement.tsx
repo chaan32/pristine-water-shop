@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { adminApi } from '@/lib/api';
+import { adminApi, getAccessToken } from '@/lib/api';
 
 // 프론트엔드에서 사용할 데이터 타입 정의
 interface RefundExchangeRequest {
@@ -39,7 +39,7 @@ const RefundExchangeManagement = () => {
     const fetchRequests = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = getAccessToken();
         // API: GET /api/admin/claims - Get all refund/exchange claims
         const response = await adminApi.getClaims();
 
