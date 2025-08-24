@@ -7,8 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { LogIn, User, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { authApi } from '@/lib/api';
-import {toast} from "@/hooks/use-toast.ts";
+import { authApi, setTokens, getUserInfo } from '@/lib/api';
+import { toast } from "@/hooks/use-toast.ts";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,18 +17,31 @@ const Login = () => {
     password: ''
   });
 
-  // 로그인 상태 체크
+  // 이미 로그인되어 있다면 리다이렉트
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-      navigate('/', { replace: true });
+    const userInfo = getUserInfo();
+    if (userInfo) {
+      switch (userInfo.role) {
+        case 'ADMIN':
+          navigate('/admin');
+          break;
+        case 'HEADQUARTERS':
+          navigate('/headquarters-dashboard');
+          break;
+        default:
+          navigate('/mypage');
+      }
     }
   }, [navigate]);
 
   const handleLogin = async () => {
     
     if (!loginData.username || !loginData.password) {
-      alert('아이디와 비밀번호를 입력해주세요.');
+      toast({ 
+        title: '입력 오류', 
+        description: '아이디와 비밀번호를 입력해주세요.', 
+        variant: 'destructive' 
+      });
       return;
     }
 
@@ -41,50 +54,35 @@ const Login = () => {
           ip: 'auto' // 서버에서 자동 감지
         }
       });
-      console.log(response);
-
 
       if (response.ok) {
         const data = await response.json();
-        // 실제 API 응답 구조에 따른 토큰 저장
-        localStorage.setItem('accessToken', data.data.accessToken);
-        localStorage.setItem('secretToken', data.data.secretToken);
-        // 실제 API 응답 구조에 따른 사용자 정보 저장
-        const user = data.data.user;
-        localStorage.setItem('userType', user.userType || '');
-        localStorage.setItem('userName', user.name || '');
-        localStorage.setItem('userEmail', user.email || '');
-        localStorage.setItem('userId', user.id ? user.id.toString() : '');
-        localStorage.setItem('username', user.username || '');
         
-        if (user.companyName) {
-          localStorage.setItem('companyName', user.companyName);
-        }
-        if (user.isHeadQuarters !== undefined && user.isHeadQuarters !== null) {
-          localStorage.setItem('isHeadquarters', user.isHeadQuarters.toString());
-        }
-        if (user.parentCompany) {
-          localStorage.setItem('parentCompany', user.parentCompany);
-        }
-        if (user.permissions && Array.isArray(user.permissions)) {
-          localStorage.setItem('permissions', JSON.stringify(user.permissions));
-        }
+        // 토큰 저장
+        setTokens(data.data.accessToken, data.data.secretToken);
+        
+        // JWT에서 사용자 정보 추출
+        const userInfo = getUserInfo();
+        
+        if (userInfo) {
+          toast({ 
+            title: '로그인 성공', 
+            description: `${userInfo.email}님, 환영합니다!` 
+          });
 
-        // 사용자 타입에 따른 리다이렉트
-        switch (user.userType) {
-          case 'admin':
-            navigate('/admin');
-            break;
-          case 'headquarters':
-            navigate('/headquarters-dashboard');
-            break;
-          case 'branch':
-          case 'corporate':
-          case 'individual':
-            navigate('/mypage');
-            break;
-          default:
-            navigate('/');
+          // 사용자 역할에 따라 리다이렉트
+          switch (userInfo.role) {
+            case 'ADMIN':
+              navigate('/admin');
+              break;
+            case 'HEADQUARTERS':
+              navigate('/headquarters-dashboard');
+              break;
+            default:
+              navigate('/mypage');
+          }
+        } else {
+          throw new Error('사용자 정보를 가져올 수 없습니다.');
         }
       } else {
         try {
@@ -92,10 +90,9 @@ const Login = () => {
           const errorMessage = errorData.message || '로그인에 실패했습니다.';
           if (errorMessage === "법인 승인 검토 중입니다."){
             toast({ title: '로그인 오류', description: errorMessage, variant: 'warning'});
-          }else{
+          } else {
             toast({ title: '로그인 오류', description: errorMessage, variant: 'destructive'});
           }
-
         } catch (parseError) {
           const errorMessage = await response.text();
           toast({ title: '로그인 오류', description: errorMessage || '로그인에 실패했습니다.', variant: 'destructive'});

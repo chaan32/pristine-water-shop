@@ -1,7 +1,20 @@
 // Centralized API helpers and base URL
 // Note: Avoid using Vite env vars per project guidelines; adjust base URL here if needed.
+import { jwtDecode } from 'jwt-decode';
+
 export const API_BASE_URL = 'http://localhost:8080';
 
+// JWT Token interfaces
+interface JwtPayload {
+  id: number;
+  email: string;
+  role: string;
+  exp: number;
+  iat: number;
+  sub: string;
+}
+
+// Token management functions
 export const getAccessToken = (): string | null => {
   try {
     return localStorage.getItem('accessToken');
@@ -10,14 +23,116 @@ export const getAccessToken = (): string | null => {
   }
 };
 
+export const getRefreshToken = (): string | null => {
+  try {
+    return localStorage.getItem('refreshToken');
+  } catch {
+    return null;
+  }
+};
+
+export const setTokens = (accessToken: string, refreshToken: string) => {
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
+};
+
+export const clearTokens = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  // 사용자 정보는 더 이상 localStorage에 저장하지 않음
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userType');
+  localStorage.removeItem('userEmail');
+};
+
+// JWT 디코딩 및 사용자 정보 추출
+export const decodeAccessToken = (): JwtPayload | null => {
+  const token = getAccessToken();
+  if (!token) return null;
+  
+  try {
+    return jwtDecode<JwtPayload>(token);
+  } catch (error) {
+    console.error('Token decode error:', error);
+    return null;
+  }
+};
+
+export const getUserInfo = () => {
+  const decoded = decodeAccessToken();
+  if (!decoded) return null;
+  
+  return {
+    id: decoded.id,
+    email: decoded.email,
+    role: decoded.role,
+    isLoggedIn: true
+  };
+};
+
+export const isTokenExpired = (token?: string): boolean => {
+  const tokenToCheck = token || getAccessToken();
+  if (!tokenToCheck) return true;
+  
+  try {
+    const decoded = jwtDecode<JwtPayload>(tokenToCheck);
+    return Date.now() >= decoded.exp * 1000;
+  } catch {
+    return true;
+  }
+};
+
+// Token refresh function
+export const refreshAccessToken = async (): Promise<boolean> => {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    clearTokens();
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setTokens(data.accessToken, refreshToken);
+      return true;
+    } else {
+      clearTokens();
+      return false;
+    }
+  } catch (error) {
+    console.error('Token refresh failed:', error);
+    clearTokens();
+    return false;
+  }
+};
+
 export const authHeaders = () => {
   const token = getAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-export async function apiFetch(input: string, init: RequestInit = {}) {
+export async function apiFetch(input: string, init: RequestInit = {}, skipTokenRefresh = false): Promise<Response> {
   const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
   const baseHeaders: HeadersInit = isFormData ? {} : { 'Content-Type': 'application/json' };
+  
+  // 토큰이 만료되었는지 확인하고 갱신 시도
+  if (!skipTokenRefresh && getAccessToken() && isTokenExpired()) {
+    const refreshed = await refreshAccessToken();
+    if (!refreshed) {
+      // 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
+      window.location.href = '/login';
+      throw new Error('Authentication failed');
+    }
+  }
+  
   const headers: HeadersInit = {
     ...baseHeaders,
     ...authHeaders(),
@@ -62,6 +177,55 @@ export async function apiFetch(input: string, init: RequestInit = {}) {
 
   const response = await fetch(url, { ...init, headers });
 
+  // 401 Unauthorized 응답 처리
+  if (response.status === 401 && !skipTokenRefresh) {
+    console.log('🔄 Token expired, attempting refresh...');
+    const refreshed = await refreshAccessToken();
+    
+    if (refreshed) {
+      // 새로운 토큰으로 재시도
+      const newHeaders = {
+        ...baseHeaders,
+        ...authHeaders(),
+        ...(init.headers || {}),
+      };
+      const retryResponse = await fetch(url, { ...init, headers: newHeaders });
+      
+      // 재시도 응답 로깅
+      try {
+        const clonedResponse = retryResponse.clone();
+        const responseData = await clonedResponse.json();
+        console.log(`📨 API Retry Response = { 
+          url: "${input}",
+          status: ${retryResponse.status},
+          data: ${JSON.stringify(responseData, null, 2)} 
+        }`);
+      } catch (e) {
+        try {
+          const clonedResponse = retryResponse.clone();
+          const textData = await clonedResponse.text();
+          console.log(`📨 API Retry Response = { 
+            url: "${input}",
+            status: ${retryResponse.status},
+            data: "${textData}" 
+          }`);
+        } catch (textError) {
+          console.log(`📨 API Retry Response = { 
+            url: "${input}",
+            status: ${retryResponse.status},
+            data: "[Unable to parse response]" 
+          }`);
+        }
+      }
+      
+      return retryResponse;
+    } else {
+      // 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
+      window.location.href = '/login';
+      throw new Error('Authentication failed');
+    }
+  }
+
   // 응답 데이터 로깅
   try {
     const clonedResponse = response.clone();
@@ -103,22 +267,28 @@ export type CartItemDto = { productId: number; quantity: number };
 // Auth APIs
 export const authApi = {
   login: (data: { username: string; password: string; deviceInfo?: any }) =>
-    apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }, true),
   
   checkId: (id: string) =>
-    apiFetch(`/api/check-id/${id}`),
+    apiFetch(`/api/check-id/${id}`, {}, true),
   
   sendAuthMail: (email: string) =>
     apiFetch('/api/auth/send/authentication/mail', {
       method: 'POST',
       body: JSON.stringify({ email }),
-    }),
+    }, true),
 
   verifyAuthMail: (email: string, authCode: string) =>
     apiFetch('/api/auth/try/mail', {
       method: 'POST',
       body: JSON.stringify({ email, authCode }),
-    }),
+    }, true),
+
+  refreshToken: (refreshToken: string) =>
+    apiFetch('/api/auth/token', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    }, true),
 };
 
 // User APIs  

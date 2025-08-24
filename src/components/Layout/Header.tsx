@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -11,56 +11,95 @@ import {
   Phone,
   Mail
 } from 'lucide-react';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getUserInfo, clearTokens } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
-  const [userType, setUserType] = useState<'individual' | 'corporate' | 'admin' | 'headquarters' | 'branch'>(
-    (localStorage.getItem('userType') as 'individual' | 'corporate' | 'admin' | 'headquarters' | 'branch') || 'individual'
-  );
-  
-  // 실제 로그인 정보에서 가져오기
-  const userName = localStorage.getItem('userName') || '';
-  const companyName = localStorage.getItem('companyName') || '';
-  const isHeadquarters = localStorage.getItem('isHeadquarters') === 'true';
-  const parentCompany = localStorage.getItem('parentCompany') || '';
-  
+  const [userInfo, setUserInfo] = useState<any>(null);
   const [cartCount, setCartCount] = useState<number>(0);
   const location = useLocation();
 
+  // 사용자 정보 업데이트
+  const updateUserInfo = () => {
+    const info = getUserInfo();
+    setUserInfo(info);
+  };
+
+  useEffect(() => {
+    updateUserInfo();
+
+    // 스토리지 이벤트 리스너 (다른 탭에서 로그인/로그아웃 시)
+    const handleStorageChange = () => {
+      updateUserInfo();
+      computeCartCount();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // 커스텀 이벤트 리스너 (같은 탭에서 상태 변화 시)
+    const onCartUpdated: EventListener = () => computeCartCount();
+    window.addEventListener('cart:updated', onCartUpdated);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('cart:updated', onCartUpdated);
+    };
+  }, []);
+
   const computeCartCount = useCallback(async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        // API: GET /api/cart - Get user's cart items
+      if (userInfo) {
+        // 로그인된 사용자: API에서 가져오기
         const res = await apiFetch('/api/cart');
         if (!res.ok) throw new Error('failed');
         const dtos = await res.json();
         setCartCount(Array.isArray(dtos) ? dtos.length : 0);
       } else {
+        // 비로그인 사용자: 로컬스토리지에서 가져오기
         const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
         setCartCount(Array.isArray(localCart) ? localCart.length : 0);
       }
     } catch {
       setCartCount(0);
     }
-  }, []);
+  }, [userInfo]);
 
   useEffect(() => {
     computeCartCount();
-  }, [computeCartCount, isLoggedIn, location.pathname]);
+  }, [computeCartCount, location.pathname]);
 
-  useEffect(() => {
-    const onStorage = () => computeCartCount();
-    const onCartUpdated: EventListener = () => computeCartCount();
-    window.addEventListener('storage', onStorage);
-    window.addEventListener('cart:updated', onCartUpdated);
-    return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('cart:updated', onCartUpdated);
-    };
-  }, [computeCartCount]);
+  const handleLogout = () => {
+    clearTokens();
+    setUserInfo(null);
+    toast({
+      title: "로그아웃",
+      description: "성공적으로 로그아웃되었습니다.",
+    });
+    navigate('/');
+  };
+
+  // 사용자 표시 정보 생성
+  const getUserDisplayInfo = () => {
+    if (!userInfo) return null;
+    
+    const { role, email } = userInfo;
+    
+    switch (role) {
+      case 'ADMIN':
+        return { name: '관리자', subInfo: email };
+      case 'HEADQUARTERS':
+        return { name: '본사', subInfo: email };
+      case 'BRANCH':
+        return { name: '지사', subInfo: email };
+      default:
+        return { name: email.split('@')[0], subInfo: email };
+    }
+  };
+
+  const displayInfo = getUserDisplayInfo();
 
   const mainMenuItems = [
     { 
@@ -97,34 +136,20 @@ const Header = () => {
               </div>
             </div>
             <div className="hidden md:flex items-center gap-4">
-              {isLoggedIn ? (
+              {userInfo ? (
                 <>
                    <span className="text-primary font-medium">
-                     {userType === 'admin' ? `${userName}님` : 
-                      userType === 'headquarters' ? `${companyName} (본사)` :
-                      userType === 'branch' ? `${companyName} (${parentCompany})` :
-                      userType === 'corporate' ? `${companyName} (법인)` :
-                      `${userName}님 (개인)`}
+                      {displayInfo?.name}
+                      {displayInfo?.subInfo && (
+                        <span className="text-xs text-muted-foreground ml-1">
+                          ({displayInfo.subInfo})
+                        </span>
+                      )}
                    </span>
                   <Button 
                     variant="ghost" 
                     size="sm"
-                     onClick={() => {
-                       // 모든 로그인 관련 데이터 삭제
-                       localStorage.removeItem('accessToken');
-                       localStorage.removeItem('secretToken');
-                       localStorage.removeItem('userType');
-                       localStorage.removeItem('userName');
-                       localStorage.removeItem('userEmail');
-                       localStorage.removeItem('userId');
-                       localStorage.removeItem('username');
-                       localStorage.removeItem('companyName');
-                       localStorage.removeItem('isHeadquarters');
-                       localStorage.removeItem('parentCompany');
-                       localStorage.removeItem('permissions');
-                       setIsLoggedIn(false);
-                       window.location.href = '/';
-                     }}
+                    onClick={handleLogout}
                   >
                     로그아웃
                   </Button>
@@ -198,13 +223,13 @@ const Header = () => {
           {/* Right Actions */}
           <div className="flex items-center gap-3">
             {/* My Page / Admin Panel */}
-            {isLoggedIn && (
-              <Link to={userType === 'admin' ? '/admin' : 
-                       userType === 'headquarters' ? '/headquarters-dashboard' : '/mypage'}>
+            {userInfo && (
+              <Link to={userInfo.role === 'ADMIN' ? '/admin' : 
+                       userInfo.role === 'HEADQUARTERS' ? '/headquarters-dashboard' : '/mypage'}>
                 <Button variant="ghost" size="sm" className="hidden md:flex">
                   <User className="w-4 h-4 mr-1" />
-                  {userType === 'admin' ? '관리자 패널' : 
-                   userType === 'headquarters' ? '본사 대시보드' : '마이페이지'}
+                  {userInfo.role === 'ADMIN' ? '관리자 패널' : 
+                   userInfo.role === 'HEADQUARTERS' ? '본사 대시보드' : '마이페이지'}
                 </Button>
               </Link>
             )}
@@ -272,47 +297,36 @@ const Header = () => {
 
               {/* Mobile Auth */}
               <div className="pt-4 border-t border-border">
-                {isLoggedIn ? (
+                {userInfo ? (
                   <div className="space-y-2">
                      <p className="text-primary font-medium">
-                       {userType === 'admin' ? `${userName}님` : 
-                        userType === 'headquarters' ? `${companyName} (본사)` :
-                        userType === 'branch' ? `${companyName} (${parentCompany})` :
-                        userType === 'corporate' ? `${companyName} (법인)` :
-                        `${userName}님 (개인)`}
+                       {displayInfo?.name}
+                       {displayInfo?.subInfo && (
+                         <span className="text-xs text-muted-foreground block">
+                           {displayInfo.subInfo}
+                         </span>
+                       )}
                      </p>
-                    <Link to={userType === 'admin' ? '/admin' : 
-                             userType === 'headquarters' ? '/headquarters-dashboard' : '/mypage'} onClick={() => setIsMenuOpen(false)}>
+                    <Link to={userInfo.role === 'ADMIN' ? '/admin' : 
+                             userInfo.role === 'HEADQUARTERS' ? '/headquarters-dashboard' : '/mypage'} 
+                          onClick={() => setIsMenuOpen(false)}>
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         className="w-full justify-start"
                       >
-                        {userType === 'admin' ? '관리자 패널' : 
-                         userType === 'headquarters' ? '본사 대시보드' : '마이페이지'}
+                        {userInfo.role === 'ADMIN' ? '관리자 패널' : 
+                         userInfo.role === 'HEADQUARTERS' ? '본사 대시보드' : '마이페이지'}
                       </Button>
                     </Link>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       className="w-full justify-start"
-                       onClick={() => {
-                         // 모든 로그인 관련 데이터 삭제
-                         localStorage.removeItem('accessToken');
-                         localStorage.removeItem('secretToken');
-                         localStorage.removeItem('userType');
-                         localStorage.removeItem('userName');
-                         localStorage.removeItem('userEmail');
-                         localStorage.removeItem('userId');
-                         localStorage.removeItem('username');
-                         localStorage.removeItem('companyName');
-                         localStorage.removeItem('isHeadquarters');
-                         localStorage.removeItem('parentCompany');
-                         localStorage.removeItem('permissions');
-                         setIsLoggedIn(false);
-                         setIsMenuOpen(false);
-                         window.location.href = '/';
-                       }}
+                      onClick={() => {
+                        handleLogout();
+                        setIsMenuOpen(false);
+                      }}
                     >
                       로그아웃
                     </Button>
