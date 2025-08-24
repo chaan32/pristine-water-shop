@@ -63,7 +63,13 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
           variant: "default"
         });
       } else {
-        throw new Error('인증번호 발송에 실패했습니다.');
+        const errorMessage = await response.text();
+        toast({
+          title: "인증번호 발송 실패",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        setIsCodeSent(false);
       }
     } catch (error) {
       console.error('Auth code send error:', error);
@@ -100,7 +106,12 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
         onVerificationSuccess(email);
         handleClose();
       } else {
-        throw new Error('인증번호가 올바르지 않습니다.');
+        const errorMessage = await response.text();
+        toast({
+          title: "인증 실패",
+          description: errorMessage,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Auth verification error:', error);
@@ -165,10 +176,10 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
                 <Input
                   id="authCode"
                   type="text"
-                  placeholder="인증번호 6자리"
+                  placeholder="인증번호 20자리"
                   value={authCode}
                   onChange={(e) => setAuthCode(e.target.value)}
-                  maxLength={6}
+                  maxLength={20}
                   className="flex-1"
                 />
                 <Button
@@ -181,7 +192,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                이메일로 발송된 6자리 인증번호를 입력해주세요.
+                이메일로 발송된 인증번호를 입력해주세요.
               </p>
             </div>
           )}
