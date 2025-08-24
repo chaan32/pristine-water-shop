@@ -59,7 +59,7 @@ const Login = () => {
         const data = await response.json();
         
         // 토큰 저장
-        setTokens(data.data.accessToken, data.data.secretToken);
+        setTokens(data.data.accessToken, data.data.refreshToken);
         
         // JWT에서 사용자 정보 추출
         const userInfo = getUserInfo();
@@ -67,7 +67,7 @@ const Login = () => {
         if (userInfo) {
           toast({ 
             title: '로그인 성공', 
-            description: `${userInfo.email}님, 환영합니다!` 
+            description: `${userInfo.name}님, 환영합니다!` 
           });
 
           // 사용자 역할에 따라 리다이렉트

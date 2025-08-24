@@ -85,17 +85,17 @@ const Header = () => {
   const getUserDisplayInfo = () => {
     if (!userInfo) return null;
     
-    const { role, email } = userInfo;
+    const { role, name } = userInfo as { role: string; name: string };
     
     switch (role) {
       case 'ADMIN':
-        return { name: '관리자', subInfo: email };
+        return { name: '관리자', subInfo: name };
       case 'HEADQUARTERS':
-        return { name: '본사', subInfo: email };
+        return { name: '본사', subInfo: name };
       case 'BRANCH':
-        return { name: '지사', subInfo: email };
+        return { name: '지사', subInfo: name };
       default:
-        return { name: email.split('@')[0], subInfo: email };
+        return { name, subInfo: name };
     }
   };
 

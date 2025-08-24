@@ -4,10 +4,16 @@ import { jwtDecode } from 'jwt-decode';
 
 export const API_BASE_URL = 'http://localhost:8080';
 
+// Legacy localStorage cleanup (ensure only tokens are stored)
+try {
+  ['userInfo', 'userinfo', 'secretToken'].forEach((k) => localStorage.removeItem(k));
+} catch {}
+
+
 // JWT Token interfaces
 interface JwtPayload {
   id: number;
-  email: string;
+  username: string;
   role: string;
   exp: number;
   iat: number;
@@ -60,7 +66,7 @@ export const getUserInfo = () => {
   
   return {
     id: decoded.id,
-    email: decoded.email,
+    name: decoded.username,
     role: decoded.role,
     isLoggedIn: true
   };

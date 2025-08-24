@@ -27,7 +27,7 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const userInfo = getUserInfo();
-  const adminName = userInfo?.email || '관리자';
+  const adminName = userInfo?.name || '관리자';
   const location = useLocation();
 
   const menuItems = [
