@@ -15,10 +15,21 @@ import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 import {apiFetch, getUserInfo} from "@/lib/api.ts";
 import { useToast } from '@/hooks/use-toast';
 
+// ❶ 전역 타입
 declare global {
   interface Window {
-    AUTHNICE?: any;
-    NICEPAY?: any;
+    AUTHNICE?: {
+      requestPay: (args: {
+        clientId: string;
+        method: 'card' | 'bank'; // 필요시 다른 수단 추가
+        orderId: string;
+        amount: number;
+        goodsName: string;
+        returnUrl: string;
+        mallReserved?: string;
+        fnError?: (res: any) => void;
+      }) => void;
+    };
   }
 }
 
@@ -56,35 +67,36 @@ const Order = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false); // 스크립트 로딩 상태 추가
+
+  // ❷ SDK 로더 (v1)
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = "https://pay.nicepay.co.kr/v1/js/";
-    script.async = true;
-
-    // 스크립트 로딩이 성공했을 때 실행될 함수
-    script.onload = () => {
-      console.log("✅ 스크립트 로딩 완료");
-      console.log("window.AUTHNICE:", window.AUTHNICE);
-      setIsScriptLoaded(true);
+    // 중복 로드 방지
+    if (document.getElementById('nicepay-sdk')) {
+      setIsScriptLoaded(!!window.AUTHNICE);
+      return;
+    }
+    const s = document.createElement('script');
+    s.id = 'nicepay-sdk';
+    s.src = 'https://pay.nicepay.co.kr/v1/js/';
+    s.async = true;
+    s.onload = () => {
+      console.log('✅ Nicepay v1 SDK loaded:', !!window.AUTHNICE);
+      setIsScriptLoaded(!!window.AUTHNICE);
     };
-
-    // 스크립트 로딩이 실패했을 때 실행될 함수
-    script.onerror = () => {
-      console.error("❌ 나이스페이먼츠 스크립트 로딩 실패.");
+    s.onerror = () => {
       toast({
-        title: "오류",
-        description: "결제 모듈 로딩에 실패했습니다. 새로고침 후 다시 시도해주세요.",
-        variant: "destructive"
+        title: '오류',
+        description: '결제 모듈 로딩에 실패했습니다. 새로고침 후 다시 시도해주세요.',
+        variant: 'destructive',
       });
     };
-
-    document.body.appendChild(script);
-
-    // 컴포넌트가 사라질 때 스크립트를 정리합니다. (메모리 누수 방지)
-    return () => {
-      document.body.removeChild(script);
-    };
+    document.body.appendChild(s);
+    // unmount 시 스크립트는 제거하지 않는 편이 안정적
   }, []); // 빈 배열을 전달하여 컴포넌트가 처음 마운트될 때 한 번만 실행되도록 합니다.
+
+
+
+
   useEffect(() => {
     console.log("📦 주문 페이지로 전달된 상품 목록:", items);
     if (!items || items.length === 0) {
@@ -378,63 +390,52 @@ const Order = () => {
   };
 
   // 나이스페이먼츠 결제 요청 함수
+  // ❸ 결제 요청 (최신 파라미터)
   const handlePaymentRequest = async (createdOrderId: number) => {
     setIsLoading(true);
     try {
-      const response = await apiFetch(`/api/payments/prepare?orderId=${createdOrderId}`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || '결제 준비에 실패했습니다.');
+      const resp = await apiFetch(`/api/payments/prepare?orderId=${createdOrderId}`, { method: 'POST' });
+      if (!resp.ok) {
+        const e = await resp.json().catch(() => ({}));
+        throw new Error(e.message || '결제 준비에 실패했습니다.');
       }
+      const { data } = await resp.json();
 
-      const result = await response.json();
-      const prepData = result.data;
+      // 백엔드에서 넘겨주는 값 예시: { clientId, orderId, amount }
+      const clientId = "R2_d5c2604ed6054467bc5a2a6344e34310";
+      const orderId = String(data?.orderId ?? createdOrderId);
+      // const amount = Number(data?.amount ?? finalTotal);
+      const amount = Number(100);
 
-      console.log("=== 결제 요청 시작 ===");
-      console.log("window.AUTHNICE 상태:", window.AUTHNICE);
-      console.log("결제 준비 데이터:", prepData);
-
-      // 니스페이 모듈 확인 - 조건 수정!
       if (!window.AUTHNICE) {
-        console.error("AUTHNICE 모듈이 로드되지 않았습니다");
-        toast({
-          title: "결제 모듈 오류",
-          description: "결제 모듈이 준비되지 않았습니다. 페이지를 새로고침 후 다시 시도해주세요.",
-          variant: "destructive",
-        });
+        toast({ title: '오류', description: '결제 모듈이 준비되지 않았습니다.', variant: 'destructive' });
         return;
       }
 
+      const goodsName = items.length > 1
+          ? `${items[0].name} 외 ${items.length - 1}건`
+          : items[0].name;
 
       window.AUTHNICE.requestPay({
-        clientId: "R2_d5c2604ed6054467bc5a2a6344e34310",
-        method: paymentMethod === "bank_transfer" ? "bank" : "card",
-        orderId: prepData.orderId,
-        amount: 100,
-        goodsName: items.length > 1 ? `${items[0].name} 외 ${items.length - 1}건` : items[0].name,
-        returnUrl: window.location.hostname === 'localhost' 
-          ? 'https://51a5d1c26043.ngrok-free.app/api/payment/result'
-          : window.location.origin + '/api/payment/result',
+        clientId,
+        method: paymentMethod === 'bank_transfer' ? 'bank' : 'card',
+        orderId,
+        amount,
+        goodsName,
+        // ✅ 반드시 백엔드 URL (POST를 받는 서버)로!
+        returnUrl: `http://localhost:8080/api/payments/return`,
         fnError: (result: any) => {
-          console.error("결제 오류:", result);
+          console.error('AUTHNICE fnError:', result);
           toast({
-            title: "결제 실패",
-            description: result.msg || "결제 중 오류가 발생했습니다.",
-            variant: "destructive",
+            title: '결제창 오류',
+            description: result?.errorMsg || '오류가 발생했습니다.',
+            variant: 'destructive',
           });
         },
       });
-
-    } catch (error) {
-      console.error('결제 처리 중 오류 발생:', error);
-      toast({
-        title: "결제 오류",
-        description: "결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
-        variant: "destructive",
-      });
+    } catch (err: any) {
+      console.error('결제 처리 중 오류:', err);
+      toast({ title: '결제 오류', description: err.message || String(err), variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
