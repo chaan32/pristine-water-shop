@@ -201,9 +201,10 @@ const HeadquartersDashboard = () => {
   const getPaymentStatusVariant = (status: string) => {
     const variants = {
       'PENDING': 'pending' as const,
+      'APPROVED': 'paid' as const,
       'PAID': 'paid' as const,
       'FAILED': 'failed' as const,
-      'UNPAID':'미결제' as const
+      'UNPAID': 'pending' as const
     };
     return variants[status as keyof typeof variants] || 'outline' as const;
   };
@@ -214,8 +215,7 @@ const HeadquartersDashboard = () => {
       'PREPARING': 'preparing' as const,
       'SHIPPED': 'shipped' as const,
       'DELIVERED': 'delivered' as const,
-      'CANCELLED': 'cancelled' as const,
-      'UNPAID': 'unpaid' as const
+      'CANCELLED': 'cancelled' as const
     };
     return variants[status as keyof typeof variants] || 'outline' as const;
   };
@@ -238,36 +238,50 @@ const HeadquartersDashboard = () => {
 
   const handlePayment = async (orderNumber: string) => {
     try {
-      // 결제 모달을 닫고 니스페이 결제창 호출
+      // 결제 모달을 닫고 결제 준비 API 호출
       setPaymentModal(prev => ({ ...prev, isOpen: false }));
       
+      // 주문 번호에서 실제 주문 ID 찾기
+      const orderData = dashboardData?.branchesData.find(order => order.orderNumber === orderNumber);
+      if (!orderData) {
+        throw new Error('주문 정보를 찾을 수 없습니다.');
+      }
+
+      const resp = await apiFetch(`/api/payments/prepare?orderId=${orderData.orderId}`, { method: 'POST' });
+      if (!resp.ok) {
+        const e = await resp.json().catch(() => ({}));
+        throw new Error(e.message || '결제 준비에 실패했습니다.');
+      }
+      const { data } = await resp.json();
+
       if (!window.AUTHNICE) {
         throw new Error('결제 모듈이 로드되지 않았습니다.');
       }
 
       // 현재 결제 모달의 정보 사용
       const currentModal = paymentModal;
-      
+      const clientId = "R2_d5c2604ed6054467bc5a2a6344e34310";
+      const orderId = String(data?.orderId ?? orderData.orderId);
+      const amount = Number(100); // 테스트용 100원
+
       window.AUTHNICE.requestPay({
-        clientId: "YOUR_REAL_SANDBOX_CLIENT_ID", // 실제 샌드박스에서 발급받은 클라이언트키로 교체 필요
+        clientId,
         method: 'card',
-        orderId: orderNumber,
-        amount: currentModal.totalAmount,
+        orderId,
+        amount,
         goodsName: currentModal.items.length > 1 
           ? `${currentModal.items[0].productName} 외 ${currentModal.items.length - 1}건` 
           : currentModal.items[0].productName,
-        returnUrl: window.location.hostname === 'localhost' 
-          ? 'https://51a5d1c26043.ngrok-free.app/api/payment/result'
-          : window.location.origin + '/api/payment/result',
+        returnUrl: `http://localhost:8080/api/payments/return`,
         fnError: (result: any) => {
           console.error('결제 오류:', result);
-          toast.error(result.msg || "결제 중 오류가 발생했습니다.");
+          toast.error(result.errorMsg || result.msg || "결제 중 오류가 발생했습니다.");
         }
       });
 
     } catch (error: any) {
+      console.error('결제 처리 중 오류:', error);
       toast.error(error.message || '결제 처리 중 오류가 발생했습니다.');
-      throw error;
     }
   };
 
