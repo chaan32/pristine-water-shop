@@ -410,10 +410,10 @@ const Order = () => {
 
 
       window.AUTHNICE.requestPay({
-        clientId: "58e3b578555e45738d6b569e53d5ae54",
+        clientId: "R2_d5c2604ed6054467bc5a2a6344e34310",
         method: paymentMethod === "bank_transfer" ? "bank" : "card",
         orderId: prepData.orderId,
-        amount: prepData.amount,
+        amount: 100,
         goodsName: items.length > 1 ? `${items[0].name} 외 ${items.length - 1}건` : items[0].name,
         returnUrl: `${window.location.origin}/payment/result`,
         fnError: (result: any) => {
