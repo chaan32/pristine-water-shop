@@ -195,14 +195,15 @@ const HeadquartersDashboard = () => {
     });
   };
 
-  const getPaymentStatusText = (status: string) => ({'PENDING': '결제대기', 'APPROVED': '결제완료', 'FAILED': '결제실패'}[status] || status);
+  const getPaymentStatusText = (status: string) => ({'UNPAID':'미결제','PENDING': '결제대기', 'APPROVED': '결제완료', 'FAILED': '결제실패'}[status] || status);
   const getShipmentStatusText = (status: string) => ({'PENDING': '배송대기', 'PREPARING': '상품준비중', 'SHIPPED': '배송중', 'DELIVERED': '배송완료', 'CANCELLED': '주문취소'}[status] || status);
   
   const getPaymentStatusVariant = (status: string) => {
     const variants = {
       'PENDING': 'pending' as const,
       'PAID': 'paid' as const,
-      'FAILED': 'failed' as const
+      'FAILED': 'failed' as const,
+      'UNPAID':'미결제' as const
     };
     return variants[status as keyof typeof variants] || 'outline' as const;
   };
@@ -213,7 +214,8 @@ const HeadquartersDashboard = () => {
       'PREPARING': 'preparing' as const,
       'SHIPPED': 'shipped' as const,
       'DELIVERED': 'delivered' as const,
-      'CANCELLED': 'cancelled' as const
+      'CANCELLED': 'cancelled' as const,
+      'UNPAID': 'unpaid' as const
     };
     return variants[status as keyof typeof variants] || 'outline' as const;
   };
@@ -310,7 +312,7 @@ const HeadquartersDashboard = () => {
             <Tabs value={selectedStatus} onValueChange={setSelectedStatus} className="w-full">
               <TabsList className="grid w-full grid-cols-3 mb-4">
                 <TabsTrigger value="ALL">전체</TabsTrigger>
-                <TabsTrigger value="PENDING">결제대기</TabsTrigger>
+                <TabsTrigger value="UNPAID">미결제 주문</TabsTrigger>
                 <TabsTrigger value="APPROVED">결제완료</TabsTrigger>
               </TabsList>
             </Tabs>
@@ -326,7 +328,7 @@ const HeadquartersDashboard = () => {
                   <TableHead>수량</TableHead>
                   <TableHead>금액</TableHead>
                   <TableHead>결제/배송</TableHead>
-                  <TableHead>액션</TableHead>
+                  <TableHead>결제</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -353,7 +355,7 @@ const HeadquartersDashboard = () => {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                {firstItem.paymentStatus === 'PENDING' && (
+                                {firstItem.paymentStatus === 'UNPAID' && (
                                   <Button 
                                     size="sm" 
                                     onClick={(e) => {

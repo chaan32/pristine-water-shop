@@ -54,6 +54,7 @@ const Order = () => {
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'bank', 'mobile'
   const [userType, setUserType] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null); // 현재 로그인한 사용자 정보
+  const [isUserLoading, setIsUserLoading] = useState(true);
   const { toast } = useToast();
   const [orderInfo, setOrderInfo] = useState({
     name: '',
@@ -98,40 +99,43 @@ const Order = () => {
 
 
   useEffect(() => {
-    console.log("📦 주문 페이지로 전달된 상품 목록:", items);
-    if (!items || items.length === 0) {
-      console.error("🚨 주문할 상품이 없습니다! 장바구니 페이지에서 다시 시도해주세요.");
-    }
-  }, [items]);
+    const fetchInitialData = async () => {
+      try {
+        // 🕵️‍♂️ 1. getUserInfo()가 어떤 값을 반환하는지 확인합니다.
+        const userInfo = getUserInfo();
+        console.log('🕵️‍♂️ 디버깅 1: getUserInfo() 결과:', userInfo);
 
-  useEffect(() => {
-    // 현재 로그인한 사용자 정보 가져오기
-    const userInfo = getUserInfo();
-    console.log("현재 로그인한 사용자 정보:", userInfo);
+        if (!userInfo?.id) {
+          console.error("로그인 정보가 없습니다.");
+          // ... (기존 토스트 메시지)
+          return;
+        }
 
-    if (!userInfo?.id) {
-      console.error("로그인 정보가 없습니다. 로그인이 필요합니다.");
-      toast({
-        title: "로그인 필요",
-        description: "로그인 후 이용해주세요.",
-        variant: "destructive"
-      });
-      // navigate('/login'); // 로그인 페이지로 리디렉션
-      return;
-    }
+        // 🕵️‍♂️ 2. state에 설정하려는 role 값이 무엇인지 확인합니다.
+        console.log('🕵️‍♂️ 디버깅 2: 설정할 사용자 역할(userInfo.role):', userInfo.role);
 
-    setCurrentUser(userInfo);
-    setUserType(userInfo.role);
+        setCurrentUser(userInfo);
+        setUserType(userInfo.role);
 
-    // 사용자 타입에 따라 기본 결제 방법 설정
-    if (userInfo.role === 'individual' || userInfo.role === 'headquarters') {
-      setPaymentMethod('card');
-    } else if (userInfo.role === 'branch') {
-      setPaymentMethod('corporate_payment');
-    }
+        if (userInfo.role === 'individual' || userInfo.role === 'headquarters') {
+          setPaymentMethod('card');
+        } else if (userInfo.role === 'branch') {
+          setPaymentMethod('corporate_payment');
+        }
 
-    // 배송지 정보 자동 로드
-    fetchUserShippingInfo(userInfo.id);
+        await fetchUserShippingInfo(userInfo.id);
+
+      } catch (error) {
+        console.error("초기 데이터 로딩 중 에러 발생:", error);
+        // ... (기존 토스트 메시지)
+      } finally {
+        // 🕵️‍♂️ 3. 로직의 마지막까지 도달했는지 확인합니다.
+        console.log('🕵️‍♂️ 디버깅 3: useEffect 로직 완료');
+        setIsUserLoading(false);
+      }
+    };
+
+    fetchInitialData();
   }, []);
 
   // 사용자 배송지 정보 가져오는 함수 분리
@@ -147,7 +151,8 @@ const Order = () => {
 
       const result = await response.json();
       console.log("API 응답 결과:", result);
-
+      console.log(paymentMethod)
+      console.log("userType:", userType)
       if (result) {
         const normalized = {
           name: result.name ?? result.recipientName ?? result.username ?? result.memberName ?? '',
@@ -157,9 +162,7 @@ const Order = () => {
           detailAddress: result.detailAddress ?? result.recipientDetailAddress ?? '',
           zipCode: result.zipCode ?? result.postNumber ?? result.postCode ?? result.zip ?? '',
         };
-        console.log("정규화된 배송지 정보:", normalized);
         setLoggedInUser(normalized);
-        console.log("사용자 배송지 정보 설정 완료 (정규화 적용):", normalized);
       } else {
         console.warn("사용자 배송지 정보가 없거나 조회에 실패했습니다:", result);
         setLoggedInUser(null); // 명시적으로 null 설정
@@ -213,7 +216,7 @@ const Order = () => {
     console.log('주문자와 동일 버튼 클릭됨');
     console.log('현재 로그인한 사용자:', currentUser);
     console.log('API에서 가져온 배송지 정보:', loggedInUser);
-
+    setUserType(currentUser.role);
     if (!currentUser) {
       toast({
         title: "오류",
@@ -354,7 +357,6 @@ const Order = () => {
       const data = await response.json();
 
       console.log("🚀 /api/order API 응답:", data);
-      console.log(paymentMethod)
       if (response.ok && data.success) {
         const responseData = data;
 
@@ -707,47 +709,54 @@ const Order = () => {
                       결제 수단
                     </h4>
                     <div className="space-y-2">
-                      {/* 개인 회원, 본사: 신용카드, 계좌이체 */}
-                      {(userType === 'individual' || userType === 'headquarters') && (
+                      {/* 로딩 상태에 따라 UI를 다르게 보여줍니다. */}
+                      {isUserLoading ? (
+                          <p className="text-sm text-muted-foreground pt-2">사용자 정보를 확인 중입니다...</p>
+                      ) : (
                           <>
-                            <div
-                                className="flex items-center space-x-2 cursor-pointer"
-                                onClick={() => setPaymentMethod('card')}
-                            >
-                              <Checkbox
-                                  id="card"
-                                  checked={paymentMethod === 'card'}
-                                  onCheckedChange={(checked) => checked && setPaymentMethod('card')}
-                              />
-                              <label htmlFor="card" className="text-sm cursor-pointer">신용카드</label>
-                            </div>
-                            <div
-                                className="flex items-center space-x-2 cursor-pointer"
-                                onClick={() => setPaymentMethod('bank_transfer')}
-                            >
-                              <Checkbox
-                                  id="bank-transfer"
-                                  checked={paymentMethod === 'bank_transfer'}
-                                  onCheckedChange={(checked) => checked && setPaymentMethod('bank_transfer')}
-                              />
-                              <label htmlFor="bank-transfer" className="text-sm cursor-pointer">계좌이체</label>
-                            </div>
-                          </>
-                      )}
+                            {/* 개인 회원, 본사: 신용카드, 계좌이체 */}
+                            {(userType?.toLowerCase() === 'individual' || userType?.toLowerCase() === 'headquarters') && (
+                                <>
+                                  <div
+                                      className="flex items-center space-x-2 cursor-pointer"
+                                      onClick={() => setPaymentMethod('card')}
+                                  >
+                                    <Checkbox
+                                        id="card"
+                                        checked={paymentMethod === 'card'}
+                                        onCheckedChange={(checked) => checked && setPaymentMethod('card')}
+                                    />
+                                    <label htmlFor="card" className="text-sm cursor-pointer">신용카드</label>
+                                  </div>
+                                  <div
+                                      className="flex items-center space-x-2 cursor-pointer"
+                                      onClick={() => setPaymentMethod('bank_transfer')}
+                                  >
+                                    <Checkbox
+                                        id="bank-transfer"
+                                        checked={paymentMethod === 'bank_transfer'}
+                                        onCheckedChange={(checked) => checked && setPaymentMethod('bank_transfer')}
+                                    />
+                                    <label htmlFor="bank-transfer" className="text-sm cursor-pointer">계좌이체</label>
+                                  </div>
+                                </>
+                            )}
 
-                      {/* 법인 지점: 법인결제만 */}
-                      {userType === 'branch' && (
-                          <div
-                              className="flex items-center space-x-2 cursor-pointer"
-                              onClick={() => setPaymentMethod('corporate_payment')}
-                          >
-                            <Checkbox
-                                id="corporate"
-                                checked={paymentMethod === 'corporate_payment'}
-                                onCheckedChange={(checked) => checked && setPaymentMethod('corporate_payment')}
-                            />
-                            <label htmlFor="corporate" className="text-sm cursor-pointer">법인결제</label>
-                          </div>
+                            {/* 법인 지점: 법인결제만 */}
+                            {userType?.toLowerCase() === 'branch' && (
+                                <div
+                                    className="flex items-center space-x-2 cursor-pointer"
+                                    onClick={() => setPaymentMethod('corporate_payment')}
+                                >
+                                  <Checkbox
+                                      id="corporate"
+                                      checked={paymentMethod === 'corporate_payment'}
+                                      onCheckedChange={(checked) => checked && setPaymentMethod('corporate_payment')}
+                                  />
+                                  <label htmlFor="corporate" className="text-sm cursor-pointer">법인결제</label>
+                                </div>
+                            )}
+                          </>
                       )}
                     </div>
                   </div>
