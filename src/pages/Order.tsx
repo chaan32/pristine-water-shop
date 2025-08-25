@@ -393,10 +393,16 @@ const Order = () => {
       const result = await response.json();
       const prepData = result.data;
 
-      if (!isScriptLoaded || !!window.AUTHNICE) {
+      console.log("=== 결제 요청 시작 ===");
+      console.log("window.AUTHNICE 상태:", window.AUTHNICE);
+      console.log("결제 준비 데이터:", prepData);
+
+      // 니스페이 모듈 확인 - 조건 수정!
+      if (!window.AUTHNICE) {
+        console.error("AUTHNICE 모듈이 로드되지 않았습니다");
         toast({
-          title: "오류",
-          description: "결제 모듈이 준비되지 않았습니다. 새로고침 후 다시 시도해주세요.",
+          title: "결제 모듈 오류",
+          description: "결제 모듈이 준비되지 않았습니다. 페이지를 새로고침 후 다시 시도해주세요.",
           variant: "destructive",
         });
         return;
