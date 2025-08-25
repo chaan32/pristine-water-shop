@@ -410,7 +410,7 @@ const Order = () => {
 
 
       window.AUTHNICE.requestPay({
-        clientId: "", // 실제 샌드박스에서 발급받은 클라이언트키로 교체 필요
+        clientId: "R2_d5c2604ed6054467bc5a2a6344e34310",
         method: paymentMethod === "bank_transfer" ? "bank" : "card",
         orderId: prepData.orderId,
         amount: 100,
