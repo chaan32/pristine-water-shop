@@ -52,7 +52,21 @@ const PaymentResult = () => {
         // 서버에 승인 요청
         const token = getAccessToken();
         if (!token) {
-          throw new Error('인증 토큰이 없습니다. 다시 로그인해주세요.');
+          // 토큰이 없는 경우 결제 정보를 저장하고 로그인 페이지로 리다이렉트
+          const paymentInfo = {
+            tid,
+            orderId,
+            amount: parseInt(amount || '0'),
+            timestamp: Date.now()
+          };
+          localStorage.setItem('pendingPayment', JSON.stringify(paymentInfo));
+          
+          setResult({
+            success: false,
+            message: '로그인이 필요합니다. 로그인 후 결제 처리가 완료됩니다.'
+          });
+          setIsProcessing(false);
+          return;
         }
 
         const approvalResponse = await apiFetch(`/api/payment/approve`, {
@@ -181,9 +195,15 @@ const PaymentResult = () => {
                     <Button variant="outline" onClick={handleGoHome} className="flex-1">
                       홈으로
                     </Button>
-                    <Button onClick={() => navigate('/cart')} className="flex-1">
-                      장바구니로
-                    </Button>
+                    {result?.message.includes('로그인이 필요합니다') ? (
+                      <Button onClick={() => navigate('/login')} className="flex-1">
+                        로그인
+                      </Button>
+                    ) : (
+                      <Button onClick={() => navigate('/cart')} className="flex-1">
+                        장바구니로
+                      </Button>
+                    )}
                   </div>
                 </>
               )}
