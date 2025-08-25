@@ -229,7 +229,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={resendAuthCode}
-                  disabled={isResending || timeLeft > 0}
+                  disabled={isResending}
                   className="h-auto p-1 text-sm"
                 >
                   {isResending ? "재발송 중..." : "재발송"}
