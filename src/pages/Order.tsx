@@ -354,6 +354,7 @@ const Order = () => {
       const data = await response.json();
 
       console.log("🚀 /api/order API 응답:", data);
+      console.log(paymentMethod)
       if (response.ok && data.success) {
         const responseData = data;
 
