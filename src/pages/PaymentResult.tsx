@@ -49,14 +49,15 @@ const PaymentResult = () => {
           throw new Error(authResultMsg);
         }
 
-        // 서버에 승인 요청
+        // 서버에 승인 요청 (토큰 없이도 진행)
         const token = getAccessToken();
-        if (!token) {
-          throw new Error('인증 토큰이 없습니다. 다시 로그인해주세요.');
-        }
-
+        
         const approvalResponse = await apiFetch(`/api/payment/approve`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
           body: JSON.stringify({
             tid,
             orderId,
@@ -181,9 +182,15 @@ const PaymentResult = () => {
                     <Button variant="outline" onClick={handleGoHome} className="flex-1">
                       홈으로
                     </Button>
-                    <Button onClick={() => navigate('/cart')} className="flex-1">
-                      장바구니로
-                    </Button>
+                    {result?.message.includes('로그인이 필요합니다') ? (
+                      <Button onClick={() => navigate('/login')} className="flex-1">
+                        로그인
+                      </Button>
+                    ) : (
+                      <Button onClick={() => navigate('/cart')} className="flex-1">
+                        장바구니로
+                      </Button>
+                    )}
                   </div>
                 </>
               )}
