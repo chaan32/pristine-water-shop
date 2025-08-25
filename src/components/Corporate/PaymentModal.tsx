@@ -38,10 +38,31 @@ const PaymentModal = ({
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
-      await onPayment(orderNumber);
-      onClose();
-    } catch (error) {
+      
+      // 니스페이 결제창 호출
+      if (!window.AUTHNICE) {
+        throw new Error('결제 모듈이 로드되지 않았습니다.');
+      }
+
+      // 랜덤 주문 ID 생성 (실제로는 서버에서 받아와야 함)
+      const randomOrderId = Math.random().toString(16).substr(2, 8);
+
+      window.AUTHNICE.requestPay({
+        clientId: "58e3b578555e45738d6b569e53d5ae54", // 샌드박스 테스트용 클라이언트 ID
+        method: 'card',
+        orderId: randomOrderId,
+        amount: totalAmount,
+        goodsName: items.length > 1 ? `${items[0].productName} 외 ${items.length - 1}건` : items[0].productName,
+        returnUrl: `${window.location.origin}/payment/result`,
+        fnError: (result: any) => {
+          console.error('결제 오류:', result);
+          throw new Error(result.msg || "결제 중 오류가 발생했습니다.");
+        }
+      });
+
+    } catch (error: any) {
       console.error('결제 처리 중 오류:', error);
+      alert(`결제 오류: ${error.message}`);
     } finally {
       setIsProcessing(false);
     }

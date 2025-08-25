@@ -12,6 +12,7 @@ import Support from "./pages/Support";
 import NoticeDetail from "./pages/NoticeDetail";
 import Cart from "./pages/Cart";
 import Order from "./pages/Order";
+import PaymentResult from "./pages/PaymentResult";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import RegistrationSuccess from "./pages/RegistrationSuccess";
@@ -20,6 +21,15 @@ import Admin from "./pages/Admin";
 import HeadquartersDashboard from "./pages/HeadquartersDashboard";
 import NotFound from "./pages/NotFound";
 import EmptyCart from "./pages/EmptyCart";
+
+// Global window declarations for NICEPAY
+declare global {
+  interface Window {
+    AUTHNICE?: any;
+    NICEPAY?: any;
+    daum?: any;
+  }
+}
 
 const queryClient = new QueryClient();
 
@@ -40,6 +50,7 @@ const App = () => (
           <Route path="/cart" element={<Cart />} />
           <Route path="/cart/empty" element={<EmptyCart />} />
           <Route path="/order" element={<Order />} />
+          <Route path="/payment/result" element={<PaymentResult />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/registration-success" element={<RegistrationSuccess />} />

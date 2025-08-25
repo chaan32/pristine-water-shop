@@ -236,19 +236,31 @@ const HeadquartersDashboard = () => {
 
   const handlePayment = async (orderNumber: string) => {
     try {
-      const token = getAccessToken();
-      if (!token) throw new Error('인증 토큰이 없습니다.');
-
-      // 실제 결제 API 호출
-      // API: POST /api/order/:orderNumber/pay
-      const response = await apiFetch(`/api/order/${orderNumber}/pay`, { method: 'POST' });
-
-      if (!response.ok) throw new Error('결제 처리에 실패했습니다.');
-
-      toast.success('결제가 완료되었습니다.');
+      // 결제 모달을 닫고 니스페이 결제창 호출
+      setPaymentModal(prev => ({ ...prev, isOpen: false }));
       
-      // 데이터 새로고침
-      window.location.reload();
+      if (!window.AUTHNICE) {
+        throw new Error('결제 모듈이 로드되지 않았습니다.');
+      }
+
+      // 현재 결제 모달의 정보 사용
+      const currentModal = paymentModal;
+      
+      window.AUTHNICE.requestPay({
+        clientId: "58e3b578555e45738d6b569e53d5ae54", // 샌드박스 테스트용 클라이언트 ID
+        method: 'card',
+        orderId: orderNumber,
+        amount: currentModal.totalAmount,
+        goodsName: currentModal.items.length > 1 
+          ? `${currentModal.items[0].productName} 외 ${currentModal.items.length - 1}건` 
+          : currentModal.items[0].productName,
+        returnUrl: `${window.location.origin}/payment/result`,
+        fnError: (result: any) => {
+          console.error('결제 오류:', result);
+          toast.error(result.msg || "결제 중 오류가 발생했습니다.");
+        }
+      });
+
     } catch (error: any) {
       toast.error(error.message || '결제 처리 중 오류가 발생했습니다.');
       throw error;
