@@ -357,16 +357,20 @@ const Order = () => {
       if (response.ok && data.success) {
         const responseData = data;
 
+        // 지점 회원의 법인결제는 바로 승인 처리
         if (paymentMethod === 'corporate_payment') {
           toast({
             title: "주문이 완료되었습니다!",
             description: `법인 결제 신청이 접수되었습니다. 주문번호: ${responseData.orderNumber}`,
           });
+          // 직접구매가 아닌 경우 장바구니 비우기
           if (!isDirectPurchase) {
             await apiFetch('/api/cart', { method: 'DELETE' });
           }
-          // navigate('/mypage');
+          // 마이페이지로 이동
+          navigate('/mypage');
         } else {
+          // 개인회원과 본사회원은 결제창 호출
           const createdOrderId = responseData.orderId;
           await handlePaymentRequest(createdOrderId);
         }
