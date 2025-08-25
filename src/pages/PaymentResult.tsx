@@ -35,6 +35,9 @@ const PaymentResult = () => {
         const orderId = urlParams.get('orderId');
         const amount = urlParams.get('amount');
 
+        console.log('Full URL:', window.location.href);
+        console.log('Search params:', location.search);
+        console.log('All URL params:', Object.fromEntries(urlParams.entries()));
         console.log('Payment result params:', { authResultCode, tid, orderId, amount });
 
         if (!authResultCode || !tid || !orderId) {
