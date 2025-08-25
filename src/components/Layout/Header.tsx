@@ -51,7 +51,8 @@ const Header = () => {
 
   const computeCartCount = useCallback(async () => {
     try {
-      if (userInfo) {
+      const currentUserInfo = getUserInfo(); // 항상 최신 사용자 정보 가져오기
+      if (currentUserInfo) {
         // 로그인된 사용자: API에서 가져오기
         const res = await apiFetch('/api/cart');
         if (!res.ok) throw new Error('failed');
@@ -65,7 +66,7 @@ const Header = () => {
     } catch {
       setCartCount(0);
     }
-  }, [userInfo]);
+  }, []); // userInfo 의존성 제거
 
   useEffect(() => {
     computeCartCount();

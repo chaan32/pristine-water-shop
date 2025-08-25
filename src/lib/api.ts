@@ -173,28 +173,35 @@ export type CartItemDto = { productId: number; quantity: number };
 // Auth APIs
 export const authApi = {
   login: (data: { username: string; password: string; deviceInfo?: any }) =>
-    apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify(data) }, true),
+    fetch(`${API_BASE_URL}/api/auth/login`, { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data) 
+    }),
   
   checkId: (id: string) =>
-    apiFetch(`/api/check-id/${id}`, {}, true),
+    fetch(`${API_BASE_URL}/api/check-id/${id}`),
   
   sendAuthMail: (email: string) =>
-    apiFetch('/api/auth/send/authentication/mail', {
+    fetch(`${API_BASE_URL}/api/auth/send/authentication/mail`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
-    }, true),
+    }),
 
   verifyAuthMail: (email: string, authCode: string) =>
-    apiFetch('/api/auth/try/mail', {
+    fetch(`${API_BASE_URL}/api/auth/try/mail`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, authCode }),
-    }, true),
+    }),
 
   refreshToken: (refreshToken: string) =>
-    apiFetch('/api/auth/token', {
+    fetch(`${API_BASE_URL}/api/auth/token`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
-    }, true),
+    }),
 };
 
 // User APIs  

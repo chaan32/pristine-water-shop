@@ -115,6 +115,9 @@ const Cart = () => {
         );
         localStorage.setItem('cart', JSON.stringify(updatedItems));
       }
+
+      // 장바구니 업데이트 이벤트 발생
+      window.dispatchEvent(new Event('cart:updated'));
     } catch (error) {
       console.error('Update quantity error:', error);
       alert('수량 변경 중 오류가 발생했습니다.');
@@ -147,6 +150,9 @@ const Cart = () => {
         const updatedItems = cartItems.filter((item: any) => item.productId !== productId);
         localStorage.setItem('cart', JSON.stringify(updatedItems));
       }
+
+      // 장바구니 업데이트 이벤트 발생
+      window.dispatchEvent(new Event('cart:updated'));
     } catch (error) {
       console.error('Remove item error:', error);
       alert('상품 삭제 중 오류가 발생했습니다.');
