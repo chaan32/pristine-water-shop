@@ -84,6 +84,7 @@ export const isTokenExpired = (token?: string): boolean => {
   }
 };
 
+
 // Token refresh function
 export const refreshAccessToken = async (): Promise<boolean> => {
   const refreshToken = getRefreshToken();
@@ -106,23 +107,17 @@ export const refreshAccessToken = async (): Promise<boolean> => {
       if (data.success && data.data) {
         setTokens(data.data.accessToken, data.data.refreshToken);
         return true;
-      } else {
-        clearTokens();
-        return false;
       }
-    } else {
-      const errorData = await response.json();
-      // refreshToken 만료 확인 (AUTH_ERROR_005 등)
-      if (errorData.code === 'AUTH_ERROR_005' || errorData.message?.includes('로그인이 필요')) {
-        clearTokens();
-        return false;
-      }
-      clearTokens();
-      return false;
     }
+    // 리프레시 토큰이 만료되는 등 재발급 실패 시
+    clearTokens();
+    window.location.href = '/login'; // 로그인 페이지로 이동
+    return false;
+
   } catch (error) {
     console.error('Token refresh failed:', error);
     clearTokens();
+    window.location.href = '/login'; // 로그인 페이지로 이동
     return false;
   }
 };
@@ -132,206 +127,42 @@ export const authHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-export async function apiFetch(input: string, init: RequestInit = {}, skipTokenRefresh = false): Promise<Response> {
-  const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
+export async function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  // 요청 헤더 설정
+  const isFormData = init.body instanceof FormData;
   const baseHeaders: HeadersInit = isFormData ? {} : { 'Content-Type': 'application/json' };
-  
-  // 토큰이 만료되었는지 확인하고 갱신 시도
-  if (!skipTokenRefresh && getAccessToken() && isTokenExpired()) {
-    const refreshed = await refreshAccessToken();
-    if (!refreshed) {
-      // 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
-      window.location.href = '/login';
-      throw new Error('Authentication failed');
-    }
-  }
-  
   const headers: HeadersInit = {
     ...baseHeaders,
-    ...authHeaders(),
+    ...authHeaders(), // 현재 accessToken을 가져와 헤더에 포함
     ...(init.headers || {}),
   };
 
-  // 요청 데이터 로깅
-  const method = init.method || 'GET';
-  const url = `${API_BASE_URL}${input}`;
-  
-  let requestData = null;
-  if (init.body) {
-    if (isFormData) {
-      // FormData는 직접 출력할 수 없으므로 키 목록만 표시
-      const formDataEntries: any = {};
-      try {
-        for (const [key, value] of (init.body as FormData).entries()) {
-          if (value instanceof File) {
-            formDataEntries[key] = `[File: ${value.name}]`;
-          } else {
-            formDataEntries[key] = value;
-          }
-        }
-        requestData = formDataEntries;
-      } catch (e) {
-        requestData = '[FormData object]';
-      }
+  // 1. 원래 요청을 먼저 보냅니다.
+  const response = await fetch(`${API_BASE_URL}${input}`, { ...init, headers });
+
+  // 2. 응답이 401 (Unauthorized) 에러인 경우에만 재발급 로직을 실행합니다.
+  if (response.status === 401) {
+    console.log('Access token expired. Attempting to refresh...');
+    const refreshed = await refreshAccessToken();
+
+    if (refreshed) {
+      console.log('Token refreshed successfully. Retrying the original request...');
+      // 토큰 재발급에 성공했다면, 새로운 토큰으로 헤더를 다시 만들어 원래 요청을 재시도합니다.
+      const newHeaders: HeadersInit = {
+        ...baseHeaders,
+        ...authHeaders(), // refreshAccessToken 함수가 새 토큰을 저장했으므로, 이 함수는 새 토큰을 가져옵니다.
+        ...(init.headers || {}),
+      };
+      return await fetch(`${API_BASE_URL}${input}`, { ...init, headers: newHeaders });
     } else {
-      try {
-        requestData = JSON.parse(init.body as string);
-      } catch (e) {
-        requestData = init.body;
-      }
+      // 재발급 실패 시 에러를 발생시켜 로그인 페이지로 이동하도록 합니다.
+      throw new Error('Authentication failed: Unable to refresh token.');
     }
   }
 
-  console.log(`🚀 API Request = { 
-    url: "${input}", 
-    method: "${method}",
-    data: ${JSON.stringify(requestData, null, 2)} 
-  }`);
-
-  const response = await fetch(url, { ...init, headers });
-
-  // 401 Unauthorized 응답 처리
-  if (response.status === 401 && !skipTokenRefresh) {
-    try {
-      const errorData = await response.clone().json();
-      
-      // refreshToken이 만료된 경우 바로 로그인 페이지로 리다이렉트
-      if (errorData.code === 'AUTH_ERROR_005' || errorData.message?.includes('로그인이 필요')) {
-        console.log('🔄 Refresh token expired, redirecting to login...');
-        clearTokens();
-        window.location.href = '/login';
-        throw new Error('Authentication failed');
-      }
-      
-      // accessToken만 만료된 경우 토큰 갱신 시도
-      if (errorData.error === 'Unauthorized' || errorData.message?.includes('인증이 필요')) {
-        console.log('🔄 Access token expired, attempting refresh...');
-        const refreshed = await refreshAccessToken();
-        
-        if (refreshed) {
-          // 새로운 토큰으로 재시도
-          const newHeaders = {
-            ...baseHeaders,
-            ...authHeaders(),
-            ...(init.headers || {}),
-          };
-          const retryResponse = await fetch(url, { ...init, headers: newHeaders });
-          
-          // 재시도 응답 로깅
-          try {
-            const clonedResponse = retryResponse.clone();
-            const responseData = await clonedResponse.json();
-            console.log(`📨 API Retry Response = { 
-              url: "${input}",
-              status: ${retryResponse.status},
-              data: ${JSON.stringify(responseData, null, 2)} 
-            }`);
-          } catch (e) {
-            try {
-              const clonedResponse = retryResponse.clone();
-              const textData = await clonedResponse.text();
-              console.log(`📨 API Retry Response = { 
-                url: "${input}",
-                status: ${retryResponse.status},
-                data: "${textData}" 
-              }`);
-            } catch (textError) {
-              console.log(`📨 API Retry Response = { 
-                url: "${input}",
-                status: ${retryResponse.status},
-                data: "[Unable to parse response]" 
-              }`);
-            }
-          }
-          
-          return retryResponse;
-        } else {
-          // 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
-          window.location.href = '/login';
-          throw new Error('Authentication failed');
-        }
-      }
-    } catch (parseError) {
-      // JSON 파싱 실패 시 기본 토큰 갱신 로직 실행
-      console.log('🔄 Token expired, attempting refresh...');
-      const refreshed = await refreshAccessToken();
-      
-      if (refreshed) {
-        // 새로운 토큰으로 재시도
-        const newHeaders = {
-          ...baseHeaders,
-          ...authHeaders(),
-          ...(init.headers || {}),
-        };
-        const retryResponse = await fetch(url, { ...init, headers: newHeaders });
-        
-        // 재시도 응답 로깅
-        try {
-          const clonedResponse = retryResponse.clone();
-          const responseData = await clonedResponse.json();
-          console.log(`📨 API Retry Response = { 
-            url: "${input}",
-            status: ${retryResponse.status},
-            data: ${JSON.stringify(responseData, null, 2)} 
-          }`);
-        } catch (e) {
-          try {
-            const clonedResponse = retryResponse.clone();
-            const textData = await clonedResponse.text();
-            console.log(`📨 API Retry Response = { 
-              url: "${input}",
-              status: ${retryResponse.status},
-              data: "${textData}" 
-            }`);
-          } catch (textError) {
-            console.log(`📨 API Retry Response = { 
-              url: "${input}",
-              status: ${retryResponse.status},
-              data: "[Unable to parse response]" 
-            }`);
-          }
-        }
-        
-        return retryResponse;
-      } else {
-        // 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
-        window.location.href = '/login';
-        throw new Error('Authentication failed');
-      }
-    }
-  }
-
-  // 응답 데이터 로깅
-  try {
-    const clonedResponse = response.clone();
-    const responseData = await clonedResponse.json();
-    console.log(`📨 API Response = { 
-      url: "${input}",
-      status: ${response.status},
-      data: ${JSON.stringify(responseData, null, 2)} 
-    }`);
-  } catch (e) {
-    // JSON이 아닌 응답의 경우
-    try {
-      const clonedResponse = response.clone();
-      const textData = await clonedResponse.text();
-      console.log(`📨 API Response = { 
-        url: "${input}",
-        status: ${response.status},
-        data: "${textData}" 
-      }`);
-    } catch (textError) {
-      console.log(`📨 API Response = { 
-        url: "${input}",
-        status: ${response.status},
-        data: "[Unable to parse response]" 
-      }`);
-    }
-  }
-
+  // 401 에러가 아니면 원래 응답을 그대로 반환합니다.
   return response;
 }
-
 // Shared DTOs
 export type CartItemDto = { productId: number; quantity: number };
 
