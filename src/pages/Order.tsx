@@ -410,10 +410,10 @@ const Order = () => {
 
 
       window.AUTHNICE.requestPay({
-        clientId: "YOUR_REAL_SANDBOX_CLIENT_ID", // 실제 샌드박스에서 발급받은 클라이언트키로 교체 필요
+        clientId: "", // 실제 샌드박스에서 발급받은 클라이언트키로 교체 필요
         method: paymentMethod === "bank_transfer" ? "bank" : "card",
         orderId: prepData.orderId,
-        amount: prepData.amount,
+        amount: 100,
         goodsName: items.length > 1 ? `${items[0].name} 외 ${items.length - 1}건` : items[0].name,
         returnUrl: window.location.origin + '/payment/result',
         fnError: (result: any) => {
