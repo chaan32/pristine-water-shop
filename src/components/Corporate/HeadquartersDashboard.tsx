@@ -247,7 +247,7 @@ const HeadquartersDashboard = () => {
       const currentModal = paymentModal;
       
       window.AUTHNICE.requestPay({
-        clientId: "58e3b578555e45738d6b569e53d5ae54", // 샌드박스 테스트용 클라이언트 ID
+        clientId: "YOUR_REAL_SANDBOX_CLIENT_ID", // 실제 샌드박스에서 발급받은 클라이언트키로 교체 필요
         method: 'card',
         orderId: orderNumber,
         amount: currentModal.totalAmount,
