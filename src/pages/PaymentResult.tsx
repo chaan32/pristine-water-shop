@@ -49,28 +49,15 @@ const PaymentResult = () => {
           throw new Error(authResultMsg);
         }
 
-        // 서버에 승인 요청
+        // 서버에 승인 요청 (토큰 없이도 진행)
         const token = getAccessToken();
-        if (!token) {
-          // 토큰이 없는 경우 결제 정보를 저장하고 로그인 페이지로 리다이렉트
-          const paymentInfo = {
-            tid,
-            orderId,
-            amount: parseInt(amount || '0'),
-            timestamp: Date.now()
-          };
-          localStorage.setItem('pendingPayment', JSON.stringify(paymentInfo));
-          
-          setResult({
-            success: false,
-            message: '로그인이 필요합니다. 로그인 후 결제 처리가 완료됩니다.'
-          });
-          setIsProcessing(false);
-          return;
-        }
-
+        
         const approvalResponse = await apiFetch(`/api/payment/approve`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
           body: JSON.stringify({
             tid,
             orderId,
