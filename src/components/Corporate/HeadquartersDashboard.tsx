@@ -255,8 +255,8 @@ const HeadquartersDashboard = () => {
           ? `${currentModal.items[0].productName} 외 ${currentModal.items.length - 1}건` 
           : currentModal.items[0].productName,
         returnUrl: window.location.hostname === 'localhost' 
-          ? 'https://51a5d1c26043.ngrok-free.app/payment/result'
-          : window.location.origin + '/payment/result',
+          ? 'https://51a5d1c26043.ngrok-free.app/api/payment/result'
+          : window.location.origin + '/api/payment/result',
         fnError: (result: any) => {
           console.error('결제 오류:', result);
           toast.error(result.msg || "결제 중 오류가 발생했습니다.");
