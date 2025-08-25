@@ -254,7 +254,7 @@ const HeadquartersDashboard = () => {
         goodsName: currentModal.items.length > 1 
           ? `${currentModal.items[0].productName} 외 ${currentModal.items.length - 1}건` 
           : currentModal.items[0].productName,
-        returnUrl: `${window.location.origin}/payment/result`,
+        returnUrl: window.location.origin + '/payment/result',
         fnError: (result: any) => {
           console.error('결제 오류:', result);
           toast.error(result.msg || "결제 중 오류가 발생했습니다.");
