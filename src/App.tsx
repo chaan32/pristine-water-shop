@@ -25,7 +25,6 @@ import EmptyCart from "./pages/EmptyCart";
 // Global window declarations for NICEPAY
 declare global {
   interface Window {
-    AUTHNICE?: any;
     NICEPAY?: any;
     daum?: any;
   }
