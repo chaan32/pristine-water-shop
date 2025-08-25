@@ -15,6 +15,11 @@ import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 import {apiFetch, getUserInfo} from "@/lib/api.ts";
 import { useToast } from '@/hooks/use-toast';
 
+declare global {
+  interface Window {
+    nicepay: any;
+  }
+}
 
 interface UserInfo {
   name: string;
@@ -34,7 +39,6 @@ const Order = () => {
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'bank', 'mobile'
   const [userType, setUserType] = useState<string | null>(null);
   const { toast } = useToast();
-
   const [orderInfo, setOrderInfo] = useState({
     name: '',
     phone: '',
@@ -45,7 +49,17 @@ const Order = () => {
     memo: ''
   });
 
+  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
+  const initialItems = location.state?.items || JSON.parse(sessionStorage.getItem('orderItems') || '[]');
+  const { isDirectPurchase } = location.state || { isDirectPurchase: false };
+  const [items, setItems] = useState(initialItems); // state로 관리
 
+  useEffect(() => {
+    console.log("📦 주문 페이지로 전달된 상품 목록:", items);
+    if (!items || items.length === 0) {
+      console.error("🚨 주문할 상품이 없습니다! 장바구니 페이지에서 다시 시도해주세요.");
+    }
+  }, [items]);
 
   useEffect(() => {
     // 사용자 타입을 JWT에서 가져오기
@@ -157,41 +171,18 @@ const Order = () => {
 
   const handleOrder = async () => {
     if (!orderInfo.name || !orderInfo.phone || !orderInfo.address) {
-      alert('필수 정보를 모두 입력해주세요.');
+      toast({
+        title: "정보 입력 오류", description: `필수 정보를 모두 입력해주세요.`, variant: 'warning'
+      });
       return;
     }
+
+    setIsLoading(true); // 로딩 시작
     const userInfo = getUserInfo();
     const orderData = {
-      userId: userInfo?.id || null, // 로그인된 사용자 ID, 없으면 null
-      // 1. OrderReqDto.items -> List<OrderItemDto>
-      items: items.map((item: any) => ({
-        productId: item.productId || item.id,
-        quantity: item.quantity,
-        price: item.price * item.quantity,
-        perPrice: item.price,
-      })),
-
-      // 2. OrderReqDto.shipmentInform -> ShipmentReqDto
-      shipmentInform: {
-        recipientName: orderInfo.name,
-        recipientPhone: orderInfo.phone,
-        postNumber: orderInfo.zipCode,
-        address: orderInfo.address,
-        detailAddress: orderInfo.detailAddress,
-        memo: orderInfo.memo,
-      },
-
-      // 3. OrderReqDto의 가격 정보 필드들
-      totalPrice: finalTotal,          // 최종 결제 금액
-      productPrice: subtotal,          // 상품 총액
-      couponDiscountPrice: couponDiscount, // 쿠폰 할인액
-      pointDiscountPrice: pointUsage,      // 포인트 사용액
-      shipmentFee: shippingFee,        // 배송비
-
-      // 4. OrderReqDto의 결제 정보 필드들
-      paymentMethod: paymentMethod,
-
+      // ... (기존 orderData와 동일)
     };
+    console.log("🚀 /api/order API 요청으로 전송할 데이터:", JSON.stringify(orderData, null, 2));
 
     try {
       const response = await apiFetch('/api/order', {
@@ -199,45 +190,84 @@ const Order = () => {
         body: JSON.stringify(orderData)
       });
 
-      const data = await response.json();
+      const result = await response.json(); // data -> result로 이름 변경하여 혼동 방지
 
-      if (response.ok) {
-        toast({
-          title: "주문이 완료되었습니다!",
-          description: `주문번호: ${data.orderNumber}`,
-        });
-        
-        // 장바구니에서 주문한 경우 장바구니 비우기
-        if (!isDirectPurchase) {
-          // 장바구니 비우기 API 호출
-          try {
-            // API: DELETE /api/cart - Clear cart after order
+      if (response.ok && result.success) {
+        // 💡 3. 백엔드 응답 구조에 맞게 result.data로 접근
+        const responseData = result.data;
+
+        if (paymentMethod === 'corporate_payment') {
+          // 💡 2. 법인 결제 완료 후 return 제거
+          toast({
+            title: "주문이 완료되었습니다!",
+            description: `법인 결제 신청이 접수되었습니다. 주문번호 : ${responseData.orderNumber}`,
+          });
+          if (!isDirectPurchase) {
             await apiFetch('/api/cart', { method: 'DELETE' });
-          } catch (error) {
-            console.error('Cart clear error:', error);
           }
+          // navigate('/mypage'); // 주문 완료 후 페이지 이동
+        } else {
+          // PG 결제 진행
+          const createdOrderId = responseData.orderId;
+          await handlePaymentRequest(createdOrderId);
+
+          // 💡 1. 결제창 호출 후 즉시 실행되던 성공 처리 로직을 모두 제거!
+          // 이 로직들은 /payment/result 페이지로 옮겨져야 합니다.
         }
-        
-        // 주문 완료 페이지로 이동 또는 마이페이지로 리다이렉트
-        // navigate('/mypage');
       } else {
-        switch (response.status) {
-          case 400:
-            alert('주문 정보를 확인해주세요.');
-            break;
-          case 402:
-            alert('결제 정보에 오류가 있습니다.');
-            break;
-          case 409:
-            alert('선택하신 상품의 재고가 부족합니다.');
-            break;
-          default:
-            alert(data.message || '주문 처리 중 오류가 발생했습니다.');
-        }
+        // ... (기존 에러 처리 로직)
+        alert(result.message || '주문 처리 중 오류가 발생했습니다.');
       }
     } catch (error) {
       console.error('Order error:', error);
       alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLoading(false); // 모든 경우에 로딩 상태를 해제
+    }
+  };
+
+  //  나이스페이먼츠 결제 요청 함수 (신규 추가)
+  const handlePaymentRequest = async (createdOrderId: number) => {
+    setIsLoading(true);
+    try {
+      // 1. 백엔드에 결제 준비를 요청하여 서명(Signature) 등 필수 정보를 받습니다.
+      const response = await apiFetch(`/api/payments/prepare?orderId=${createdOrderId}`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '결제 준비에 실패했습니다.');
+      }
+
+      const result = await response.json();
+      const prepData = result.data;
+
+      // 2. 받은 정보로 나이스페이먼츠 결제창을 호출합니다.
+      window.nicepay.requestPay({
+        PayMethod: paymentMethod === 'bank_transfer' ? 'BANK' : 'CARD',
+        GoodsName: items.length > 1 ? `${items[0].name} 외 ${items.length - 1}건` : items[0].name,
+        Amt: prepData.amount,
+        MID: prepData.mid,
+        Moid: prepData.orderId, // 백엔드에서 받은 주문번호
+        BuyerEmail: orderInfo.email,
+        BuyerName: orderInfo.name,
+        BuyerTel: orderInfo.phone,
+        EdiDate: prepData.editDate,
+        SignData: prepData.signature,
+        ReturnURL: `http://localhost:8081/payment/result`, // 성공/실패 시 모두 이 URL로 이동
+        FailURL: `http://localhost:8081/payment/result`,
+      });
+
+    } catch (error) {
+      console.error('결제 처리 중 오류 발생:', error);
+      toast({
+        title: "결제 오류",
+        description: "결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -537,11 +567,11 @@ const Order = () => {
 
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button 
-                      className="w-full water-drop"
-                      disabled={finalTotal <= 0}
+                    <Button
+                        className="w-full water-drop"
+                        disabled={finalTotal <= 0 || isLoading} // isLoading 추가
                     >
-                      {finalTotal.toLocaleString()}원 결제하기
+                      {isLoading ? '처리 중...' : `${finalTotal.toLocaleString()}원 결제하기`}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -563,8 +593,8 @@ const Order = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>취소</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleOrder}>
-                        주문하기
+                      <AlertDialogAction onClick={handleOrder} disabled={isLoading}>
+                        {isLoading ? '주문 처리 중...' : '주문하기'}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

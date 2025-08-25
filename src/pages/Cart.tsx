@@ -123,7 +123,10 @@ const Cart = () => {
       alert('수량 변경 중 오류가 발생했습니다.');
     }
   };
-
+  const handleNavigateToOrder = () => {
+    sessionStorage.setItem('orderItems', JSON.stringify(cartItems)); // 세션 스토리지에 저장
+    navigate('/order', { state: { items: cartItems, isDirectPurchase: false } });
+  };
   /*
   ==================== API 요청 명세 (장바구니 상품 삭제) ====================
   Method: DELETE
