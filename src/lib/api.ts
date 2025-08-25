@@ -103,9 +103,20 @@ export const refreshAccessToken = async (): Promise<boolean> => {
 
     if (response.ok) {
       const data = await response.json();
-      setTokens(data.accessToken, refreshToken);
-      return true;
+      if (data.success && data.data) {
+        setTokens(data.data.accessToken, data.data.refreshToken);
+        return true;
+      } else {
+        clearTokens();
+        return false;
+      }
     } else {
+      const errorData = await response.json();
+      // refreshToken 만료 확인 (AUTH_ERROR_005 등)
+      if (errorData.code === 'AUTH_ERROR_005' || errorData.message?.includes('로그인이 필요')) {
+        clearTokens();
+        return false;
+      }
       clearTokens();
       return false;
     }
@@ -181,50 +192,112 @@ export async function apiFetch(input: string, init: RequestInit = {}, skipTokenR
 
   // 401 Unauthorized 응답 처리
   if (response.status === 401 && !skipTokenRefresh) {
-    console.log('🔄 Token expired, attempting refresh...');
-    const refreshed = await refreshAccessToken();
-    
-    if (refreshed) {
-      // 새로운 토큰으로 재시도
-      const newHeaders = {
-        ...baseHeaders,
-        ...authHeaders(),
-        ...(init.headers || {}),
-      };
-      const retryResponse = await fetch(url, { ...init, headers: newHeaders });
+    try {
+      const errorData = await response.clone().json();
       
-      // 재시도 응답 로깅
-      try {
-        const clonedResponse = retryResponse.clone();
-        const responseData = await clonedResponse.json();
-        console.log(`📨 API Retry Response = { 
-          url: "${input}",
-          status: ${retryResponse.status},
-          data: ${JSON.stringify(responseData, null, 2)} 
-        }`);
-      } catch (e) {
-        try {
-          const clonedResponse = retryResponse.clone();
-          const textData = await clonedResponse.text();
-          console.log(`📨 API Retry Response = { 
-            url: "${input}",
-            status: ${retryResponse.status},
-            data: "${textData}" 
-          }`);
-        } catch (textError) {
-          console.log(`📨 API Retry Response = { 
-            url: "${input}",
-            status: ${retryResponse.status},
-            data: "[Unable to parse response]" 
-          }`);
-        }
+      // refreshToken이 만료된 경우 바로 로그인 페이지로 리다이렉트
+      if (errorData.code === 'AUTH_ERROR_005' || errorData.message?.includes('로그인이 필요')) {
+        console.log('🔄 Refresh token expired, redirecting to login...');
+        clearTokens();
+        window.location.href = '/login';
+        throw new Error('Authentication failed');
       }
       
-      return retryResponse;
-    } else {
-      // 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
-      window.location.href = '/login';
-      throw new Error('Authentication failed');
+      // accessToken만 만료된 경우 토큰 갱신 시도
+      if (errorData.error === 'Unauthorized' || errorData.message?.includes('인증이 필요')) {
+        console.log('🔄 Access token expired, attempting refresh...');
+        const refreshed = await refreshAccessToken();
+        
+        if (refreshed) {
+          // 새로운 토큰으로 재시도
+          const newHeaders = {
+            ...baseHeaders,
+            ...authHeaders(),
+            ...(init.headers || {}),
+          };
+          const retryResponse = await fetch(url, { ...init, headers: newHeaders });
+          
+          // 재시도 응답 로깅
+          try {
+            const clonedResponse = retryResponse.clone();
+            const responseData = await clonedResponse.json();
+            console.log(`📨 API Retry Response = { 
+              url: "${input}",
+              status: ${retryResponse.status},
+              data: ${JSON.stringify(responseData, null, 2)} 
+            }`);
+          } catch (e) {
+            try {
+              const clonedResponse = retryResponse.clone();
+              const textData = await clonedResponse.text();
+              console.log(`📨 API Retry Response = { 
+                url: "${input}",
+                status: ${retryResponse.status},
+                data: "${textData}" 
+              }`);
+            } catch (textError) {
+              console.log(`📨 API Retry Response = { 
+                url: "${input}",
+                status: ${retryResponse.status},
+                data: "[Unable to parse response]" 
+              }`);
+            }
+          }
+          
+          return retryResponse;
+        } else {
+          // 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
+          window.location.href = '/login';
+          throw new Error('Authentication failed');
+        }
+      }
+    } catch (parseError) {
+      // JSON 파싱 실패 시 기본 토큰 갱신 로직 실행
+      console.log('🔄 Token expired, attempting refresh...');
+      const refreshed = await refreshAccessToken();
+      
+      if (refreshed) {
+        // 새로운 토큰으로 재시도
+        const newHeaders = {
+          ...baseHeaders,
+          ...authHeaders(),
+          ...(init.headers || {}),
+        };
+        const retryResponse = await fetch(url, { ...init, headers: newHeaders });
+        
+        // 재시도 응답 로깅
+        try {
+          const clonedResponse = retryResponse.clone();
+          const responseData = await clonedResponse.json();
+          console.log(`📨 API Retry Response = { 
+            url: "${input}",
+            status: ${retryResponse.status},
+            data: ${JSON.stringify(responseData, null, 2)} 
+          }`);
+        } catch (e) {
+          try {
+            const clonedResponse = retryResponse.clone();
+            const textData = await clonedResponse.text();
+            console.log(`📨 API Retry Response = { 
+              url: "${input}",
+              status: ${retryResponse.status},
+              data: "${textData}" 
+            }`);
+          } catch (textError) {
+            console.log(`📨 API Retry Response = { 
+              url: "${input}",
+              status: ${retryResponse.status},
+              data: "[Unable to parse response]" 
+            }`);
+          }
+        }
+        
+        return retryResponse;
+      } else {
+        // 토큰 갱신 실패 시 로그인 페이지로 리다이렉트
+        window.location.href = '/login';
+        throw new Error('Authentication failed');
+      }
     }
   }
 
