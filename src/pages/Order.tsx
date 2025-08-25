@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
@@ -17,7 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 
 declare global {
   interface Window {
-    nicepay: any;
+    AUTHNICE?: any;
+    NICEPAY?: any;
   }
 }
 
@@ -54,7 +55,36 @@ const Order = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false); // 스크립트 로딩 상태 추가
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://pay.nicepay.co.kr/v1/js/";
+    script.async = true;
 
+    // 스크립트 로딩이 성공했을 때 실행될 함수
+    script.onload = () => {
+      console.log("✅ 스크립트 로딩 완료");
+      console.log("window.AUTHNICE:", window.AUTHNICE);
+      setIsScriptLoaded(true);
+    };
+
+    // 스크립트 로딩이 실패했을 때 실행될 함수
+    script.onerror = () => {
+      console.error("❌ 나이스페이먼츠 스크립트 로딩 실패.");
+      toast({
+        title: "오류",
+        description: "결제 모듈 로딩에 실패했습니다. 새로고침 후 다시 시도해주세요.",
+        variant: "destructive"
+      });
+    };
+
+    document.body.appendChild(script);
+
+    // 컴포넌트가 사라질 때 스크립트를 정리합니다. (메모리 누수 방지)
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []); // 빈 배열을 전달하여 컴포넌트가 처음 마운트될 때 한 번만 실행되도록 합니다.
   useEffect(() => {
     console.log("📦 주문 페이지로 전달된 상품 목록:", items);
     if (!items || items.length === 0) {
@@ -311,8 +341,9 @@ const Order = () => {
 
       const data = await response.json();
 
+      console.log("🚀 /api/order API 응답:", data);
       if (response.ok && data.success) {
-        const responseData = data.data;
+        const responseData = data;
 
         if (paymentMethod === 'corporate_payment') {
           toast({
@@ -362,19 +393,31 @@ const Order = () => {
       const result = await response.json();
       const prepData = result.data;
 
-      window.nicepay.requestPay({
-        PayMethod: paymentMethod === 'bank_transfer' ? 'BANK' : 'CARD',
-        GoodsName: items.length > 1 ? `${items[0].name} 외 ${items.length - 1}건` : items[0].name,
-        Amt: prepData.amount,
-        MID: prepData.mid,
-        Moid: prepData.orderId,
-        BuyerEmail: orderInfo.email,
-        BuyerName: orderInfo.name,
-        BuyerTel: orderInfo.phone,
-        EdiDate: prepData.editDate,
-        SignData: prepData.signature,
-        ReturnURL: `http://localhost:8081/payment/result`,
-        FailURL: `http://localhost:8081/payment/result`,
+      if (!isScriptLoaded || !!window.AUTHNICE) {
+        toast({
+          title: "오류",
+          description: "결제 모듈이 준비되지 않았습니다. 새로고침 후 다시 시도해주세요.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+
+      window.AUTHNICE.requestPay({
+        clientId: "58e3b578555e45738d6b569e53d5ae54",
+        method: paymentMethod === "bank_transfer" ? "bank" : "card",
+        orderId: prepData.orderId,
+        amount: prepData.amount,
+        goodsName: items.length > 1 ? `${items[0].name} 외 ${items.length - 1}건` : items[0].name,
+        returnUrl: "http://localhost:8081/payment/result",
+        fnError: (result: any) => {
+          console.error("결제 오류:", result);
+          toast({
+            title: "결제 실패",
+            description: result.msg || "결제 중 오류가 발생했습니다.",
+            variant: "destructive",
+          });
+        },
       });
 
     } catch (error) {
@@ -699,9 +742,13 @@ const Order = () => {
                     <AlertDialogTrigger asChild>
                       <Button
                           className="w-full water-drop"
-                          disabled={finalTotal <= 0 || isLoading || !currentUser}
+                          disabled={finalTotal <= 0 || isLoading || !currentUser || !isScriptLoaded} // 👈 !isScriptLoaded 추가
                       >
-                        {isLoading ? '처리 중...' : `${finalTotal.toLocaleString()}원 결제하기`}
+                        {isLoading
+                            ? '처리 중...'
+                            : !isScriptLoaded
+                                ? '결제 모듈 로딩 중...'
+                                : `${finalTotal.toLocaleString()}원 결제하기`}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
