@@ -106,11 +106,11 @@ const Order = () => {
       const result = await response.json();
       console.log("API 응답 결과:", result);
 
-      if (result?.success && result?.data) {
-        setLoggedInUser(result.data);
-        console.log("사용자 배송지 정보 설정 완료:", result.data);
+      if (result && result.name) {
+        setLoggedInUser(result);
+        console.log("사용자 배송지 정보 설정 완료:", result);
       } else {
-        console.warn("사용자 배송지 정보가 없거나 조회에 실패했습니다:", result.message);
+        console.warn("사용자 배송지 정보가 없거나 조회에 실패했습니다:", result);
         setLoggedInUser(null); // 명시적으로 null 설정
         toast({
           title: "알림",
