@@ -415,7 +415,9 @@ const Order = () => {
         orderId: prepData.orderId,
         amount: prepData.amount,
         goodsName: items.length > 1 ? `${items[0].name} 외 ${items.length - 1}건` : items[0].name,
-        returnUrl: window.location.origin + '/payment/result',
+        returnUrl: window.location.hostname === 'localhost' 
+          ? 'https://your-ngrok-url.ngrok.io/payment/result'  // ngrok URL로 교체 필요
+          : window.location.origin + '/payment/result',
         fnError: (result: any) => {
           console.error("결제 오류:", result);
           toast({
