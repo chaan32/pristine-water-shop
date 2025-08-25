@@ -106,9 +106,18 @@ const Order = () => {
       const result = await response.json();
       console.log("API 응답 결과:", result);
 
-      if (result && result.name) {
-        setLoggedInUser(result);
-        console.log("사용자 배송지 정보 설정 완료:", result);
+      if (result) {
+        const normalized = {
+          name: result.name ?? result.recipientName ?? result.username ?? result.memberName ?? '',
+          phone: result.phone ?? result.recipientPhone ?? result.phoneNumber ?? result.memberPhone ?? '',
+          email: result.email ?? result.memberEmail ?? '',
+          address: result.address ?? result.recipientAddress ?? '',
+          detailAddress: result.detailAddress ?? result.recipientDetailAddress ?? '',
+          zipCode: result.zipCode ?? result.postNumber ?? result.postCode ?? result.zip ?? '',
+        };
+        console.log("정규화된 배송지 정보:", normalized);
+        setLoggedInUser(normalized);
+        console.log("사용자 배송지 정보 설정 완료 (정규화 적용):", normalized);
       } else {
         console.warn("사용자 배송지 정보가 없거나 조회에 실패했습니다:", result);
         setLoggedInUser(null); // 명시적으로 null 설정
