@@ -174,15 +174,18 @@ const Order = () => {
 
     if (loggedInUser) {
       // API에서 가져온 배송지 정보가 있는 경우
-      setOrderInfo({
-        ...orderInfo, // 기존에 입력된 값 (예: 배송 메모) 유지
-        name: loggedInUser.name,
-        phone: loggedInUser.phone,
-        email: loggedInUser.email,
-        address: loggedInUser.address,
-        detailAddress: loggedInUser.detailAddress,
-        zipCode: loggedInUser.zipCode,
-      });
+      const newOrderInfo = {
+        name: loggedInUser.name || '',
+        phone: loggedInUser.phone || '',
+        email: loggedInUser.email || '',
+        address: loggedInUser.address || '',
+        detailAddress: loggedInUser.detailAddress || '',
+        zipCode: loggedInUser.zipCode || '',
+        memo: orderInfo.memo // 기존 메모는 유지
+      };
+      
+      console.log('새로 설정할 주문 정보:', newOrderInfo);
+      setOrderInfo(newOrderInfo);
 
       toast({
         title: "완료",
@@ -191,16 +194,18 @@ const Order = () => {
       });
     } else {
       // API에서 배송지 정보를 가져오지 못한 경우, 현재 사용자 정보로 대체
-      setOrderInfo({
-        ...orderInfo,
+      const newOrderInfo = {
         name: currentUser.name || '',
         phone: currentUser.phone || '',
         email: currentUser.email || '',
-        // 주소 정보가 없는 경우 빈 값으로 설정
         address: '',
         detailAddress: '',
         zipCode: '',
-      });
+        memo: orderInfo.memo // 기존 메모는 유지
+      };
+      
+      console.log('기본 정보로 설정할 주문 정보:', newOrderInfo);
+      setOrderInfo(newOrderInfo);
 
       toast({
         title: "알림",
