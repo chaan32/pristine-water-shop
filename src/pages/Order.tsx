@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 import {apiFetch, getUserInfo} from "@/lib/api.ts";
 import { useToast } from '@/hooks/use-toast';
+import { useLocation, useNavigate } from 'react-router-dom'; // useNavigate 추가
 
 declare global {
   interface Window {
@@ -32,7 +33,10 @@ interface UserInfo {
 
 const Order = () => {
   const location = useLocation();
-  const { items, isDirectPurchase } = location.state || { items: [], isDirectPurchase: false };
+  const navigate = useNavigate();
+  const initialItems = location.state?.items || JSON.parse(sessionStorage.getItem('orderItems') || '[]');
+  const isDirectPurchase = location.state?.isDirectPurchase || false;
+  const [items, setItems] = useState(initialItems);
   const [pointUsage, setPointUsage] = useState(0);
   const [selectedCoupon, setSelectedCoupon] = useState('');
   const [loggedInUser, setLoggedInUser] = useState<UserInfo | null>(null);
@@ -50,9 +54,7 @@ const Order = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
-  const initialItems = location.state?.items || JSON.parse(sessionStorage.getItem('orderItems') || '[]');
-  const { isDirectPurchase } = location.state || { isDirectPurchase: false };
-  const [items, setItems] = useState(initialItems); // state로 관리
+
 
   useEffect(() => {
     console.log("📦 주문 페이지로 전달된 상품 목록:", items);
@@ -86,8 +88,10 @@ const Order = () => {
         // 이전에 만드셨던 컨트롤러의 getRecipientInform 메서드 호출
         // API: GET /api/order/recipient/same/{userId} - Get user shipping info
         const response = await apiFetch(`/api/order/recipient/same/${userInfo.id}`);
-        const data = await response.json(); // .json()을 호출해서 실제 데이터를 꺼냅니다.
-        setLoggedInUser(data);
+        const result = await response.json();
+        if (result.success) {
+          setLoggedInUser(result.data); // result.data로 실제 사용자 정보에 접근
+        }
       } catch (error) {
         console.error('사용자 정보 조회 실패:', error);
         alert('회원 정보를 불러오는 데 실패했습니다.');
@@ -180,7 +184,27 @@ const Order = () => {
     setIsLoading(true); // 로딩 시작
     const userInfo = getUserInfo();
     const orderData = {
-      // ... (기존 orderData와 동일)
+      userId: userInfo?.id || null,
+      items: items.map((item: any) => ({
+        productId: item.productId || item.id,
+        quantity: item.quantity,
+        price: item.price * item.quantity,
+        perPrice: item.price,
+      })),
+      shipmentInform: {
+        recipientName: orderInfo.name,
+        recipientPhone: orderInfo.phone,
+        postNumber: orderInfo.zipCode,
+        address: orderInfo.address,
+        detailAddress: orderInfo.detailAddress,
+        memo: orderInfo.memo,
+      },
+      totalPrice: finalTotal,
+      productPrice: subtotal,
+      couponDiscountPrice: couponDiscount,
+      pointDiscountPrice: pointUsage,
+      shipmentFee: shippingFee,
+      paymentMethod: paymentMethod,
     };
     console.log("🚀 /api/order API 요청으로 전송할 데이터:", JSON.stringify(orderData, null, 2));
 
@@ -190,33 +214,30 @@ const Order = () => {
         body: JSON.stringify(orderData)
       });
 
-      const result = await response.json(); // data -> result로 이름 변경하여 혼동 방지
+      const data = await response.json(); // data -> result로 이름 변경하여 혼동 방지
 
-      if (response.ok && result.success) {
-        // 💡 3. 백엔드 응답 구조에 맞게 result.data로 접근
-        const responseData = result.data;
+      if (response.ok && data.success) {
+        // 백엔드 응답 구조에 맞게 실제 데이터 객체에 접근합니다.
+        const responseData = data.data;
 
         if (paymentMethod === 'corporate_payment') {
-          // 💡 2. 법인 결제 완료 후 return 제거
+          // 법인 결제는 여기서 완료 처리하는 것이 맞습니다.
           toast({
             title: "주문이 완료되었습니다!",
-            description: `법인 결제 신청이 접수되었습니다. 주문번호 : ${responseData.orderNumber}`,
+            description: `법인 결제 신청이 접수되었습니다. 주문번호: ${responseData.orderNumber}`,
           });
           if (!isDirectPurchase) {
             await apiFetch('/api/cart', { method: 'DELETE' });
           }
-          // navigate('/mypage'); // 주문 완료 후 페이지 이동
+          // navigate('/mypage'); // 주문 완료 후 페이지 이동 (useNavigate 필요)
         } else {
-          // PG 결제 진행
+          // PG 결제는 주문 ID로 결제창만 띄워주고 끝냅니다.
+          // 결제 성공 후 처리는 이 파일이 아닌 /payment/result 페이지에서 담당해야 합니다.
           const createdOrderId = responseData.orderId;
           await handlePaymentRequest(createdOrderId);
-
-          // 💡 1. 결제창 호출 후 즉시 실행되던 성공 처리 로직을 모두 제거!
-          // 이 로직들은 /payment/result 페이지로 옮겨져야 합니다.
         }
       } else {
-        // ... (기존 에러 처리 로직)
-        alert(result.message || '주문 처리 중 오류가 발생했습니다.');
+        alert(data.message || '주문 처리 중 오류가 발생했습니다.');
       }
     } catch (error) {
       console.error('Order error:', error);
