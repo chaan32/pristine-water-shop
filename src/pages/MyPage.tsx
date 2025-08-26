@@ -90,13 +90,12 @@ const MyPage = () => {
       const response = await userApi.getOrders(page - 1, 10);
 
       if (response.ok) {
-        const pageData = await response.json(); // 백엔드의 Page 객체
-        console.log('API Response:', pageData);
+        const responseData = await response.json();
+        console.log('API Response:', responseData);
 
-        // 백엔드 응답이 Page 객체 구조를 따르는지 확인 (content, totalPages)
-        if (pageData && pageData.content) {
-          const ordersData = pageData.content.map((order: any) => ({
-            // 이 부분의 데이터 매핑은 기존 코드와 동일합니다.
+        // 백엔드에서 { data: List<MPOrdersResDto> } 형태로 반환
+        if (responseData && responseData.data) {
+          const ordersData = responseData.data.map((order: any) => ({
             id: order.orderName,
             date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
             products: order.products,
@@ -114,11 +113,10 @@ const MyPage = () => {
           }));
 
           setOrders(ordersData);
-          setTotalPages(pageData.totalPages); // 전체 페이지 수 업데이트
-
+          // 페이지네이션 정보가 없으므로 숨김
+          setTotalPages(1);
         } else {
-          // 응답 구조가 예상과 다를 경우
-          console.error('Unexpected data structure:', pageData);
+          console.error('Unexpected data structure:', responseData);
           setOrders([]);
           setTotalPages(1);
         }
