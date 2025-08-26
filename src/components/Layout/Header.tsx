@@ -92,11 +92,11 @@ const Header = () => {
       case 'ADMIN':
         return { name: 'ADMIN', subInfo: "관리자" };
       case 'HEADQUARTERS':
-        return { name: name, subInfo: "법인본사" };
+        return { name: name, subInfo: "본사 회원" };
       case 'BRANCH':
-        return { name: '지사', subInfo: name };
+        return { name: name, subInfo: "지점 회원" };
       default:
-        return { name, subInfo: "개인회원" };
+        return { name, subInfo: "개인 회원" };
     }
   };
 
