@@ -15,24 +15,6 @@ import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 import {apiFetch, getUserInfo} from "@/lib/api.ts";
 import { useToast } from '@/hooks/use-toast';
 
-// ❶ 전역 타입
-declare global {
-  interface Window {
-    AUTHNICE?: {
-      requestPay: (args: {
-        clientId: string;
-        method: 'card' | 'bank'; // 필요시 다른 수단 추가
-        orderId: string;
-        amount: number;
-        goodsName: string;
-        returnUrl: string;
-        mallReserved?: string;
-        fnError?: (res: any) => void;
-      }) => void;
-    };
-  }
-}
-
 interface UserInfo {
   name: string;
   phone: string;
@@ -41,7 +23,12 @@ interface UserInfo {
   detailAddress: string;
   zipCode: string;
 }
-
+interface PreOrderResponse {
+  orderId: string;
+  amount: number;
+  method: string;
+  goodsName: string;
+}
 const Order = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -69,31 +56,6 @@ const Order = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false); // 스크립트 로딩 상태 추가
 
-  // ❷ SDK 로더 (v1)
-  useEffect(() => {
-    // 중복 로드 방지
-    if (document.getElementById('nicepay-sdk')) {
-      setIsScriptLoaded(!!window.AUTHNICE);
-      return;
-    }
-    const s = document.createElement('script');
-    s.id = 'nicepay-sdk';
-    s.src = 'https://pay.nicepay.co.kr/v1/js/';
-    s.async = true;
-    s.onload = () => {
-      console.log('✅ Nicepay v1 SDK loaded:', !!window.AUTHNICE);
-      setIsScriptLoaded(!!window.AUTHNICE);
-    };
-    s.onerror = () => {
-      toast({
-        title: '오류',
-        description: '결제 모듈 로딩에 실패했습니다. 새로고침 후 다시 시도해주세요.',
-        variant: 'destructive',
-      });
-    };
-    document.body.appendChild(s);
-    // unmount 시 스크립트는 제거하지 않는 편이 안정적
-  }, []); // 빈 배열을 전달하여 컴포넌트가 처음 마운트될 때 한 번만 실행되도록 합니다.
 
 
 
@@ -137,6 +99,62 @@ const Order = () => {
 
     fetchInitialData();
   }, []);
+  useEffect(()=>{
+    // script 태그 만들기
+    const script = document.createElement('script');
+
+    // 링크 넣어주기
+    script.src = "https://pay.nicepay.co.kr/v1/js/";
+
+    // 다 하면 로그 찍기
+    script.onload = () => {
+      console.log("✅ script loaded");
+      setIsScriptLoaded(true); // 스크립트 로딩 완료 시 상태 업데이트
+    };
+
+    // 에러 처리
+    script.onerror = () => {
+      console.error("❌ script load error");
+      toast({
+        title: '오류',
+        description: '결제 모듈 로딩에 실패했습니다. 새로고침 후 다시 시도해주세요.',
+        variant: 'destructive',
+      });
+    };
+    // 붙이기
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+      console.log("🧼 script removed");
+    }
+  },[]);
+
+  const handlePaymentRequest = async (preOrderData : PreOrderResponse) =>{
+    if (!isScriptLoaded || !window.AUTHNICE) {
+        toast({
+            title: "오류",
+            description: "결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.",
+            variant: "destructive"
+        });
+        return;
+    }
+    window.AUTHNICE.requestPay({
+      clientId: "R2_d5c2604ed6054467bc5a2a6344e34310",
+      method: preOrderData.method === '신용카드' ? 'card' : 'bank',
+      orderId: preOrderData.orderId,
+      amount: preOrderData.amount,
+      goodsName: preOrderData.goodsName,
+      returnUrl: `http://localhost:8080/api/payments/return`,
+      fnError: function (result: any) {
+        toast({
+          title: '결제 오류',
+          description: `오류가 발생했습니다: ${result.errorMsg}`,
+          variant: 'destructive',
+        });
+      },
+    });
+  }
 
   // 사용자 배송지 정보 가져오는 함수 분리
   const fetchUserShippingInfo = async (userId: number) => {
@@ -354,17 +372,16 @@ const Order = () => {
         body: JSON.stringify(orderData)
       });
 
-      const data = await response.json();
+      const preOrderData: PreOrderResponse = await response.json();
 
-      console.log("🚀 /api/order API 응답:", data);
-      if (response.ok && data.success) {
-        const responseData = data;
+      console.log("🚀 /api/order API 응답:", preOrderData);
+      if (response.ok && preOrderData.orderId) {
 
         // 지점 회원의 법인결제는 바로 승인 처리
         if (paymentMethod === 'corporate_payment') {
           toast({
             title: "주문이 완료되었습니다!",
-            description: `법인 결제 신청이 접수되었습니다. 주문번호: ${responseData.orderNumber}`,
+            description: `법인 결제 신청이 접수되었습니다. 주문번호: ${preOrderData.orderId}`,
           });
           // 직접구매가 아닌 경우 장바구니 비우기
           if (!isDirectPurchase) {
@@ -372,15 +389,15 @@ const Order = () => {
           }
           // 마이페이지로 이동
           navigate('/mypage');
-        } else {
+        }
+        else {
           // 개인회원과 본사회원은 결제창 호출
-          const createdOrderId = responseData.orderId;
-          await handlePaymentRequest(createdOrderId);
+          await handlePaymentRequest(preOrderData);
         }
       } else {
         toast({
           title: "주문 실패",
-          description: data.message || '주문 처리 중 오류가 발생했습니다.',
+          description: '주문 처리 중 오류가 발생했습니다.',
           variant: "destructive"
         });
       }
@@ -396,57 +413,6 @@ const Order = () => {
     }
   };
 
-  // 나이스페이먼츠 결제 요청 함수
-  // ❸ 결제 요청 (최신 파라미터)
-  const handlePaymentRequest = async (createdOrderId: number) => {
-    setIsLoading(true);
-    try {
-      const resp = await apiFetch(`/api/payments/prepare?orderId=${createdOrderId}`, { method: 'POST' });
-      if (!resp.ok) {
-        const e = await resp.json().catch(() => ({}));
-        throw new Error(e.message || '결제 준비에 실패했습니다.');
-      }
-      const { data } = await resp.json();
-
-      // 백엔드에서 넘겨주는 값 예시: { clientId, orderId, amount }
-      const clientId = "R2_d5c2604ed6054467bc5a2a6344e34310";
-      const orderId = String(data?.orderId ?? createdOrderId);
-      // const amount = Number(data?.amount ?? finalTotal);
-      const amount = Number(100);
-
-      if (!window.AUTHNICE) {
-        toast({ title: '오류', description: '결제 모듈이 준비되지 않았습니다.', variant: 'destructive' });
-        return;
-      }
-
-      const goodsName = items.length > 1
-          ? `${items[0].name} 외 ${items.length - 1}건`
-          : items[0].name;
-
-      window.AUTHNICE.requestPay({
-        clientId,
-        method: paymentMethod === 'bank_transfer' ? 'bank' : 'card',
-        orderId,
-        amount,
-        goodsName,
-        // ✅ 반드시 백엔드 URL (POST를 받는 서버)로!
-        returnUrl: `http://localhost:8080/api/payments/return`,
-        fnError: (result: any) => {
-          console.error('AUTHNICE fnError:', result);
-          toast({
-            title: '결제창 오류',
-            description: result?.errorMsg || '오류가 발생했습니다.',
-            variant: 'destructive',
-          });
-        },
-      });
-    } catch (err: any) {
-      console.error('결제 처리 중 오류:', err);
-      toast({ title: '결제 오류', description: err.message || String(err), variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
       <div className="min-h-screen bg-background">

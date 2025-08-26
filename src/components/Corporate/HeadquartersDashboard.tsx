@@ -17,8 +17,25 @@ import PaymentModal from './PaymentModal';
 import { toast } from 'sonner';
 import { apiFetch, getAccessToken } from '@/lib/api';
 
-// --- 1. INTERFACES UPDATED ---
-// Individual product item within an order
+declare global {
+  interface Window {
+    AUTHNICE?: {
+      requestPay: (args: {
+        clientId: string;
+        method: 'card' | 'bank'; // 필요시 다른 수단 추가
+        orderId: string;
+        amount: number;
+        goodsName: string;
+        returnUrl: string;
+        mallReserved?: string;
+        fnError?: (res: any) => void;
+      }) => void;
+    };
+  }
+}
+
+
+
 interface BranchOrder {
   id: number;
   orderId: number;
