@@ -131,12 +131,11 @@ const MyPage = () => {
       setLoading(false);
     }
   };
-// ▲▲▲ [수정 2] fetchOrders 함수 전체를 아래 코드로 대체 ▲▲▲
   const getPaymentStatusText = (status: string) =>{
     const statusMap: { [key: string]: string } = {
       'PENDING': '결제 대기',
       'APPROVED': '결제 완료',
-      'UNPAID': '결제 실패',
+      'UNPAID': '미결제',
       'REFUNDED': '환불 완료'
     };
     return statusMap[status] || status;
