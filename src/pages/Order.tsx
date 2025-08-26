@@ -393,6 +393,18 @@ const Order = () => {
         else {
           // 개인회원과 본사회원은 결제창 호출
           await handlePaymentRequest(preOrderData);
+          // 결제창 호출 후 장바구니 비우기 (직접구매가 아닌 경우)
+          if (!isDirectPurchase) {
+            try {
+              await apiFetch('/api/cart', { method: 'DELETE' });
+              // 로컬 장바구니도 비우기
+              localStorage.removeItem('cart');
+              // 장바구니 업데이트 이벤트 발생
+              window.dispatchEvent(new Event('cart:updated'));
+            } catch (error) {
+              console.error('장바구니 비우기 실패:', error);
+            }
+          }
         }
       } else {
         toast({

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiFetch, getAccessToken } from '@/lib/api';
 
 const PaymentResult = () => {
   const location = useLocation();
@@ -25,6 +26,9 @@ const PaymentResult = () => {
         orderNumber: orderId || undefined
       });
       toast.success('주문이 완료되었습니다.');
+      
+      // 결제 성공 시 장바구니 비우기
+      clearCart();
     } else {
       setResult({
         success: false,
@@ -33,6 +37,23 @@ const PaymentResult = () => {
       toast.error(msg || '주문 처리 중 오류가 발생했습니다.');
     }
   }, [location]);
+
+  // 장바구니 비우기 함수
+  const clearCart = async () => {
+    try {
+      const token = getAccessToken();
+      if (token) {
+        // 로그인된 사용자: 서버 장바구니 비우기
+        await apiFetch('/api/cart', { method: 'DELETE' });
+      }
+      // 로컬 장바구니도 비우기
+      localStorage.removeItem('cart');
+      // 장바구니 업데이트 이벤트 발생
+      window.dispatchEvent(new Event('cart:updated'));
+    } catch (error) {
+      console.error('장바구니 비우기 실패:', error);
+    }
+  };
 
   const handleGoHome = () => {
     navigate('/');
