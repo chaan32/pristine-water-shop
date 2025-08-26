@@ -50,7 +50,7 @@ const PaymentModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl w-[90vw] max-h-[85vh] p-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-primary" />
@@ -58,7 +58,7 @@ const PaymentModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="overflow-y-auto max-h-[calc(85vh-120px)] px-6 py-4 space-y-6">
           {/* 주문 정보 */}
           <Card>
             <CardHeader>
@@ -116,27 +116,27 @@ const PaymentModal = ({
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* 결제 버튼 */}
-          <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={onClose} disabled={isProcessing}>
-              취소
-            </Button>
-            <Button 
-              onClick={handlePayment} 
-              disabled={isProcessing}
-              className="min-w-32"
-            >
-              {isProcessing ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                  처리중...
-                </div>
-              ) : (
-                `${totalAmount.toLocaleString()}원 결제하기`
-              )}
-            </Button>
-          </div>
+        {/* 고정 하단 결제 버튼 */}
+        <div className="px-6 py-4 border-t bg-card flex gap-3 justify-end">
+          <Button variant="outline" onClick={onClose} disabled={isProcessing}>
+            취소
+          </Button>
+          <Button 
+            onClick={handlePayment} 
+            disabled={isProcessing}
+            className="min-w-32"
+          >
+            {isProcessing ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                처리중...
+              </div>
+            ) : (
+              `${totalAmount.toLocaleString()}원 결제하기`
+            )}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

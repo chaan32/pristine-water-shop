@@ -442,13 +442,7 @@ const HeadquartersDashboard = () => {
                       return (
                           <Fragment key={firstItem.orderNumber}>
                             {/* Main Group Row */}
-                            <TableRow className={`hover:bg-secondary/30 cursor-pointer border-l-4 transition-smooth ${
-                              selectedOrders.has(firstItem.orderNumber) 
-                                ? 'border-primary' 
-                                : firstItem.paymentStatus === 'UNPAID' 
-                                  ? 'border-orange-200' 
-                                  : 'border-border'
-                            }`} onClick={() => handleToggleOrder(firstItem.orderNumber)}>
+                            <TableRow className="cursor-pointer border-b" onClick={() => handleToggleOrder(firstItem.orderNumber)}>
                               <TableCell>
                                 <div className="flex items-center justify-center gap-2">
                                   {firstItem.paymentStatus === 'UNPAID' && (
