@@ -93,7 +93,7 @@ const MyPage = () => {
         const responseData = await response.json();
         console.log('API Response:', responseData);
 
-        // 백엔드에서 { data: List<MPOrdersResDto> } 형태로 반환
+        // 백엔드에서 { data: List<MPOrdersResDto>, totalElements: number } 형태로 반환
         if (responseData && responseData.data) {
           const ordersData = responseData.data.map((order: any) => ({
             id: order.orderName,
@@ -113,8 +113,9 @@ const MyPage = () => {
           }));
 
           setOrders(ordersData);
-          // 페이지네이션 정보가 없으므로 숨김
-          setTotalPages(1);
+          // 전체 개수를 페이지 사이즈(10)로 나누어 총 페이지 수 계산
+          const calculatedTotalPages = Math.ceil((responseData.totalElements || ordersData.length) / 10);
+          setTotalPages(calculatedTotalPages);
         } else {
           console.error('Unexpected data structure:', responseData);
           setOrders([]);
