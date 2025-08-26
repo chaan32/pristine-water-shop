@@ -79,9 +79,9 @@ const Order = () => {
         setCurrentUser(userInfo);
         setUserType(userInfo.role);
 
-        if (userInfo.role === 'individual' || userInfo.role === 'headquarters') {
+        if (userInfo.role === 'INDIVIDUAL' || userInfo.role === 'HEADQUARTERS') {
           setPaymentMethod('card');
-        } else if (userInfo.role === 'branch') {
+        } else if (userInfo.role === 'BRANCH') {
           setPaymentMethod('corporate_payment');
         }
 
@@ -693,7 +693,7 @@ const Order = () => {
                       ) : (
                           <>
                             {/* 개인 회원, 본사: 신용카드, 계좌이체 */}
-                            {(userType?.toLowerCase() === 'individual' || userType?.toLowerCase() === 'headquarters') && (
+                            {(userType === 'INDIVIDUAL' || userType === 'HEADQUARTERS') && (
                                 <>
                                   <div
                                       className="flex items-center space-x-2 cursor-pointer"
@@ -721,7 +721,7 @@ const Order = () => {
                             )}
 
                             {/* 법인 지점: 법인결제만 */}
-                            {userType?.toLowerCase() === 'branch' && (
+                            {userType === 'BRANCH' && (
                                 <div
                                     className="flex items-center space-x-2 cursor-pointer"
                                     onClick={() => setPaymentMethod('corporate_payment')}
