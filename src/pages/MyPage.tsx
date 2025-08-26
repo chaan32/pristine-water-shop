@@ -31,13 +31,18 @@ const MyPage = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedProductForReview, setSelectedProductForReview] = useState(null);
   const [selectedOrderName, setSelectedOrderName] = useState('');
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
 
   useEffect(() => {
     fetchUserInfo();
-    fetchOrders();
   }, []);
+
+  useEffect(() => {
+    fetchOrders(currentPage);
+  }, [currentPage]);
+
 
   const fetchUserInfo = async () => {
     try {
@@ -70,7 +75,9 @@ const MyPage = () => {
     }
   };
 
-  const fetchOrders = async () => {
+
+  const fetchOrders = async (page: number) => {
+    setLoading(true);
     try {
       const token = getAccessToken();
       if (!token) {
@@ -78,16 +85,17 @@ const MyPage = () => {
         return;
       }
 
-      // API: GET /api/users/orders?page=1&limit=10
-      const response = await userApi.getOrders(1, 10);
+      // Spring Pageable은 0부터 시작하므로 (page - 1) 전달
+      const response = await userApi.getOrders(page - 1, 10);
 
       if (response.ok) {
-        const result = await response.json();
-        console.log('API Response:', result);
+        const pageData = await response.json(); // 백엔드의 Page 객체
+        console.log('API Response:', pageData);
 
-        if (result.data && Array.isArray(result.data)) {
-          // ✅ API 응답 데이터를 매핑하는 이 부분을 수정합니다.
-          const ordersData = result.data.map((order: any) => ({
+        // 백엔드 응답이 Page 객체 구조를 따르는지 확인 (content, totalPages)
+        if (pageData && pageData.content) {
+          const ordersData = pageData.content.map((order: any) => ({
+            // 이 부분의 데이터 매핑은 기존 코드와 동일합니다.
             id: order.orderName,
             date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
             products: order.products,
@@ -96,19 +104,22 @@ const MyPage = () => {
             paymentStatus: order.paymentStatus,
             trackingNumber: order.trackingNumber || '',
             deliveryAddress: '',
-            // 상세정보용 데이터 추가
             orderName: order.orderName,
             createdAt: new Date(order.createdAt).toLocaleDateString('ko-KR'),
             price: order.price,
             shipmentStatus: order.shipmentStatus,
-            shipmentFee: order.shipmentFee || 0, // << 이 줄을 추가해주세요!
+            shipmentFee: order.shipmentFee || 0,
             items: order.items || []
           }));
+
           setOrders(ordersData);
-          console.log('Processed orders:', ordersData);
+          setTotalPages(pageData.totalPages); // 전체 페이지 수 업데이트
+
         } else {
-          console.error('Unexpected data structure:', result);
+          // 응답 구조가 예상과 다를 경우
+          console.error('Unexpected data structure:', pageData);
           setOrders([]);
+          setTotalPages(1);
         }
       } else {
         throw new Error('주문 내역 조회 실패');
@@ -120,6 +131,7 @@ const MyPage = () => {
       setLoading(false);
     }
   };
+// ▲▲▲ [수정 2] fetchOrders 함수 전체를 아래 코드로 대체 ▲▲▲
   const getPaymentStatusText = (status: string) =>{
     const statusMap: { [key: string]: string } = {
       'PENDING': '결제 대기',
@@ -222,6 +234,7 @@ const MyPage = () => {
       }
     }).open();
   };
+
   const handlePasswordChangeClick = () => {
     setIsReAuthOpen(true);
   };
@@ -336,14 +349,14 @@ const MyPage = () => {
                         <div>
                           <label className="text-sm font-medium mb-2 block">비밀번호</label>
                           <div className="flex gap-2">
-                            <input 
-                              className="flex-1 p-2 border rounded bg-gray-50 text-gray-600" 
-                              value="••••••••" 
-                              readOnly 
+                            <input
+                              className="flex-1 p-2 border rounded bg-gray-50 text-gray-600"
+                              value="••••••••"
+                              readOnly
                             />
-                            <Button 
-                              onClick={handlePasswordChangeClick} 
-                              variant="outline" 
+                            <Button
+                              onClick={handlePasswordChangeClick}
+                              variant="outline"
                               className="px-3"
                             >
                               <Lock className="w-4 h-4 mr-1" />
@@ -486,13 +499,13 @@ const MyPage = () => {
                             </p>
                           </div>
                           <div className="md:col-span-2 flex flex-col gap-2">
-                            <Badge 
+                            <Badge
                               variant={order.paymentStatus === 'PAID' ? 'default' : 'outline'}
                               className="w-fit"
                             >
                               {getPaymentStatusText(order.paymentStatus)}
                             </Badge>
-                            <Badge 
+                            <Badge
                               variant={getShipmentStatusVariant(order.shipmentStatus)}
                               className="w-fit"
                             >
