@@ -135,7 +135,7 @@ const MyPage = () => {
   const getPaymentStatusText = (status: string) =>{
     const statusMap: { [key: string]: string } = {
       'PENDING': '결제 대기',
-      'PAID': '결제 완료',
+      'APPROVED': '결제 완료',
       'UNPAID': '결제 실패',
       'REFUNDED': '환불 완료'
     };

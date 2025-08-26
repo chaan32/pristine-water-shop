@@ -90,13 +90,13 @@ const Header = () => {
     
     switch (role) {
       case 'ADMIN':
-        return { name: '관리자', subInfo: name };
+        return { name: 'ADMIN', subInfo: "관리자" };
       case 'HEADQUARTERS':
-        return { name: '본사', subInfo: name };
+        return { name: name, subInfo: "법인본사" };
       case 'BRANCH':
         return { name: '지사', subInfo: name };
       default:
-        return { name, subInfo: name };
+        return { name, subInfo: "개인회원" };
     }
   };
 
