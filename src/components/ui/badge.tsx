@@ -15,23 +15,25 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         approved:
-          "border-transparent bg-green-500 text-white hover:bg-green-600",
+          "border-transparent bg-status-answered text-status-answered-foreground hover:bg-status-answered/90 transition-smooth",
         pending:
-          "border-transparent bg-status-pending text-status-pending-foreground hover:bg-status-pending/90",
+          "border-transparent bg-status-pending text-status-pending-foreground hover:bg-status-pending/90 transition-smooth",
         answered:
-          "border-transparent bg-status-answered text-status-answered-foreground hover:bg-status-answered/90",
+          "border-transparent bg-status-answered text-status-answered-foreground hover:bg-status-answered/90 transition-smooth",
         paid:
-          "border-transparent bg-accent text-accent-foreground hover:bg-accent/90",
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/90 transition-smooth water-shadow",
+        unpaid:
+          "border-transparent bg-warning text-warning-foreground hover:bg-warning/90 transition-smooth",
         failed:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-smooth",
         shipped:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
+          "border-transparent bg-accent text-accent-foreground hover:bg-accent/90 transition-smooth clean-shadow",
         delivered:
-          "border-transparent bg-accent text-accent-foreground hover:bg-accent/90",
+          "border-transparent bg-status-answered text-status-answered-foreground hover:bg-status-answered/90 transition-smooth",
         cancelled:
-          "border-transparent bg-muted text-muted-foreground hover:bg-muted/90",
+          "border-transparent bg-muted text-muted-foreground hover:bg-muted/90 transition-smooth",
         preparing:
-          "border-transparent bg-status-pending text-status-pending-foreground hover:bg-status-pending/90",
+          "border-transparent bg-accent-light text-foreground hover:bg-accent-light/90 transition-smooth",
         outline: "text-foreground border-border",
       },
     },

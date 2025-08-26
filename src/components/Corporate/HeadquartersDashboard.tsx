@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -106,6 +107,7 @@ const HeadquartersDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [paymentModal, setPaymentModal] = useState<{
     isOpen: boolean;
     orderNumber: string;
@@ -221,7 +223,7 @@ const HeadquartersDashboard = () => {
       'APPROVED': 'paid' as const,
       'PAID': 'paid' as const,
       'FAILED': 'failed' as const,
-      'UNPAID': 'pending' as const
+      'UNPAID': 'unpaid' as const
     };
     return variants[status as keyof typeof variants] || 'outline' as const;
   };
@@ -235,6 +237,36 @@ const HeadquartersDashboard = () => {
       'CANCELLED': 'cancelled' as const
     };
     return variants[status as keyof typeof variants] || 'outline' as const;
+  };
+
+  // 선택된 주문들의 요약 정보 계산
+  const selectedOrdersSummary = useMemo(() => {
+    const selectedGroups = groupedData.filter(group => selectedOrders.has(group.items[0].orderNumber));
+    const totalCount = selectedGroups.length;
+    const totalAmount = selectedGroups.reduce((sum, group) => sum + group.totalAmount, 0);
+    return { totalCount, totalAmount };
+  }, [groupedData, selectedOrders]);
+
+  // 체크박스 상태 관리
+  const handleSelectOrder = (orderNumber: string) => {
+    setSelectedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderNumber)) {
+        newSet.delete(orderNumber);
+      } else {
+        newSet.add(orderNumber);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    const unpaidOrders = groupedData.filter(group => group.items[0].paymentStatus === 'UNPAID');
+    if (selectedOrders.size === unpaidOrders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(unpaidOrders.map(group => group.items[0].orderNumber)));
+    }
   };
 
   const handlePaymentClick = (group: { items: FlattenedDataItem[], totalAmount: number, totalQuantity: number, shipmentFee: number }) => {
@@ -348,10 +380,51 @@ const HeadquartersDashboard = () => {
               </TabsList>
             </Tabs>
 
+            {/* 선택된 주문 요약 정보 */}
+            {selectedOrders.size > 0 && (
+              <Card className="mb-4 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-5 h-5 text-primary" />
+                        <span className="font-semibold text-foreground">선택된 주문</span>
+                      </div>
+                      <Badge variant="secondary" className="text-sm">
+                        {selectedOrdersSummary.totalCount}건
+                      </Badge>
+                      <div className="text-lg font-bold text-primary">
+                        {selectedOrdersSummary.totalAmount.toLocaleString()}원
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        const selectedGroups = groupedData.filter(group => selectedOrders.has(group.items[0].orderNumber));
+                        if (selectedGroups.length > 0) {
+                          handlePaymentClick(selectedGroups[0]); // 임시로 첫 번째 그룹 사용
+                        }
+                      }}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground transition-smooth water-shadow"
+                      disabled={selectedOrders.size === 0}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      선택 주문 결제하기
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedOrders.size > 0 && selectedOrders.size === groupedData.filter(group => group.items[0].paymentStatus === 'UNPAID').length}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="모든 미결제 주문 선택"
+                    />
+                  </TableHead>
                   <TableHead>주문번호</TableHead>
                   <TableHead>지점명</TableHead>
                   <TableHead>주문일</TableHead>
@@ -371,8 +444,26 @@ const HeadquartersDashboard = () => {
                       return (
                           <Fragment key={firstItem.orderNumber}>
                             {/* Main Group Row */}
-                            <TableRow className="bg-slate-50 hover:bg-slate-100 cursor-pointer border-l-4 border-slate-200" onClick={() => handleToggleOrder(firstItem.orderNumber)}>
-                              <TableCell><div className="flex items-center justify-center">{isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div></TableCell>
+                            <TableRow className={`hover:bg-secondary/50 cursor-pointer border-l-4 transition-smooth ${
+                              selectedOrders.has(firstItem.orderNumber) 
+                                ? 'bg-primary/5 border-primary' 
+                                : firstItem.paymentStatus === 'UNPAID' 
+                                  ? 'bg-warning/5 border-warning/50' 
+                                  : 'bg-card border-border'
+                            }`} onClick={() => handleToggleOrder(firstItem.orderNumber)}>
+                              <TableCell>
+                                <div className="flex items-center justify-center gap-2">
+                                  {firstItem.paymentStatus === 'UNPAID' && (
+                                    <Checkbox
+                                      checked={selectedOrders.has(firstItem.orderNumber)}
+                                      onCheckedChange={() => handleSelectOrder(firstItem.orderNumber)}
+                                      onClick={(e) => e.stopPropagation()}
+                                      aria-label={`주문 ${firstItem.orderNumber} 선택`}
+                                    />
+                                  )}
+                                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                </div>
+                              </TableCell>
                               <TableCell className="font-medium">{firstItem.orderNumber}</TableCell>
                               <TableCell>{firstItem.branchName}</TableCell>
                               <TableCell>{new Date(firstItem.createdAt).toLocaleDateString('ko-KR')}</TableCell>
@@ -393,7 +484,7 @@ const HeadquartersDashboard = () => {
                                       e.stopPropagation();
                                       handlePaymentClick(group);
                                     }}
-                                    className="flex items-center gap-1"
+                                    className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground transition-smooth water-shadow"
                                   >
                                     <CreditCard className="w-3 h-3" />
                                     결제하기
