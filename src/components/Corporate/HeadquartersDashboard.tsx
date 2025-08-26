@@ -367,7 +367,7 @@ const HeadquartersDashboard = () => {
         orderId,
         amount,
         goodsName,
-        returnUrl: `http://localhost:8080/api/payments/return`,
+        returnUrl: `http://localhost:8080/api/payments/return/headquarters`,
         fnError: (result: any) => {
           console.error('결제 오류:', result);
           toast.error(result.errorMsg || result.msg || "결제 중 오류가 발생했습니다.");
