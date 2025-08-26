@@ -325,20 +325,7 @@ const HeadquartersDashboard = () => {
         throw new Error('주문 정보를 찾을 수 없습니다.');
       }
 
-      // 선택된 주문들의 orderId 목록 생성
-      const orderIds = orderNumbers
-        .map(num => dashboardData?.branchesData.find(o => o.orderNumber === num)?.orderId)
-        .filter((id): id is number => typeof id === 'number');
-
-      if (orderIds.length === 0) {
-        throw new Error('주문 정보를 찾을 수 없습니다.');
-      }
-
-      // 본사 결제 준비 API 호출: orderId 리스트 전달
-      const resp = await apiFetch(`/api/payments/prepare/headquarters`, { 
-        method: 'POST',
-        body: JSON.stringify({ orderId: orderIds })
-      });
+      const resp = await apiFetch(`/api/payments/prepare?orderId=${orderData.orderId}`, { method: 'POST' });
       if (!resp.ok) {
         const e = await resp.json().catch(() => ({}));
         throw new Error(e.message || '결제 준비에 실패했습니다.');
