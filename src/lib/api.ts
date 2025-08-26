@@ -356,12 +356,3 @@ export const passwordApi = {
 export const reviewApi = {
   createReview: (data: any) => apiFetch('/api/shop/products/review', { method: 'POST', body: JSON.stringify(data) }),
 };
-
-// Payment APIs
-export const paymentApi = {
-  prepareHeadquartersPayment: (orderIds: string[]) => 
-    apiFetch('/api/payments/prepare/headquarters', { 
-      method: 'POST', 
-      body: JSON.stringify({ orderIds }) 
-    }),
-};
