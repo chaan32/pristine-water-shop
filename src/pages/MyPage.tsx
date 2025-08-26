@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from '@/components/ui/pagination';
 import RefundExchangeForm from '@/components/Support/RefundExchangeForm';
 import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard';
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
@@ -213,7 +214,7 @@ const MyPage = () => {
   };
 
   const handleReviewSubmitted = () => {
-    fetchOrders();
+    fetchOrders(currentPage);
   };
 
   // 주소 검색 함수
@@ -482,6 +483,7 @@ const MyPage = () => {
                   <p className="text-muted-foreground">주문 내역이 없습니다.</p>
                 </div>
               ) : (
+                <>
                 <div className="space-y-3">
                   {orders.map((order) => (
                     <Card key={order.id} className="water-drop">
@@ -540,6 +542,47 @@ const MyPage = () => {
                     </Card>
                   ))}
                 </div>
+                {totalPages > 1 && (
+                  <div className="mt-6 flex justify-center">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage > 1) setCurrentPage(currentPage - 1);
+                            }}
+                          />
+                        </PaginationItem>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href="#"
+                              isActive={currentPage === page}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (page !== currentPage) setCurrentPage(page);
+                              }}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                            }}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
+                </>
               )}
             </TabsContent>
 
