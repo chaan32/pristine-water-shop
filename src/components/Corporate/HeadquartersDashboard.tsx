@@ -482,19 +482,7 @@ const HeadquartersDashboard = () => {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                {firstItem.paymentStatus === 'UNPAID' && (
-                                  <Button 
-                                    size="sm" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handlePaymentClick(group);
-                                    }}
-                                    className="flex items-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground transition-smooth water-shadow"
-                                  >
-                                    <CreditCard className="w-3 h-3" />
-                                    결제하기
-                                  </Button>
-                                )}
+                                {/* 개별 결제 버튼 제거 - 선택한 주문들만 결제 가능 */}
                               </TableCell>
                             </TableRow>
 
