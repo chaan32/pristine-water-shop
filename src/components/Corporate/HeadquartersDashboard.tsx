@@ -16,7 +16,7 @@ import {
 import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight, CreditCard } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import { toast } from 'sonner';
-import { apiFetch, getAccessToken } from '@/lib/api';
+import { apiFetch, getAccessToken, paymentApi } from '@/lib/api';
 
 declare global {
   interface Window {
@@ -318,51 +318,25 @@ const HeadquartersDashboard = () => {
       // 결제 모달을 닫고 결제 준비 API 호출
       setPaymentModal(prev => ({ ...prev, isOpen: false }));
       
-      // 첫 번째 주문 번호에서 실제 주문 ID 찾기 (임시로 첫 번째 주문 사용)
-      const firstOrderNumber = orderNumbers[0];
-      const orderData = dashboardData?.branchesData.find(order => order.orderNumber === firstOrderNumber);
-      if (!orderData) {
-        throw new Error('주문 정보를 찾을 수 없습니다.');
-      }
-
-      const resp = await apiFetch(`/api/payments/prepare?orderId=${orderData.orderId}`, { method: 'POST' });
-      if (!resp.ok) {
-        const e = await resp.json().catch(() => ({}));
-        throw new Error(e.message || '결제 준비에 실패했습니다.');
-      }
-      const { data } = await resp.json();
-
-      if (!window.AUTHNICE) {
-        throw new Error('결제 모듈이 로드되지 않았습니다.');
-      }
-
-      // 현재 결제 모달의 정보 사용
-      const currentModal = paymentModal;
-      const clientId = "R2_d5c2604ed6054467bc5a2a6344e34310";
-      const orderId = String(data?.orderId ?? orderData.orderId);
-      const amount = Number(100); // 테스트용 100원
-
-      const goodsName = orderNumbers.length > 1 
-        ? `${currentModal.orders[0].items[0].productName} 외 ${orderNumbers.length - 1}건 주문` 
-        : currentModal.orders[0]?.items.length > 1
-          ? `${currentModal.orders[0].items[0].productName} 외 ${currentModal.orders[0].items.length - 1}건`
-          : currentModal.orders[0]?.items[0]?.productName || '상품';
-
-      window.AUTHNICE.requestPay({
-        clientId,
-        method: 'card',
-        orderId,
-        amount,
-        goodsName,
-        returnUrl: `http://localhost:8080/api/payments/return`,
-        fnError: (result: any) => {
-          console.error('결제 오류:', result);
-          toast.error(result.errorMsg || result.msg || "결제 중 오류가 발생했습니다.");
+      // 결제 준비 API 호출
+      const response = await paymentApi.prepareHeadquartersPayment(orderNumbers);
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success('결제가 완료되었습니다.');
+        setSelectedOrders(new Set()); // 선택 초기화
+        
+        // 주문 목록 새로고침
+        const refreshResponse = await apiFetch('/api/users/orders/headquarters');
+        if (refreshResponse.ok) {
+          const refreshResult = await refreshResponse.json();
+          setDashboardData(refreshResult.data);
         }
-      });
-
+      } else {
+        throw new Error(result.message || '결제 처리 실패');
+      }
     } catch (error: any) {
-      console.error('결제 처리 중 오류:', error);
+      console.error('결제 오류:', error);
       toast.error(error.message || '결제 처리 중 오류가 발생했습니다.');
     }
   };
