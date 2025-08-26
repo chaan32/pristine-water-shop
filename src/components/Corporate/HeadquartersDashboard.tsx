@@ -110,18 +110,18 @@ const HeadquartersDashboard = () => {
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
   const [paymentModal, setPaymentModal] = useState<{
     isOpen: boolean;
-    orderNumber: string;
-    branchName: string;
-    items: { productName: string; quantity: number; price: number; }[];
+    orders: Array<{
+      orderNumber: string;
+      branchName: string;
+      items: { productName: string; quantity: number; price: number; }[];
+      totalAmount: number;
+      shipmentFee: number;
+    }>;
     totalAmount: number;
-    shipmentFee: number;
   }>({
     isOpen: false,
-    orderNumber: '',
-    branchName: '',
-    items: [],
+    orders: [],
     totalAmount: 0,
-    shipmentFee: 0,
   });
 
   useEffect(() => {
@@ -273,25 +273,54 @@ const HeadquartersDashboard = () => {
     const firstItem = group.items[0];
     setPaymentModal({
       isOpen: true,
-      orderNumber: firstItem.orderNumber,
-      branchName: firstItem.branchName,
-      items: group.items.map(item => ({
-        productName: item.productName,
-        quantity: item.quantity,
-        price: item.price,
-      })),
+      orders: [{
+        orderNumber: firstItem.orderNumber,
+        branchName: firstItem.branchName,
+        items: group.items.map(item => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        totalAmount: group.totalAmount,
+        shipmentFee: group.shipmentFee,
+      }],
       totalAmount: group.totalAmount,
-      shipmentFee: group.shipmentFee,
     });
   };
 
-  const handlePayment = async (orderNumber: string) => {
+  const handleSelectedOrdersPayment = (selectedGroups: Array<{ items: FlattenedDataItem[], totalAmount: number, totalQuantity: number, shipmentFee: number }>) => {
+    const orders = selectedGroups.map(group => {
+      const firstItem = group.items[0];
+      return {
+        orderNumber: firstItem.orderNumber,
+        branchName: firstItem.branchName,
+        items: group.items.map(item => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        totalAmount: group.totalAmount,
+        shipmentFee: group.shipmentFee,
+      };
+    });
+
+    const totalAmount = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+    setPaymentModal({
+      isOpen: true,
+      orders,
+      totalAmount,
+    });
+  };
+
+  const handlePayment = async (orderNumbers: string[]) => {
     try {
       // 결제 모달을 닫고 결제 준비 API 호출
       setPaymentModal(prev => ({ ...prev, isOpen: false }));
       
-      // 주문 번호에서 실제 주문 ID 찾기
-      const orderData = dashboardData?.branchesData.find(order => order.orderNumber === orderNumber);
+      // 첫 번째 주문 번호에서 실제 주문 ID 찾기 (임시로 첫 번째 주문 사용)
+      const firstOrderNumber = orderNumbers[0];
+      const orderData = dashboardData?.branchesData.find(order => order.orderNumber === firstOrderNumber);
       if (!orderData) {
         throw new Error('주문 정보를 찾을 수 없습니다.');
       }
@@ -313,14 +342,18 @@ const HeadquartersDashboard = () => {
       const orderId = String(data?.orderId ?? orderData.orderId);
       const amount = Number(100); // 테스트용 100원
 
+      const goodsName = orderNumbers.length > 1 
+        ? `${currentModal.orders[0].items[0].productName} 외 ${orderNumbers.length - 1}건 주문` 
+        : currentModal.orders[0]?.items.length > 1
+          ? `${currentModal.orders[0].items[0].productName} 외 ${currentModal.orders[0].items.length - 1}건`
+          : currentModal.orders[0]?.items[0]?.productName || '상품';
+
       window.AUTHNICE.requestPay({
         clientId,
         method: 'card',
         orderId,
         amount,
-        goodsName: currentModal.items.length > 1 
-          ? `${currentModal.items[0].productName} 외 ${currentModal.items.length - 1}건` 
-          : currentModal.items[0].productName,
+        goodsName,
         returnUrl: `http://localhost:8080/api/payments/return`,
         fnError: (result: any) => {
           console.error('결제 오류:', result);
@@ -380,41 +413,6 @@ const HeadquartersDashboard = () => {
               </TabsList>
             </Tabs>
 
-            {/* 선택된 주문 요약 정보 */}
-            {selectedOrders.size > 0 && (
-              <Card className="mb-4 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <CreditCard className="w-5 h-5 text-primary" />
-                        <span className="font-semibold text-foreground">선택된 주문</span>
-                      </div>
-                      <Badge variant="secondary" className="text-sm">
-                        {selectedOrdersSummary.totalCount}건
-                      </Badge>
-                      <div className="text-lg font-bold text-primary">
-                        {selectedOrdersSummary.totalAmount.toLocaleString()}원
-                      </div>
-                    </div>
-                    <Button 
-                      onClick={() => {
-                        const selectedGroups = groupedData.filter(group => selectedOrders.has(group.items[0].orderNumber));
-                        if (selectedGroups.length > 0) {
-                          handlePaymentClick(selectedGroups[0]); // 임시로 첫 번째 그룹 사용
-                        }
-                      }}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground transition-smooth water-shadow"
-                      disabled={selectedOrders.size === 0}
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      선택 주문 결제하기
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             <Table>
               <TableHeader>
                 <TableRow>
@@ -444,12 +442,12 @@ const HeadquartersDashboard = () => {
                       return (
                           <Fragment key={firstItem.orderNumber}>
                             {/* Main Group Row */}
-                            <TableRow className={`hover:bg-secondary/50 cursor-pointer border-l-4 transition-smooth ${
+                            <TableRow className={`hover:bg-secondary/30 cursor-pointer border-l-4 transition-smooth ${
                               selectedOrders.has(firstItem.orderNumber) 
-                                ? 'bg-primary/5 border-primary' 
+                                ? 'border-primary' 
                                 : firstItem.paymentStatus === 'UNPAID' 
-                                  ? 'bg-warning/5 border-warning/50' 
-                                  : 'bg-card border-border'
+                                  ? 'border-orange-200' 
+                                  : 'border-border'
                             }`} onClick={() => handleToggleOrder(firstItem.orderNumber)}>
                               <TableCell>
                                 <div className="flex items-center justify-center gap-2">
@@ -518,6 +516,41 @@ const HeadquartersDashboard = () => {
                 )}
               </TableBody>
             </Table>
+
+            {/* 선택된 주문 요약 정보 - 테이블 아래로 이동 */}
+            {selectedOrders.size > 0 && (
+              <Card className="mt-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-5 h-5 text-primary" />
+                        <span className="font-semibold text-foreground">선택된 주문</span>
+                      </div>
+                      <Badge variant="secondary" className="text-sm">
+                        {selectedOrdersSummary.totalCount}건
+                      </Badge>
+                      <div className="text-lg font-bold text-primary">
+                        {selectedOrdersSummary.totalAmount.toLocaleString()}원
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        const selectedGroups = groupedData.filter(group => selectedOrders.has(group.items[0].orderNumber));
+                        if (selectedGroups.length > 0) {
+                          handleSelectedOrdersPayment(selectedGroups);
+                        }
+                      }}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground transition-smooth water-shadow"
+                      disabled={selectedOrders.size === 0}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      선택 주문 결제하기
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </CardContent>
         </Card>
 
@@ -525,11 +558,8 @@ const HeadquartersDashboard = () => {
         <PaymentModal
           isOpen={paymentModal.isOpen}
           onClose={() => setPaymentModal(prev => ({ ...prev, isOpen: false }))}
-          orderNumber={paymentModal.orderNumber}
-          branchName={paymentModal.branchName}
-          items={paymentModal.items}
+          orders={paymentModal.orders}
           totalAmount={paymentModal.totalAmount}
-          shipmentFee={paymentModal.shipmentFee}
           onPayment={handlePayment}
         />
       </div>

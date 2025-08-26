@@ -12,25 +12,27 @@ interface PaymentItem {
   price: number;
 }
 
-interface PaymentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface PaymentOrder {
   orderNumber: string;
   branchName: string;
   items: PaymentItem[];
   totalAmount: number;
   shipmentFee: number;
-  onPayment: (orderNumber: string) => Promise<void>;
+}
+
+interface PaymentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  orders: PaymentOrder[];
+  totalAmount: number;
+  onPayment: (orderNumbers: string[]) => Promise<void>;
 }
 
 const PaymentModal = ({ 
   isOpen, 
   onClose, 
-  orderNumber, 
-  branchName, 
-  items, 
+  orders, 
   totalAmount,
-  shipmentFee,
   onPayment 
 }: PaymentModalProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,33 +40,9 @@ const PaymentModal = ({
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
-      
-      // 니스페이 결제창 호출
-      if (!window.AUTHNICE) {
-        throw new Error('결제 모듈이 로드되지 않았습니다.');
-      }
-
-      // 랜덤 주문 ID 생성 (실제로는 서버에서 받아와야 함)
-      const randomOrderId = Math.random().toString(16).substr(2, 8);
-
-      window.AUTHNICE.requestPay({
-        clientId: "YOUR_REAL_SANDBOX_CLIENT_ID", // 실제 샌드박스에서 발급받은 클라이언트키로 교체 필요
-        method: 'card',
-        orderId: randomOrderId,
-        amount: totalAmount,
-        goodsName: items.length > 1 ? `${items[0].productName} 외 ${items.length - 1}건` : items[0].productName,
-        returnUrl: window.location.hostname === 'localhost' 
-          ? 'https://51a5d1c26043.ngrok-free.app/api/payment/result'
-          : window.location.origin + '/api/payment/result',
-        fnError: (result: any) => {
-          console.error('결제 오류:', result);
-          throw new Error(result.msg || "결제 중 오류가 발생했습니다.");
-        }
-      });
-
+      await onPayment(orders.map(order => order.orderNumber));
     } catch (error: any) {
       console.error('결제 처리 중 오류:', error);
-      alert(`결제 오류: ${error.message}`);
     } finally {
       setIsProcessing(false);
     }
@@ -84,56 +62,57 @@ const PaymentModal = ({
           {/* 주문 정보 */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">주문 정보</CardTitle>
+              <CardTitle className="text-lg">선택된 주문 정보</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">주문번호</span>
-                <span className="font-medium">{orderNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">지점명</span>
-                <span className="font-medium">{branchName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">결제상태</span>
-                <Badge variant="pending">결제대기</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 주문 상품 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                주문 상품
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {items.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2">
-                    <div className="flex-1">
-                      <span className="font-medium">{item.productName}</span>
-                      <span className="text-muted-foreground ml-2">× {item.quantity}개</span>
+            <CardContent className="space-y-4">
+              {orders.map((order, index) => (
+                <div key={order.orderNumber} className="space-y-3">
+                  {index > 0 && <Separator />}
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">주문번호</span>
+                      <span className="font-medium">{order.orderNumber}</span>
                     </div>
-                    <span className="font-medium">{item.price.toLocaleString()}원</span>
-                  </div>
-                ))}
-                {shipmentFee > 0 && (
-                  <div className="flex justify-between items-center py-2">
-                    <div className="flex-1">
-                      <span className="font-medium">배송비</span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">지점명</span>
+                      <span className="font-medium">{order.branchName}</span>
                     </div>
-                    <span className="font-medium">{shipmentFee.toLocaleString()}원</span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">결제상태</span>
+                      <Badge variant="unpaid">미결제</Badge>
+                    </div>
                   </div>
-                )}
-                <Separator />
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-lg font-semibold">총 결제금액</span>
-                  <span className="text-lg font-bold text-primary">{totalAmount.toLocaleString()}원</span>
+                  
+                  {/* 해당 주문의 상품들 */}
+                  <div className="ml-4 space-y-2 border-l-2 border-primary/20 pl-4">
+                    <div className="font-medium text-sm text-primary">주문 상품</div>
+                    {order.items.map((item, itemIndex) => (
+                      <div key={itemIndex} className="flex justify-between items-center py-1 text-sm">
+                        <div className="flex-1">
+                          <span className="font-medium">{item.productName}</span>
+                          <span className="text-muted-foreground ml-2">× {item.quantity}개</span>
+                        </div>
+                        <span className="font-medium">{item.price.toLocaleString()}원</span>
+                      </div>
+                    ))}
+                    {order.shipmentFee > 0 && (
+                      <div className="flex justify-between items-center py-1 text-sm">
+                        <span className="font-medium">배송비</span>
+                        <span className="font-medium">{order.shipmentFee.toLocaleString()}원</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-1 border-t">
+                      <span className="font-semibold text-sm">주문 소계</span>
+                      <span className="font-bold text-sm text-primary">{order.totalAmount.toLocaleString()}원</span>
+                    </div>
+                  </div>
                 </div>
+              ))}
+              
+              <Separator className="my-4" />
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-lg font-semibold">총 결제금액</span>
+                <span className="text-xl font-bold text-primary">{totalAmount.toLocaleString()}원</span>
               </div>
             </CardContent>
           </Card>
