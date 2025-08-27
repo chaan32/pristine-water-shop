@@ -3,8 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Package } from 'lucide-react';
+import { CreditCard, Package, Banknote } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 interface PaymentItem {
   productName: string;
@@ -25,7 +27,7 @@ interface PaymentModalProps {
   onClose: () => void;
   orders: PaymentOrder[];
   totalAmount: number;
-  onPayment: (orderNumbers: string[]) => Promise<void>;
+  onPayment: (orderNumbers: string[], paymethod: 'card' | 'bank') => Promise<void>;
 }
 
 const PaymentModal = ({ 
@@ -36,11 +38,12 @@ const PaymentModal = ({
   onPayment 
 }: PaymentModalProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymethod, setPaymethod] = useState<'card' | 'bank'>('card');
 
   const handlePayment = async () => {
     try {
       setIsProcessing(true);
-      await onPayment(orders.map(order => order.orderNumber));
+      await onPayment(orders.map(order => order.orderNumber), paymethod);
     } catch (error: any) {
       console.error('결제 처리 중 오류:', error);
     } finally {
@@ -116,6 +119,34 @@ const PaymentModal = ({
               </div>
             </CardContent>
           </Card>
+          {/* 결제 방법 선택 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">결제 방법 선택</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup value={paymethod} onValueChange={(value) => setPaymethod(value as 'card' | 'bank')} className="grid grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50" onClick={() => setPaymethod('card')}>
+                  <RadioGroupItem value="card" id="card" />
+                  <Label htmlFor="card" className="flex-1 cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-primary" />
+                      <span className="font-medium">신용카드</span>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50" onClick={() => setPaymethod('bank')}>
+                  <RadioGroupItem value="bank" id="bank" />
+                  <Label htmlFor="bank" className="flex-1 cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Banknote className="w-5 h-5 text-primary" />
+                      <span className="font-medium">계좌이체</span>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </CardContent>
+          </Card>
         </div>
 
         {/* 고정 하단 결제 버튼 */}
@@ -134,7 +165,10 @@ const PaymentModal = ({
                 처리중...
               </div>
             ) : (
-              `${totalAmount.toLocaleString()}원 결제하기`
+              <div className="flex items-center gap-2">
+                {paymethod === 'card' ? <CreditCard className="w-4 h-4" /> : <Banknote className="w-4 h-4" />}
+                {`${totalAmount.toLocaleString()}원 결제하기`}
+              </div>
             )}
           </Button>
         </div>

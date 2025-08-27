@@ -313,7 +313,7 @@ const HeadquartersDashboard = () => {
     });
   };
 
-  const handlePayment = async (orderNumbers: string[]) => {
+  const handlePayment = async (orderNumbers: string[], paymethod: 'card' | 'bank') => {
     try {
       // 결제 모달을 닫고 결제 준비 API 호출
       setPaymentModal(prev => ({ ...prev, isOpen: false }));
@@ -334,10 +334,10 @@ const HeadquartersDashboard = () => {
         throw new Error('주문 정보를 찾을 수 없습니다.');
       }
 
-      // 본사 결제 준비 API 호출: orderId 리스트 전달
+      // 본사 결제 준비 API 호출: orderId 리스트와 paymethod 전달
       const resp = await apiFetch(`/api/payments/prepare/headquarters`, { 
         method: 'POST',
-        body: JSON.stringify({ orderId: orderIds })
+        body: JSON.stringify({ orderId: orderIds, paymethod })
       });
       if (!resp.ok) {
         const e = await resp.json().catch(() => ({}));
@@ -363,7 +363,7 @@ const HeadquartersDashboard = () => {
 
       window.AUTHNICE.requestPay({
         clientId,
-        method: 'card',
+        method: paymethod,
         orderId,
         amount,
         goodsName,
