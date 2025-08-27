@@ -24,7 +24,9 @@ const Shop = () => {
   // 사용자 type 정보 가져오기
   useEffect(() => {
     const userInfo = getUserInfo();
-    setUserType(userInfo?.role); // null이면 비로그인 상태
+    const normalized = typeof userInfo?.role === 'string' ? userInfo.role.toLowerCase() : null;
+    setUserType(normalized); // null이면 비로그인 상태
+    console.log('Shop userType (normalized):', normalized);
   }, []);
 
   // 상품 데이터 가져오기

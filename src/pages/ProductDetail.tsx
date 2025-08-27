@@ -89,11 +89,12 @@ const ProductDetail = () => {
 
 
   const userInfo = getUserInfo();
-  const userType = userInfo?.role; // null이면 비로그인
+  const rawRole = userInfo?.role;
+  const userRole = typeof rawRole === 'string' ? rawRole.toLowerCase() : undefined; // null이면 비로그인
   
   // 디버깅용 콘솔 로그
   console.log('UserInfo:', userInfo);
-  console.log('UserType:', userType);
+  console.log('UserRole (normalized):', userRole);
 
   // 상세 데이터 로드 - DTO 기반
   useEffect(() => {
@@ -203,7 +204,7 @@ const ProductDetail = () => {
 
   // 가격 섹션 (요청 규칙 정확히 반영)
   const PriceSection = ({ p }: { p: ProductDetailDTO }) => {
-    if (userType === 'admin') {
+    if (userRole === 'admin') {
       return (
           <div className="space-y-1 mb-6">
             <div className="flex items-center gap-2">
@@ -218,7 +219,7 @@ const ProductDetail = () => {
       );
     }
 
-    if (userType === 'headquarters' || userType === 'branch') {
+    if (userRole === 'headquarters' || userRole === 'branch') {
       return (
           <div className="flex items-center gap-2 mb-6">
             <span className="text-3xl font-bold text-primary">{formatCurrency(p.businessPrice)}</span>
@@ -239,9 +240,9 @@ const ProductDetail = () => {
   // 장바구니 (기존 로직 유지, 표시 가격만 변경)
   const currentDisplayPrice = (p: ProductDetailDTO | null) => {
     if (!p) return 0;
-    if (!userType) return p.customerPrice;
-    if (userType === 'headquarters' || userType === 'branch') return p.businessPrice;
-    if (userType === 'individual') return p.customerPrice;
+    if (!userRole) return p.customerPrice;
+    if (userRole === 'headquarters' || userRole === 'branch') return p.businessPrice;
+    if (userRole === 'individual') return p.customerPrice;
     // admin은 대표가로 customerPrice 기준으로 담음 (요청에 명시 없으므로 단순화)
     return p.customerPrice;
   };
