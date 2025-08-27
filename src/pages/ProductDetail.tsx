@@ -90,6 +90,10 @@ const ProductDetail = () => {
 
   const userInfo = getUserInfo();
   const userType = userInfo?.role; // null이면 비로그인
+  
+  // 디버깅용 콘솔 로그
+  console.log('UserInfo:', userInfo);
+  console.log('UserType:', userType);
 
   // 상세 데이터 로드 - DTO 기반
   useEffect(() => {
