@@ -64,40 +64,68 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
 
     setIsLoading(true);
     
-    // API 호출하지만 응답을 기다리지 않고 바로 발송완료 처리
-    authApi.sendAuthMail(email).catch(error => {
+    try {
+      const response = await authApi.sendAuthMail(email);
+      
+      if (response.ok) {
+        setIsCodeSent(true);
+        setTimeLeft(600); // 10분 설정
+        toast({
+          title: "인증번호 발송",
+          description: "입력하신 이메일로 인증번호를 발송했습니다.",
+          variant: "default"
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "발송 실패",
+          description: errorData.message || "이메일 발송에 실패했습니다.",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
       console.error('Auth code send error:', error);
-    });
-
-    // 바로 발송완료 처리
-    setIsCodeSent(true);
-    setTimeLeft(600); // 10분 설정
-    setIsLoading(false);
-    
-    toast({
-      title: "인증번호 발송",
-      description: "입력하신 이메일로 인증번호를 발송했습니다.",
-      variant: "default"
-    });
+      toast({
+        title: "발송 실패",
+        description: error.message || "이메일 발송 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resendAuthCode = async () => {
     setIsResending(true);
     
-    // API 호출하지만 응답을 기다리지 않고 바로 재발송완료 처리
-    authApi.sendAuthMail(email).catch(error => {
+    try {
+      const response = await authApi.sendAuthMail(email);
+      
+      if (response.ok) {
+        setTimeLeft(600);
+        toast({
+          title: "인증번호 재발송",
+          description: "새로운 인증번호를 발송했습니다.",
+          variant: "default"
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "재발송 실패",
+          description: errorData.message || "이메일 재발송에 실패했습니다.",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
       console.error('Resend error:', error);
-    });
-
-    // 바로 재발송완료 처리
-    setTimeLeft(600); // 10분으로 다시 설정
-    setIsResending(false);
-    
-    toast({
-      title: "인증번호 재발송",
-      description: "새로운 인증번호를 발송했습니다.",
-      variant: "default"
-    });
+      toast({
+        title: "재발송 실패",
+        description: error.message || "이메일 재발송 중 오류가 발생했습니다.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResending(false);
+    }
   };
 
   const formatTime = (seconds: number) => {
