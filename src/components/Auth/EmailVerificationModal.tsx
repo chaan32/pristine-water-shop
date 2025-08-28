@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { authApi } from '@/lib/api';
-import { Mail, CheckCircle } from 'lucide-react';
+import { Mail, RefreshCw, Clock } from 'lucide-react';
 
 interface EmailVerificationModalProps {
   isOpen: boolean;
@@ -29,17 +24,25 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0); // 남은 시간 (초)
-  const [isResending, setIsResending] = useState(false);
-
-  // 타이머 관리
+  const [countdown, setCountdown] = useState(300); // 5분 = 300초
+  
+  // 카운트다운 타이머
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (timeLeft > 0) {
-      timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+    if (isCodeSent && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setIsCodeSent(false);
+      toast({
+        title: "인증 시간 만료",
+        description: "인증번호가 만료되었습니다. 다시 전송해주세요.",
+        variant: "destructive",
+      });
     }
     return () => clearTimeout(timer);
-  }, [timeLeft]);
+  }, [isCodeSent, countdown, toast]);
 
   const sendAuthCode = async () => {
     if (!email.trim()) {
@@ -69,11 +72,10 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
       
       if (response.ok) {
         setIsCodeSent(true);
-        setTimeLeft(600); // 10분 설정
+        setCountdown(300);
         toast({
-          title: "인증번호 발송",
-          description: "입력하신 이메일로 인증번호를 발송했습니다.",
-          variant: "default"
+          title: "인증 메일 발송",
+          description: "이메일로 인증번호가 발송되었습니다.",
         });
       } else {
         const errorData = await response.json();
@@ -96,42 +98,9 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
   };
 
   const resendAuthCode = async () => {
-    setIsResending(true);
-    
-    try {
-      const response = await authApi.sendAuthMail(email);
-      
-      if (response.ok) {
-        setTimeLeft(600);
-        toast({
-          title: "인증번호 재발송",
-          description: "새로운 인증번호를 발송했습니다.",
-          variant: "default"
-        });
-      } else {
-        const errorData = await response.json();
-        toast({
-          title: "재발송 실패",
-          description: errorData.message || "이메일 재발송에 실패했습니다.",
-          variant: "destructive"
-        });
-      }
-    } catch (error: any) {
-      console.error('Resend error:', error);
-      toast({
-        title: "재발송 실패",
-        description: error.message || "이메일 재발송 중 오류가 발생했습니다.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    setCountdown(0);
+    setIsCodeSent(false);
+    await sendAuthCode();
   };
 
   const verifyAuthCode = async () => {
@@ -176,14 +145,20 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
     }
   };
 
+  // 시간 포맷팅 (MM:SS)
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   const handleClose = () => {
     setEmail('');
     setVerifyCode('');
     setIsCodeSent(false);
+    setCountdown(300);
     setIsLoading(false);
     setIsVerifying(false);
-    setTimeLeft(0); // 타이머 리셋
-    setIsResending(false);
     onClose();
   };
 
@@ -212,62 +187,66 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
               />
               <Button
                 type="button"
-                variant="outline"
                 onClick={sendAuthCode}
                 disabled={isLoading || isCodeSent}
                 className="whitespace-nowrap"
               >
-                {isLoading ? "발송 중..." : isCodeSent ? "발송 완료" : "인증하기"}
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                    발송중
+                  </>
+                ) : (
+                  '인증번호 전송'
+                )}
               </Button>
             </div>
           </div>
 
           {isCodeSent && (
-            <div className="space-y-2">
-              <Label htmlFor="verifyCode">인증번호</Label>
-              <div className="flex gap-2">
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="verifyCode" className="flex items-center gap-2">
+                  인증번호
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {formatTime(countdown)}
+                  </span>
+                </Label>
                 <Input
                   id="verifyCode"
                   type="text"
-                  placeholder="인증번호 20자리"
+                  placeholder="인증번호 20자리 입력"
                   value={verifyCode}
                   onChange={(e) => setVerifyCode(e.target.value)}
                   maxLength={20}
-                  className="flex-1"
                 />
+              </div>
+
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={resendAuthCode}
+                  className="flex-1"
+                >
+                  재전송
+                </Button>
                 <Button
-                  type="button"
                   onClick={verifyAuthCode}
                   disabled={isVerifying || !verifyCode.trim()}
-                  className="whitespace-nowrap"
+                  className="flex-1"
                 >
-                  {isVerifying ? "인증 중..." : "인증"}
+                  {isVerifying ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                      확인중
+                    </>
+                  ) : (
+                    '인증 확인'
+                  )}
                 </Button>
               </div>
-              
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">남은 시간:</span>
-                  <span className={`font-mono ${timeLeft <= 60 ? 'text-destructive' : 'text-primary'}`}>
-                    {formatTime(timeLeft)}
-                  </span>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={resendAuthCode}
-                  disabled={isResending}
-                  className="h-auto p-1 text-sm"
-                >
-                  {isResending ? "재발송 중..." : "재발송"}
-                </Button>
-              </div>
-              
-              <p className="text-sm text-muted-foreground">
-                이메일로 발송된 인증번호를 입력해주세요.
-              </p>
-            </div>
+            </>
           )}
         </div>
       </DialogContent>

@@ -19,7 +19,9 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   onVerificationSuccess,
 }) => {
   const { toast } = useToast();
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phonePart1, setPhonePart1] = useState('');
+  const [phonePart2, setPhonePart2] = useState('');
+  const [phonePart3, setPhonePart3] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +48,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
   // 인증번호 전송
   const sendAuthCode = async () => {
-    if (!phoneNumber) {
+    if (!phonePart1 || !phonePart2 || !phonePart3) {
       toast({
         title: "전화번호를 입력해주세요",
         variant: "destructive",
@@ -54,8 +56,8 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       return;
     }
 
-    // 전화번호 형식 검증 (하이픈 제거)
-    const cleanPhone = phoneNumber.replace(/-/g, '');
+    // 전화번호 형식 검증
+    const cleanPhone = `${phonePart1}${phonePart2}${phonePart3}`;
     if (!/^01[0-9]{8,9}$/.test(cleanPhone)) {
       toast({
         title: "올바른 전화번호 형식이 아닙니다",
@@ -114,7 +116,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
     setIsVerifying(true);
     try {
-      const cleanPhone = phoneNumber.replace(/-/g, '');
+      const cleanPhone = `${phonePart1}${phonePart2}${phonePart3}`;
       console.log('전송할 데이터:', { phone: cleanPhone, verifyCode: verificationCode });
       const response = await authApi.verifyAuthPhone(cleanPhone, verificationCode);
 
@@ -153,7 +155,9 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
   // 모달 닫기 및 초기화
   const handleClose = () => {
-    setPhoneNumber('');
+    setPhonePart1('');
+    setPhonePart2('');
+    setPhonePart3('');
     setVerificationCode('');
     setIsCodeSent(false);
     setCountdown(300);
@@ -175,17 +179,54 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         <div className="space-y-4">
           {/* 휴대폰 번호 입력 */}
           <div className="space-y-2">
-            <Label htmlFor="phone">휴대폰 번호</Label>
-            <div className="flex gap-2">
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="010-1234-5678"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                disabled={isCodeSent}
-                className="flex-1"
-              />
+            <Label>휴대폰 번호</Label>
+            <div className="flex gap-2 items-center">
+              <div className="flex gap-1 flex-1">
+                <Input
+                  type="tel"
+                  placeholder="010"
+                  value={phonePart1}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (value.length <= 3) {
+                      setPhonePart1(value);
+                    }
+                  }}
+                  disabled={isCodeSent}
+                  className="w-16"
+                  maxLength={3}
+                />
+                <span className="text-muted-foreground">-</span>
+                <Input
+                  type="tel"
+                  placeholder="1234"
+                  value={phonePart2}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (value.length <= 4) {
+                      setPhonePart2(value);
+                    }
+                  }}
+                  disabled={isCodeSent}
+                  className="w-20"
+                  maxLength={4}
+                />
+                <span className="text-muted-foreground">-</span>
+                <Input
+                  type="tel"
+                  placeholder="5678"
+                  value={phonePart3}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (value.length <= 4) {
+                      setPhonePart3(value);
+                    }
+                  }}
+                  disabled={isCodeSent}
+                  className="w-20"
+                  maxLength={4}
+                />
+              </div>
               <Button 
                 onClick={sendAuthCode}
                 disabled={isLoading || isCodeSent}
