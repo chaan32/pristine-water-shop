@@ -15,6 +15,7 @@ import { UserPlus, Building, User, Check, X, Upload, Search, Mail } from 'lucide
 import { useToast } from '@/hooks/use-toast';
 import { authApi, registerApi } from '@/lib/api';
 import EmailVerificationModal from '@/components/Auth/EmailVerificationModal';
+import PhoneVerificationModal from '@/components/Auth/PhoneVerificationModal';
 
 interface Headquarters {
     id: string;
@@ -41,9 +42,7 @@ const Register = () => {
     address: '',
     detailAddress: '',
     postalCode: '',
-    phone1: '',
-    phone2: '',
-    phone3: '',
+    phone: '',
     isPhoneVerified: false,
     isEmailVerified: false
   });
@@ -66,9 +65,7 @@ const Register = () => {
     address: '',
     detailAddress: '',
     postalCode: '',
-    phone1: '',
-    phone2: '',
-    phone3: '',
+    phone: '', // 본사용 회사전화번호 (인증 없음)
     isPhoneVerified: false,
     isEmailVerified: false,
     // 프랜차이즈 지점 회원 전용 필드
@@ -76,7 +73,7 @@ const Register = () => {
     branchName: '',
     headquartersId: '',  // 본사 ID
     managerName: '',     // 매니저 이름
-    managerPhone: ''     // 매니저 연락처
+    managerPhone: ''     // 매니저 연락처 (인증 필요)
   });
   // 본사 검색 모달 상태
   const [isHeadquartersModalOpen, setIsHeadquartersModalOpen] = useState(false);
@@ -87,6 +84,10 @@ const Register = () => {
   // 이메일 인증 모달 상태
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [currentEmailType, setCurrentEmailType] = useState<'individual' | 'corporate'>('individual');
+  
+  // 핸드폰 인증 모달 상태
+  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
+  const [currentPhoneType, setCurrentPhoneType] = useState<'individual' | 'franchise'>('individual');
   // 검색어가 변경될 때마다 API를 호출 (디바운싱 적용)
   useEffect(() => {
     // 검색어가 비어있으면 목록을 비움
@@ -106,33 +107,18 @@ const Register = () => {
 
 
 
-  // 휴대폰 인증 함수
-  const handlePhoneVerification = (type: 'individual' | 'corporate') => {
-    const phone = type === 'individual' ? `${individualForm.phone1}-${individualForm.phone2}-${individualForm.phone3}` : `${corporateForm.phone1}-${corporateForm.phone2}-${corporateForm.phone3}`;
-    
-    if (!phone.trim()) {
-      toast({
-        title: "오류",
-        description: "휴대폰 번호를 입력해주세요.",
-        variant: "destructive"
-      });
-      return;
+  // 핸드폰 인증 모달 관련 함수들
+  const handlePhoneVerificationClick = (type: 'individual' | 'franchise') => {
+    setCurrentPhoneType(type);
+    setIsPhoneModalOpen(true);
+  };
+
+  const handlePhoneVerificationSuccess = (phoneNumber: string) => {
+    if (currentPhoneType === 'individual') {
+      setIndividualForm(prev => ({ ...prev, phone: phoneNumber, isPhoneVerified: true }));
+    } else if (currentPhoneType === 'franchise') {
+      setCorporateForm(prev => ({ ...prev, managerPhone: phoneNumber, isPhoneVerified: true }));
     }
-    
-    // 임시 인증 처리 (실제로는 PASS API 호출)
-    setTimeout(() => {
-      if (type === 'individual') {
-        setIndividualForm(prev => ({ ...prev, isPhoneVerified: true }));
-      } else {
-        setCorporateForm(prev => ({ ...prev, isPhoneVerified: true }));
-      }
-      
-      toast({
-        title: "인증 완료",
-        description: "휴대폰 인증이 완료되었습니다.",
-        variant: "default"
-      });
-    }, 1000);
   };
 
   // 카카오 주소 검색 함수
@@ -178,12 +164,10 @@ const Register = () => {
     corporateForm.businessNumber2 &&
     corporateForm.businessNumber3 &&
     corporateForm.address &&
-    corporateForm.phone1 &&
-    corporateForm.phone2 &&
-    corporateForm.phone3 &&
+    (corporateForm.corporateType === 'headquarters' ? corporateForm.phone : true) && // 본사는 회사전화번호 필수
     corporateForm.businessRegistration && // 사업자등록증 필수
     // 프랜차이즈 지점 회원인 경우 추가 검증
-    (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName && corporateForm.managerName && corporateForm.managerPhone));
+    (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName && corporateForm.managerName && corporateForm.managerPhone && corporateForm.isPhoneVerified));
 
   const handleIdCheck = async (type: 'individual' | 'corporate') => {
     const id = type === 'individual' ? individualForm.id : corporateForm.id;
@@ -315,7 +299,7 @@ const Register = () => {
         password: individualForm.password,
         name: individualForm.name,
         email: individualForm.email,
-        phone: `${individualForm.phone1}-${individualForm.phone2}-${individualForm.phone3}`,
+        phone: individualForm.phone.replace(/-/g, ''), // 하이픈 제거
         address: individualForm.address,
         detailAddress: individualForm.detailAddress,
         postalCode: individualForm.postalCode,
@@ -351,7 +335,7 @@ const Register = () => {
         companyName: corporateForm.companyName,
         businessNumber: `${corporateForm.businessNumber1}-${corporateForm.businessNumber2}-${corporateForm.businessNumber3}`,
         businessType: corporateForm.businessType,
-        phone: `${corporateForm.phone1}-${corporateForm.phone2}-${corporateForm.phone3}`,
+        phone: corporateForm.corporateType === 'headquarters' ? corporateForm.phone.replace(/-/g, '') : '', // 본사만 회사전화번호
         address: corporateForm.address,
         detailAddress: corporateForm.detailAddress,
         postalCode: corporateForm.postalCode,
@@ -590,41 +574,22 @@ const Register = () => {
                     <Label>휴대폰 번호 (필수)</Label>
                     <div className="flex gap-2">
                       <Input 
-                        placeholder="010"
-                        maxLength={3}
-                        value={individualForm.phone1}
-                        onChange={(e) => setIndividualForm(prev => ({ ...prev, phone1: e.target.value }))}
+                        placeholder="010-1234-5678"
+                        value={individualForm.phone}
+                        readOnly
                         disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
                         className="flex-1"
                       />
-                      <span className="flex items-center">-</span>
-                      <Input 
-                        placeholder="0000"
-                        maxLength={4}
-                        value={individualForm.phone2}
-                        onChange={(e) => setIndividualForm(prev => ({ ...prev, phone2: e.target.value }))}
-                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                        className="flex-1"
-                      />
-                      <span className="flex items-center">-</span>
-                      <Input 
-                        placeholder="0000"
-                        maxLength={4}
-                        value={individualForm.phone3}
-                        onChange={(e) => setIndividualForm(prev => ({ ...prev, phone3: e.target.value }))}
-                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                        className="flex-1"
-                      />
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        onClick={() => handlePhoneVerificationClick('individual')}
+                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable || individualForm.isPhoneVerified}
+                        className="whitespace-nowrap"
+                      >
+                        {individualForm.isPhoneVerified ? '인증완료' : '휴대폰 인증'}
+                      </Button>
                     </div>
-                    <Button 
-                      type="button"
-                      variant="outline"
-                      onClick={() => handlePhoneVerification('individual')}
-                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable || individualForm.isPhoneVerified}
-                      className="w-full"
-                    >
-                      {individualForm.isPhoneVerified ? '인증완료' : '휴대폰 인증'}
-                    </Button>
                     {individualForm.isPhoneVerified && (
                       <div className="flex items-center gap-2 text-sm">
                         <Check className="w-4 h-4 text-green-600" />
@@ -1008,38 +973,48 @@ const Register = () => {
                     )}
                   </div>
 
-                  {/* 회사 전화번호 */}
-                  <div className="space-y-2">
-                    <Label>회사 전화번호 (필수)</Label>
-                    <div className="flex gap-2">
+                  {/* 전화번호 - 본사는 회사전화번호, 지점은 매니저 핸드폰 */}
+                  {corporateForm.corporateType === 'headquarters' ? (
+                    // 본사: 회사 전화번호 (인증 없음)
+                    <div className="space-y-2">
+                      <Label>회사 전화번호 (필수)</Label>
                       <Input 
-                        placeholder="010"
-                        maxLength={3}
-                        value={corporateForm.phone1}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone1: e.target.value }))}
+                        placeholder="02-1234-5678"
+                        value={corporateForm.phone}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone: e.target.value }))}
                         disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                        className="flex-1"
-                      />
-                      <span className="flex items-center">-</span>
-                      <Input 
-                        placeholder="0000"
-                        maxLength={4}
-                        value={corporateForm.phone2}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone2: e.target.value }))}
-                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                        className="flex-1"
-                      />
-                      <span className="flex items-center">-</span>
-                      <Input 
-                        placeholder="0000"
-                        maxLength={4}
-                        value={corporateForm.phone3}
-                        onChange={(e) => setCorporateForm(prev => ({ ...prev, phone3: e.target.value }))}
-                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                        className="flex-1"
                       />
                     </div>
-                  </div>
+                  ) : corporateForm.corporateType === 'franchise' ? (
+                    // 지점: 매니저 핸드폰 번호 (인증 필요)
+                    <div className="space-y-4">
+                      <Label>매니저 핸드폰 번호 (필수)</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="010-1234-5678"
+                          value={corporateForm.managerPhone}
+                          readOnly
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="flex-1"
+                        />
+                        <Button 
+                          type="button"
+                          variant="outline"
+                          onClick={() => handlePhoneVerificationClick('franchise')}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable || corporateForm.isPhoneVerified}
+                          className="whitespace-nowrap"
+                        >
+                          {corporateForm.isPhoneVerified ? '인증완료' : '핸드폰 인증'}
+                        </Button>
+                      </div>
+                      {corporateForm.isPhoneVerified && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Check className="w-4 h-4 text-green-600" />
+                          <span className="text-green-600">핸드폰 인증이 완료되었습니다.</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
                   
                   {/* 주소 입력 */}
                   <div className="space-y-4">
@@ -1158,6 +1133,13 @@ const Register = () => {
         isOpen={isEmailModalOpen}
         onClose={() => setIsEmailModalOpen(false)}
         onVerificationSuccess={handleEmailVerificationSuccess}
+      />
+      
+      {/* 핸드폰 인증 모달 */}
+      <PhoneVerificationModal
+        isOpen={isPhoneModalOpen}
+        onClose={() => setIsPhoneModalOpen(false)}
+        onVerificationSuccess={handlePhoneVerificationSuccess}
       />
     </div>
   );
