@@ -73,7 +73,11 @@ const Register = () => {
     branchName: '',
     headquartersId: '',  // 본사 ID
     managerName: '',     // 매니저 이름
-    managerPhone: ''     // 매니저 연락처 (인증 필요)
+    managerPhone: '',    // 매니저 개인 핸드폰 (인증 필요)
+    // 회사 전화번호 (3개 필드로 분리, 인증 없음)
+    companyPhone1: '',
+    companyPhone2: '',
+    companyPhone3: ''
   });
   // 본사 검색 모달 상태
   const [isHeadquartersModalOpen, setIsHeadquartersModalOpen] = useState(false);
@@ -167,7 +171,7 @@ const Register = () => {
     (corporateForm.corporateType === 'headquarters' ? corporateForm.phone : true) && // 본사는 회사전화번호 필수
     corporateForm.businessRegistration && // 사업자등록증 필수
     // 프랜차이즈 지점 회원인 경우 추가 검증
-    (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName && corporateForm.managerName && corporateForm.managerPhone && corporateForm.isPhoneVerified));
+    (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName && corporateForm.managerName && corporateForm.managerPhone && corporateForm.isPhoneVerified && corporateForm.companyPhone1 && corporateForm.companyPhone2 && corporateForm.companyPhone3));
 
   const handleIdCheck = async (type: 'individual' | 'corporate') => {
     const id = type === 'individual' ? individualForm.id : corporateForm.id;
@@ -335,7 +339,11 @@ const Register = () => {
         companyName: corporateForm.companyName,
         businessNumber: `${corporateForm.businessNumber1}-${corporateForm.businessNumber2}-${corporateForm.businessNumber3}`,
         businessType: corporateForm.businessType,
-        phone: corporateForm.corporateType === 'headquarters' ? corporateForm.phone.replace(/-/g, '') : '', // 본사만 회사전화번호
+        phone: corporateForm.corporateType === 'headquarters' 
+          ? corporateForm.phone.replace(/-/g, '') 
+          : corporateForm.corporateType === 'franchise' 
+            ? `${corporateForm.companyPhone1}-${corporateForm.companyPhone2}-${corporateForm.companyPhone3}`.replace(/-/g, '')
+            : '', // 본사는 회사전화번호, 지점은 회사전화번호
         address: corporateForm.address,
         detailAddress: corporateForm.detailAddress,
         postalCode: corporateForm.postalCode,
@@ -346,7 +354,7 @@ const Register = () => {
            headquartersName: corporateForm.headquartersName,
            branchName: corporateForm.branchName,
            managerName: corporateForm.managerName,
-           managerPhone: corporateForm.managerPhone
+           managerPhone: corporateForm.managerPhone.replace(/-/g, '')
          })
       };
 
@@ -808,11 +816,37 @@ const Register = () => {
                         </div>
                         <div className="space-y-2">
                           <Label>매니저 연락처 (필수)</Label>
-                          <Input 
-                            placeholder="매니저 연락처를 입력해주세요" 
-                            value={corporateForm.managerPhone}
-                            onChange={(e) => setCorporateForm(prev => ({ ...prev, managerPhone: e.target.value }))}
-                          />
+                          <div className="flex gap-2">
+                            <Input 
+                              placeholder="010-1234-5678"
+                              value={corporateForm.managerPhone}
+                              readOnly
+                              disabled={corporateForm.isPhoneVerified}
+                              className="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => handlePhoneVerificationClick('franchise')}
+                              disabled={corporateForm.isPhoneVerified}
+                              className="whitespace-nowrap"
+                            >
+                              {corporateForm.isPhoneVerified ? (
+                                <>
+                                  <Check className="w-4 h-4 mr-1" />
+                                  인증완료
+                                </>
+                              ) : (
+                                '핸드폰 인증'
+                              )}
+                            </Button>
+                          </div>
+                          {corporateForm.isPhoneVerified && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Check className="w-4 h-4 text-green-600" />
+                              <span className="text-green-600">핸드폰 인증이 완료되었습니다.</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -986,33 +1020,37 @@ const Register = () => {
                       />
                     </div>
                   ) : corporateForm.corporateType === 'franchise' ? (
-                    // 지점: 매니저 핸드폰 번호 (인증 필요)
-                    <div className="space-y-4">
-                      <Label>매니저 핸드폰 번호 (필수)</Label>
+                    // 지점: 회사 전화번호 (3개 필드, 인증 없음)
+                    <div className="space-y-2">
+                      <Label>회사 전화번호 (필수)</Label>
                       <div className="flex gap-2">
                         <Input 
-                          placeholder="010-1234-5678"
-                          value={corporateForm.managerPhone}
-                          readOnly
+                          placeholder="02"
+                          maxLength={3}
+                          value={corporateForm.companyPhone1}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone1: e.target.value }))}
                           disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                           className="flex-1"
                         />
-                        <Button 
-                          type="button"
-                          variant="outline"
-                          onClick={() => handlePhoneVerificationClick('franchise')}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable || corporateForm.isPhoneVerified}
-                          className="whitespace-nowrap"
-                        >
-                          {corporateForm.isPhoneVerified ? '인증완료' : '핸드폰 인증'}
-                        </Button>
+                        <span className="flex items-center">-</span>
+                        <Input 
+                          placeholder="1234"
+                          maxLength={4}
+                          value={corporateForm.companyPhone2}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone2: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="flex-1"
+                        />
+                        <span className="flex items-center">-</span>
+                        <Input 
+                          placeholder="5678"
+                          maxLength={4}
+                          value={corporateForm.companyPhone3}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone3: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          className="flex-1"
+                        />
                       </div>
-                      {corporateForm.isPhoneVerified && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Check className="w-4 h-4 text-green-600" />
-                          <span className="text-green-600">핸드폰 인증이 완료되었습니다.</span>
-                        </div>
-                      )}
                     </div>
                   ) : null}
                   
