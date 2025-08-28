@@ -115,6 +115,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
     setIsVerifying(true);
     try {
       const cleanPhone = phoneNumber.replace(/-/g, '');
+      console.log('전송할 데이터:', { phone: cleanPhone, verifyCode: verificationCode });
       const response = await authApi.verifyAuthPhone(cleanPhone, verificationCode);
 
       if (response.ok) {

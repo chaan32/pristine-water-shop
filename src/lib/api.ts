@@ -203,12 +203,15 @@ export const authApi = {
       body: JSON.stringify({ phone }),
     }),
 
-  verifyAuthPhone: (phone: string, verifyCode: string) =>
-    fetch(`${API_BASE_URL}/api/auth/try/phone`, {
+  verifyAuthPhone: (phone: string, verifyCode: string) => {
+    const payload = { phone, verifyCode };
+    console.log('API 전송 데이터:', payload);
+    return fetch(`${API_BASE_URL}/api/auth/try/phone`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, verifyCode }),
-    }),
+      body: JSON.stringify(payload),
+    });
+  },
 
   refreshToken: (refreshToken: string) =>
     fetch(`${API_BASE_URL}/api/auth/token`, {
