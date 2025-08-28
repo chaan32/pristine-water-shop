@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { authApi } from '@/lib/api';
 import { Smartphone, Clock, RefreshCw } from 'lucide-react';
 
 interface PhoneVerificationModalProps {
@@ -66,13 +67,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/send-phone-auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phone: cleanPhone }),
-      });
+      const response = await authApi.sendAuthPhone(cleanPhone);
 
       if (response.ok) {
         setIsCodeSent(true);
@@ -120,16 +115,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
     setIsVerifying(true);
     try {
       const cleanPhone = phoneNumber.replace(/-/g, '');
-      const response = await fetch('/api/auth/verify-phone-auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          phone: cleanPhone,
-          code: verificationCode 
-        }),
-      });
+      const response = await authApi.verifyAuthPhone(cleanPhone, verificationCode);
 
       if (response.ok) {
         toast({

@@ -25,7 +25,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
 }) => {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
-  const [authCode, setAuthCode] = useState('');
+  const [verifyCode, setVerifyCode] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -135,7 +135,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
   };
 
   const verifyAuthCode = async () => {
-    if (!authCode.trim()) {
+    if (!verifyCode.trim()) {
       toast({
         title: "오류",
         description: "인증번호를 입력해주세요.",
@@ -146,7 +146,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
 
     setIsVerifying(true);
     try {
-      const response = await authApi.verifyAuthMail(email, authCode);
+      const response = await authApi.verifyAuthMail(email, verifyCode);
 
       if (response.ok) {
         toast({
@@ -178,7 +178,7 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
 
   const handleClose = () => {
     setEmail('');
-    setAuthCode('');
+    setVerifyCode('');
     setIsCodeSent(false);
     setIsLoading(false);
     setIsVerifying(false);
@@ -224,21 +224,21 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
 
           {isCodeSent && (
             <div className="space-y-2">
-              <Label htmlFor="authCode">인증번호</Label>
+              <Label htmlFor="verifyCode">인증번호</Label>
               <div className="flex gap-2">
                 <Input
-                  id="authCode"
+                  id="verifyCode"
                   type="text"
                   placeholder="인증번호 20자리"
-                  value={authCode}
-                  onChange={(e) => setAuthCode(e.target.value)}
+                  value={verifyCode}
+                  onChange={(e) => setVerifyCode(e.target.value)}
                   maxLength={20}
                   className="flex-1"
                 />
                 <Button
                   type="button"
                   onClick={verifyAuthCode}
-                  disabled={isVerifying || !authCode.trim()}
+                  disabled={isVerifying || !verifyCode.trim()}
                   className="whitespace-nowrap"
                 >
                   {isVerifying ? "인증 중..." : "인증"}

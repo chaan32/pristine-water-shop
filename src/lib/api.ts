@@ -189,11 +189,25 @@ export const authApi = {
       body: JSON.stringify({ email }),
     }),
 
-  verifyAuthMail: (email: string, authCode: string) =>
+  verifyAuthMail: (email: string, verifyCode: string) =>
     fetch(`${API_BASE_URL}/api/auth/try/mail`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, authCode }),
+      body: JSON.stringify({ email, verifyCode }),
+    }),
+
+  sendAuthPhone: (phone: string) =>
+    fetch(`${API_BASE_URL}/api/auth/send/authentication/phone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone }),
+    }),
+
+  verifyAuthPhone: (phone: string, verifyCode: string) =>
+    fetch(`${API_BASE_URL}/api/auth/try/phone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, verifyCode }),
     }),
 
   refreshToken: (refreshToken: string) =>
