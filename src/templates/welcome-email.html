@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Company 회원가입 완료</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', Dotum, '돋움', sans-serif;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid hsl(212, 25%, 88%);
+        }
+        .header {
+            background: linear-gradient(135deg, hsl(212, 95%, 18%) 0%, hsl(212, 85%, 35%) 50%, hsl(187, 85%, 53%) 100%);
+            padding: 32px 24px;
+            text-align: center;
+        }
+        .logo-text {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .logo-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            margin: 8px 0 0 0;
+            font-weight: normal;
+        }
+        .content {
+            padding: 40px 32px;
+            text-align: center;
+            color: hsl(212, 100%, 12%);
+        }
+        .content h1 {
+            font-size: 28px;
+            color: hsl(212, 95%, 18%);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: hsl(212, 15%, 50%);
+            margin-bottom: 24px;
+        }
+        .welcome-message {
+            margin: 32px 0;
+            padding: 24px;
+            background: linear-gradient(135deg, hsl(195, 100%, 96%), hsl(187, 50%, 85%));
+            border-radius: 12px;
+            border: 2px solid hsl(187, 85%, 53%);
+        }
+        .welcome-message h2 {
+            font-size: 20px;
+            color: hsl(212, 95%, 18%);
+            margin: 0 0 16px 0;
+            font-weight: 600;
+        }
+        .welcome-message p {
+            margin: 0;
+            font-size: 16px;
+            color: hsl(212, 95%, 18%);
+            line-height: 1.5;
+        }
+        .benefits-section {
+            margin: 32px 0;
+            padding: 24px;
+            background-color: hsl(195, 100%, 96%);
+            border-radius: 12px;
+            border-left: 4px solid hsl(187, 85%, 53%);
+            text-align: left;
+        }
+        .benefits-section h3 {
+            font-size: 18px;
+            color: hsl(212, 95%, 18%);
+            margin: 0 0 16px 0;
+            font-weight: 600;
+            text-align: center;
+        }
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: hsl(212, 15%, 50%);
+        }
+        .benefit-icon {
+            width: 20px;
+            height: 20px;
+            background-color: hsl(187, 85%, 53%);
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .cta-section {
+            margin: 32px 0;
+            text-align: center;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, hsl(212, 95%, 18%), hsl(187, 85%, 53%));
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 20px -4px hsl(187, 85%, 53%, 0.3);
+            transition: all 0.3s ease;
+        }
+        .footer {
+            background-color: hsl(210, 40%, 96%);
+            padding: 32px 24px;
+            text-align: center;
+            font-size: 12px;
+            color: hsl(212, 15%, 50%);
+        }
+        .footer a {
+            color: hsl(212, 95%, 18%);
+            text-decoration: none;
+        }
+        .footer .company-info {
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: hsl(212, 95%, 18%);
+        }
+        .contact-info {
+            margin-top: 20px;
+            padding: 16px;
+            background-color: rgba(187, 85%, 53%, 0.1);
+            border-radius: 6px;
+            border: 1px solid hsl(187, 85%, 53%);
+        }
+        .contact-info p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: hsl(212, 95%, 18%);
+        }
+    </style>
+</head>
+<body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8f9fa;">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <table class="container" width="600" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td class="header">
+                            <h2 class="logo-text">Dragon Company</h2>
+                            <p class="logo-subtitle">혁신과 도전, 함께하는 성장</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content">
+                            <h1>🎉 환영합니다!</h1>
+                            <p>
+                                {{userName}}님, Dragon Company의 새로운 회원이 되신 것을 진심으로 축하드립니다!<br>
+                                이제 다양한 혜택과 서비스를 이용하실 수 있습니다.
+                            </p>
+                            
+                            <div class="welcome-message">
+                                <h2>회원가입이 성공적으로 완료되었습니다</h2>
+                                <p>
+                                    Dragon Company와 함께 새로운 도전과 성장의 여정을 시작해보세요.<br>
+                                    우리는 항상 혁신적인 솔루션으로 고객님의 성공을 지원합니다.
+                                </p>
+                            </div>
+                            
+                            <div class="benefits-section">
+                                <h3>🌟 회원 전용 혜택</h3>
+                                <div class="benefit-item">
+                                    <div class="benefit-icon">✓</div>
+                                    <span>프리미엄 서비스 우선 이용 및 할인 혜택</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <div class="benefit-icon">✓</div>
+                                    <span>전용 고객 지원 서비스 및 빠른 문의 응답</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <div class="benefit-icon">✓</div>
+                                    <span>신제품 및 업데이트 소식 우선 안내</span>
+                                </div>
+                                <div class="benefit-item">
+                                    <div class="benefit-icon">✓</div>
+                                    <span>특별 이벤트 및 프로모션 참여 기회</span>
+                                </div>
+                            </div>
+                            
+                            <div class="cta-section">
+                                <a href="{{websiteUrl}}" class="cta-button">
+                                    Dragon Company 시작하기
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="footer">
+                            <div class="company-info">© 2024 Dragon Company. All rights reserved.</div>
+                            <p>
+                                회원 서비스 문의: <a href="mailto:support@dragoncompany.co.kr">support@dragoncompany.co.kr</a>
+                            </p>
+                            
+                            <div class="contact-info">
+                                <p><strong>Dragon Company</strong></p>
+                                <p>대표이사: 김드래곤</p>
+                                <p>사업자등록번호: 123-45-67890</p>
+                                <p>주소: 서울특별시 강남구 테헤란로 123</p>
+                                <p>전화: 02-1234-5678 | 팩스: 02-1234-5679</p>
+                            </div>
+                            
+                            <p style="margin-top: 16px;">
+                                Dragon Company는 혁신적인 솔루션과 서비스를 제공합니다.<br>
+                                함께 성장하고 도전하는 파트너가 되어보세요.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
