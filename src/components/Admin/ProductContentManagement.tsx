@@ -283,6 +283,7 @@ const ProductContentManagement = () => {
     try {
       const formData = new FormData();
       formData.append('image', file);
+      formData.append('productId', selectedProduct || '');
       
       // API: POST /api/admin/products/upload/image
       const response = await adminApi.uploadImage(formData);
