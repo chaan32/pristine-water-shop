@@ -378,6 +378,10 @@ const ProductEdit = () => {
   };
 
   const handleEdit = async (product: any) => {
+    console.log('상품 수정 데이터:', product);
+    console.log('할인 가격:', product.discountPrice);
+    console.log('할인 퍼센트:', product.discountPercent);
+    
     setSelectedProduct(product);
     setEditForm({
       name: product.name || '',
@@ -385,8 +389,8 @@ const ProductEdit = () => {
       categoryId: product.categoryId || '',
       customerPrice: formatPriceWithComma(product.customerPrice || 0),
       businessPrice: formatPriceWithComma(product.businessPrice || 0),
-      discountPrice: formatPriceWithComma(product.discountPrice || 0),
-      discountPercent: (product.discountPercent || 0).toString(),
+      discountPrice: product.discountPrice ? formatPriceWithComma(product.discountPrice) : '',
+      discountPercent: product.discountPercent ? product.discountPercent.toString() : '',
       stock: (product.stock || 0).toString(),
       status: product.status || '',
       isNew: product.isNew || false,
