@@ -31,7 +31,6 @@ interface OrderItem {
 
 // 주문 정보 타입
 interface Order {
-  orderId: number;
   orderNumber: string;
   createdAt: string;
   orderItems: OrderItem[];
@@ -110,7 +109,8 @@ const Support = () => {
 
     // 선택된 주문이 있으면 orderId 추가
     if (selectedOrder) {
-      submissionData.orderId = selectedOrder.orderId;
+      // 백엔드에서 문자열 주문번호를 식별자로 사용
+      submissionData.orderId = selectedOrder.orderNumber;
     }
 
 
@@ -225,7 +225,7 @@ const Support = () => {
 
       try {
         // API: GET /api/users/orders - Get user's orders for inquiry selection
-        const response = await userApi.getOrders();
+        const response = await userApi.getOrders(0, 10);
 
         if (!response.ok) {
           throw new Error('주문 내역을 불러오는데 실패했습니다.');
@@ -234,10 +234,9 @@ const Support = () => {
         const result = await response.json();
 
         const formattedOrders: Order[] = result.data.map((order: any) => ({
-          orderId: order.orderId,
           orderNumber: order.orderName,
           createdAt: order.createdAt,
-          orderItems: order.items.map((item: any) => ({
+          orderItems: (order.items || []).map((item: any) => ({
             productName: item.productName,
             quantity: item.quantity,
           })),
@@ -378,7 +377,7 @@ const Support = () => {
                             ) : orders.length > 0 ? (
                                 orders.map((order) => (
                                     <div
-                                        key={order.orderId}
+                                        key={order.orderNumber}
                                         className="p-3 rounded-lg hover:bg-secondary cursor-pointer"
                                         onClick={() => {
                                           setSelectedOrder(order);
