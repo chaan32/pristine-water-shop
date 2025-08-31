@@ -31,6 +31,7 @@ interface OrderItem {
 
 // 주문 정보 타입
 interface Order {
+  orderId: number;
   orderNumber: string;
   createdAt: string;
   orderItems: OrderItem[];
@@ -109,8 +110,7 @@ const Support = () => {
 
     // 선택된 주문이 있으면 orderId 추가
     if (selectedOrder) {
-      // 백엔드에서 문자열 주문번호를 식별자로 사용
-      submissionData.orderId = selectedOrder.orderNumber;
+      submissionData.orderId = selectedOrder.orderId;
     }
 
 
@@ -234,6 +234,7 @@ const Support = () => {
         const result = await response.json();
 
         const formattedOrders: Order[] = result.data.map((order: any) => ({
+          orderId: order.orderId,
           orderNumber: order.orderName,
           createdAt: order.createdAt,
           orderItems: (order.items || []).map((item: any) => ({
@@ -377,7 +378,7 @@ const Support = () => {
                             ) : orders.length > 0 ? (
                                 orders.map((order) => (
                                     <div
-                                        key={order.orderNumber}
+                                        key={order.orderId}
                                         className="p-3 rounded-lg hover:bg-secondary cursor-pointer"
                                         onClick={() => {
                                           setSelectedOrder(order);
