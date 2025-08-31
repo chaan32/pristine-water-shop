@@ -58,7 +58,17 @@ const ReviewModal = ({ isOpen, onClose, product, orderName, onReviewSubmitted }:
         onReviewSubmitted();
         onClose();
       } else {
-        throw new Error('후기 등록 실패');
+        if (response.status === 409) {
+          toast({
+            title: "후기 등록 오류",
+            description: "이미 해당 제품에 대한 후기를 작성하셨습니다.",
+            variant: "destructive"
+          });
+        }
+        else {
+          throw new Error('후기 등록 실패');
+        }
+
       }
     } catch (error) {
       console.error('Review submission error:', error);

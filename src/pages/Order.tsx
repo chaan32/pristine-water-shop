@@ -28,6 +28,7 @@ interface PreOrderResponse {
   amount: number;
   method: string;
   goodsName: string;
+  clientId: string;
 }
 const Order = () => {
   const location = useLocation();
@@ -140,7 +141,7 @@ const Order = () => {
         return;
     }
     window.AUTHNICE.requestPay({
-      clientId: "R2_d5c2604ed6054467bc5a2a6344e34310",
+      clientId: "R2_a62db6967356421d93f039fbfe6f8f44",
       method: preOrderData.method === '신용카드' ? 'card' : 'bank',
       orderId: preOrderData.orderId,
       amount: preOrderData.amount,

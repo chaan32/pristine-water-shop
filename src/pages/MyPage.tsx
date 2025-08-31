@@ -529,7 +529,7 @@ const MyPage = () => {
                                 variant="outline"
                                 size="sm"
                                 className="w-full text-xs"
-                                onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${order.trackingNumber}`, '_blank')}
+                                onClick={() => window.open(`https://trace.cjlogistics.com/next/tracking.html?wblNo=${order.trackingNumber}`, '_blank')}
                               >
                                 배송추적
                               </Button>
