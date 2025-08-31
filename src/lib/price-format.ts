@@ -6,7 +6,7 @@
  * @returns 콤마가 추가된 문자열
  */
 export const formatPriceWithComma = (value: string | number): string => {
-  if (!value) return '';
+  if (value === null || value === undefined || value === '') return '';
   
   // 숫자가 아닌 문자 제거 (콤마, 공백 등)
   const numbers = String(value).replace(/[^\d]/g, '');
