@@ -47,56 +47,52 @@ const RefundExchangeManagement = () => {
     const fetchInquiries = async () => {
       setLoading(true);
       try {
-        const token = getAccessToken();
-        // API: GET /api/admin/inquiries - Get all inquiries
         const response = await adminApi.getGeneralInquiries();
-
-        if (!response.ok) {
-          throw new Error('데이터를 불러오는 데 실패했습니다.');
-        }
-
-        const data = await response.json();
-
-        if (Array.isArray(data)) {
-          // 환불/교환 관련 문의만 필터링
-          const refundExchangeInquiries: RefundExchangeInquiry[] = data
-            .filter((item: any) => 
-              item.category?.includes('환불') || 
-              item.category?.includes('교환') ||
-              item.title?.includes('[환불 신청]') ||
-              item.title?.includes('[교환 신청]')
-            )
-            .map((item: any) => {
-              // 제목에서 환불/교환 타입 추출
-              const isRefund = item.title?.includes('[환불 신청]') || item.category?.includes('환불');
-              
-              return {
-                id: item.inquiryId,
-                inquiryId: `INQ-${item.inquiryId}`,
-                orderId: item.orderId,
-                orderNumber: item.orderNumber,
-                customerName: item.memberName || '알 수 없음',
-                type: isRefund ? 'refund' : 'exchange',
-                category: item.category,
-                title: item.title,
-                content: item.content,
-                isAnswered: item.isAnswered || false,
-                answer: item.answer,
-                createdAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '',
-                answeredAt: item.answeredAt ? new Date(item.answeredAt).toLocaleDateString() : undefined,
-                attachments: item.filesUrl || [],
-              };
-            });
+        
+        if (response.ok) {
+          const data = await response.json();
           
-          setInquiries(refundExchangeInquiries);
-        } else {
-          throw new Error("API 응답이 배열 형식이 아닙니다.");
+          if (Array.isArray(data)) {
+            // 환불/교환 관련 문의만 필터링
+            const refundExchangeInquiries: RefundExchangeInquiry[] = data
+              .filter((item: any) => 
+                item.category?.includes('환불') || 
+                item.category?.includes('교환') ||
+                item.title?.includes('[환불 신청]') ||
+                item.title?.includes('[교환 신청]')
+              )
+              .map((item: any) => {
+                // 제목에서 환불/교환 타입 추출
+                const isRefund = item.title?.includes('[환불 신청]') || item.category?.includes('환불');
+                
+                return {
+                  id: item.inquiryId,
+                  inquiryId: `INQ-${item.inquiryId}`,
+                  orderId: item.orderId,
+                  orderNumber: item.orderNumber,
+                  customerName: item.memberName || '알 수 없음',
+                  type: isRefund ? 'refund' : 'exchange',
+                  category: item.category,
+                  title: item.title,
+                  content: item.content,
+                  isAnswered: item.isAnswered || false,
+                  answer: item.answer,
+                  createdAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '',
+                  answeredAt: item.answeredAt ? new Date(item.answeredAt).toLocaleDateString() : undefined,
+                  attachments: item.filesUrl || [],
+                };
+              });
+            
+            setInquiries(refundExchangeInquiries);
+          }
         }
-
       } catch (error) {
-        console.error(error);
-        toast({ title: "오류", description: "데이터를 불러오는 중 문제가 발생했습니다.", variant: "destructive" });
-        setInquiries([]);
+        console.error('환불/교환 문의 데이터 로드 오류:', error);
+        toast({ 
+          title: "데이터 로드 오류", 
+          description: "환불/교환 문의 데이터를 불러오는 중 문제가 발생했습니다.", 
+          variant: "destructive" 
+        });
       } finally {
         setLoading(false);
       }
