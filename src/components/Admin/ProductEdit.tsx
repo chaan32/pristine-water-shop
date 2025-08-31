@@ -146,6 +146,22 @@ const ProductEdit = () => {
       }
 
       const data = await response.json();
+      console.log('=== API 응답 데이터 ===');
+      console.log('전체 상품 목록:', data);
+      if (data.length > 0) {
+        console.log('첫 번째 상품 상세:', data[0]);
+        console.log('할인 가격 필드들:');
+        data.forEach((product: any, index: number) => {
+          console.log(`상품 ${index + 1} (${product.name}):`, {
+            customerPrice: product.customerPrice,
+            businessPrice: product.businessPrice,
+            discountPrice: product.discountPrice,
+            discountPercent: product.discountPercent,
+            할인가격타입: typeof product.discountPrice,
+            할인율타입: typeof product.discountPercent
+          });
+        });
+      }
       setProducts(data);
     } catch (error) {
       toast({
