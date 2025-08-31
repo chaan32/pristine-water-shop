@@ -141,7 +141,6 @@ const ProductEdit = () => {
     try {
       // API: GET /api/admin/products/edit
       const response = await apiFetch('/api/admin/products/edit');
-
       if (!response.ok) {
         throw new Error('상품 목록을 가져오는데 실패했습니다.');
       }
