@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { RotateCcw, RefreshCw, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supportApi, getUserInfo } from '@/lib/api';
 
 interface Order {
   id: string;
@@ -28,6 +29,7 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
   const [reason, setReason] = useState('');
   const [detailReason, setDetailReason] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const reasons = [
@@ -49,7 +51,7 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!reason || !detailReason) {
       toast({
         title: "입력 오류",
@@ -59,17 +61,67 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
       return;
     }
 
+    const userInfo = getUserInfo();
+    if (!userInfo) {
+      toast({
+        title: "로그인 필요",
+        description: "로그인 후 신청해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    toast({
-      title: "신청 완료",
-      description: `${requestType === 'refund' ? '환불' : '교환'} 신청이 완료되었습니다.`,
-    });
-    
-    setIsOpen(false);
-    // Reset form
-    setReason('');
-    setDetailReason('');
-    setUploadedFiles([]);
+    setIsSubmitting(true);
+
+    try {
+      // 신청사유와 상세사유를 "-"로 연결
+      const combinedContent = `${reason} - ${detailReason}`;
+      
+      // 1:1문의 API와 동일한 형태로 데이터 구성
+      const inquiryData = {
+        category: `${requestType === 'refund' ? '환불' : '교환'} 신청`,
+        title: `[${requestType === 'refund' ? '환불' : '교환'} 신청] ${order.id}`,
+        content: combinedContent,
+        orderId: parseInt(order.id) // 주문번호를 숫자로 변환
+      };
+
+      let response;
+      if (uploadedFiles.length > 0) {
+        const formData = new FormData();
+        const inquiryDataBlob = new Blob([JSON.stringify(inquiryData)], { type: 'application/json' });
+        formData.append('data', inquiryDataBlob);
+        uploadedFiles.forEach((file) => {
+          formData.append(`attachments`, file);
+        });
+        response = await supportApi.createInquiryWithFiles(formData);
+      } else {
+        response = await supportApi.createInquiry(inquiryData);
+      }
+
+      if (response.ok) {
+        toast({
+          title: "신청 완료",
+          description: `${requestType === 'refund' ? '환불' : '교환'} 신청이 완료되었습니다.`,
+        });
+        
+        setIsOpen(false);
+        // Reset form
+        setReason('');
+        setDetailReason('');
+        setUploadedFiles([]);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData?.message || '신청 처리 중 오류가 발생했습니다.');
+      }
+    } catch (error: any) {
+      toast({
+        title: "신청 실패",
+        description: error.message || '신청 처리 중 오류가 발생했습니다.',
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -230,8 +282,8 @@ const RefundExchangeForm = ({ order }: RefundExchangeFormProps) => {
             <Button variant="outline" onClick={() => setIsOpen(false)} className="flex-1">
               취소
             </Button>
-            <Button onClick={handleSubmit} className="flex-1">
-              신청하기
+            <Button onClick={handleSubmit} className="flex-1" disabled={isSubmitting}>
+              {isSubmitting ? '처리중...' : '신청하기'}
             </Button>
           </div>
         </div>
