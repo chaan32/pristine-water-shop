@@ -409,7 +409,7 @@ const Order = () => {
       } else {
         toast({
           title: "주문 실패",
-          description: '주문 처리 중 오류가 발생했습니다.',
+          description: preOrderData?.message || '주문 처리에 실패했습니다. 다시 시도해주세요.',
           variant: "destructive"
         });
       }
@@ -417,7 +417,7 @@ const Order = () => {
       console.error('Order error:', error);
       toast({
         title: "네트워크 오류",
-        description: '네트워크 오류가 발생했습니다. 다시 시도해주세요.',
+        description: "주문 처리에 실패했습니다.",
         variant: "destructive"
       });
     } finally {
