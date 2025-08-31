@@ -401,7 +401,6 @@ const getCategoryLabel = (value?: string) => {
                     <div className="text-center p-10 text-destructive">{error}</div>
                 ) : (inquiryType === 'product' ? inquiries : generalInquiries).length === 0 ? (
                     <div className="text-center p-10 text-muted-foreground">
-                      <img src="/placeholder.svg" alt="문의 없음 일러스트" className="mx-auto mb-4 h-24 opacity-60" />
                       표시할 문의가 없습니다.
                     </div>
                 ) : (

@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import ImageManagementModal from './ImageManagementModal';
 import { adminApi, apiFetch, getAccessToken } from '@/lib/api';
+import { formatPriceWithComma, extractNumbers, createPriceChangeHandler } from '@/lib/price-format';
 
 const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -383,9 +384,9 @@ const ProductEdit = () => {
       name: product.name || '',
       category: product.categoryName || product.category || '',
       categoryId: product.categoryId || '',
-      customerPrice: (product.customerPrice || 0).toString(),
-      businessPrice: (product.businessPrice || 0).toString(),
-      discountPrice: (product.discountPrice || 0).toString(),
+      customerPrice: formatPriceWithComma(product.customerPrice || 0),
+      businessPrice: formatPriceWithComma(product.businessPrice || 0),
+      discountPrice: formatPriceWithComma(product.discountPrice || 0),
       discountPercent: (product.discountPercent || 0).toString(),
       stock: (product.stock || 0).toString(),
       status: product.status || '',
@@ -439,9 +440,9 @@ const ProductEdit = () => {
         name: editForm.name,
         category: editForm.category,
         categoryId: editForm.categoryId,
-        customerPrice: parseInt(editForm.customerPrice),
-        businessPrice: parseInt(editForm.businessPrice),
-        discountPrice: parseInt(editForm.discountPrice),
+        customerPrice: parseInt(extractNumbers(editForm.customerPrice)),
+        businessPrice: parseInt(extractNumbers(editForm.businessPrice)),
+        discountPrice: parseInt(extractNumbers(editForm.discountPrice)),
         discountPercent: parseInt(editForm.discountPercent),
         stock: parseInt(editForm.stock),
         status: editForm.status,
@@ -864,9 +865,8 @@ const ProductEdit = () => {
                   <Label htmlFor="edit-customerPrice">개인 가격</Label>
                   <Input
                     id="edit-customerPrice"
-                    type="number"
                     value={editForm.customerPrice}
-                    onChange={(e) => handleInputChange('customerPrice', e.target.value)}
+                    onChange={createPriceChangeHandler(handleInputChange, 'customerPrice')}
                     placeholder="개인 가격"
                   />
                 </div>
@@ -874,9 +874,8 @@ const ProductEdit = () => {
                   <Label htmlFor="edit-businessPrice">사업자 가격</Label>
                   <Input
                     id="edit-businessPrice"
-                    type="number"
                     value={editForm.businessPrice}
-                    onChange={(e) => handleInputChange('businessPrice', e.target.value)}
+                    onChange={createPriceChangeHandler(handleInputChange, 'businessPrice')}
                     placeholder="사업자 가격"
                   />
                 </div>
@@ -888,9 +887,8 @@ const ProductEdit = () => {
                   <Label htmlFor="edit-discountPrice">할인 금액</Label>
                   <Input
                     id="edit-discountPrice"
-                    type="number"
                     value={editForm.discountPrice}
-                    onChange={(e) => handleInputChange('discountPrice', e.target.value)}
+                    onChange={createPriceChangeHandler(handleInputChange, 'discountPrice')}
                     placeholder="할인 금액"
                   />
                 </div>

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { Save, Plus, ChevronDown, Edit2, Trash2 } from 'lucide-react';
 import { adminApi, getAccessToken } from '@/lib/api';
+import { formatPriceWithComma, extractNumbers, createPriceChangeHandler } from '@/lib/price-format';
 
 const ProductManagement = () => {
   const { toast } = useToast();
@@ -299,10 +300,10 @@ const ProductManagement = () => {
       
       const productData = {
         name: formData.name,
-        businessPrice: formData.businessPrice ? parseInt(formData.businessPrice) : null,
-        customerPrice: parseInt(formData.customerPrice),
+        businessPrice: formData.businessPrice ? parseInt(extractNumbers(formData.businessPrice)) : null,
+        customerPrice: parseInt(extractNumbers(formData.customerPrice)),
         discountPercent: formData.discountPercent ? parseInt(formData.discountPercent) : null,
-        discountPrice: formData.discountPrice ? parseInt(formData.discountPrice) : null,
+        discountPrice: formData.discountPrice ? parseInt(extractNumbers(formData.discountPrice)) : null,
         stock: parseInt(formData.stock),
         categoryId: parseInt(formData.categoryId),
         mainCategoryId: parseInt(formData.mainCategoryId),
@@ -546,9 +547,8 @@ const ProductManagement = () => {
                 <Label htmlFor="customerPrice">개인 가격 (원)</Label>
                 <Input
                   id="customerPrice"
-                  type="number"
                   value={formData.customerPrice}
-                  onChange={(e) => handleInputChange('customerPrice', e.target.value)}
+                  onChange={createPriceChangeHandler(handleInputChange, 'customerPrice')}
                   placeholder="개인 대상 가격"
                 />
               </div>
@@ -556,9 +556,8 @@ const ProductManagement = () => {
                 <Label htmlFor="businessPrice">법인 가격 (원)</Label>
                 <Input
                   id="businessPrice"
-                  type="number"
                   value={formData.businessPrice}
-                  onChange={(e) => handleInputChange('businessPrice', e.target.value)}
+                  onChange={createPriceChangeHandler(handleInputChange, 'businessPrice')}
                   placeholder="법인 대상 가격"
                 />
               </div>
@@ -579,9 +578,8 @@ const ProductManagement = () => {
                 <Label htmlFor="discountPrice">할인 금액 (원)</Label>
                 <Input
                   id="discountPrice"
-                  type="number"
                   value={formData.discountPrice}
-                  onChange={(e) => handleInputChange('discountPrice', e.target.value)}
+                  onChange={createPriceChangeHandler(handleInputChange, 'discountPrice')}
                   placeholder="할인 금액"
                 />
               </div>
