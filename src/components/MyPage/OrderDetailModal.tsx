@@ -1,7 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Package, MessageSquare } from 'lucide-react';
+import { Package, MessageSquare, RotateCcw } from 'lucide-react';
+import RefundExchangeForm from '@/components/Support/RefundExchangeForm';
 
 interface OrderItem {
   productId?: number;
@@ -135,17 +136,30 @@ const OrderDetailModal = ({ isOpen, onClose, order, onReviewClick }: OrderDetail
                         <p className="font-semibold">
                           {item.productTotalPrice.toLocaleString()}원
                         </p>
-                        {order.shipmentStatus === 'DELIVERED' && onReviewClick && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => onReviewClick(item, order.orderName)}
-                          >
-                            <MessageSquare className="w-3 h-3 mr-1" />
-                            후기 작성
-                          </Button>
-                        )}
+                         <div className="flex flex-col gap-1">
+                           {order.shipmentStatus === 'DELIVERED' && onReviewClick && (
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               className="h-7 px-2 text-xs"
+                               onClick={() => onReviewClick(item, order.orderName)}
+                             >
+                               <MessageSquare className="w-3 h-3 mr-1" />
+                               후기 작성
+                             </Button>
+                           )}
+                           {(order.shipmentStatus === 'DELIVERED' || order.shipmentStatus === 'SHIPPED') && (
+                             <RefundExchangeForm 
+                               order={{
+                                 id: order.orderName,
+                                 date: new Date(order.createdAt).toLocaleDateString('ko-KR'),
+                                 products: order.items.map(item => item.productName),
+                                 total: order.price,
+                                 status: getShipmentStatusText(order.shipmentStatus)
+                               }}
+                             />
+                           )}
+                         </div>
                       </div>
                     </div>
                 ))}

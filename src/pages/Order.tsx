@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 import {apiFetch, getUserInfo} from "@/lib/api.ts";
 import { useToast } from '@/hooks/use-toast';
+import { PAYMENT_CONFIG } from '@/lib/config';
 
 interface UserInfo {
   name: string;
@@ -29,6 +30,7 @@ interface PreOrderResponse {
   method: string;
   goodsName: string;
   clientId: string;
+  message?: string; // 에러 메시지용 선택적 속성 추가
 }
 const Order = () => {
   const location = useLocation();
@@ -141,7 +143,7 @@ const Order = () => {
         return;
     }
     window.AUTHNICE.requestPay({
-      clientId: "R2_a62db6967356421d93f039fbfe6f8f44",
+      clientId: PAYMENT_CONFIG.clientId,
       method: preOrderData.method === '신용카드' ? 'card' : 'bank',
       orderId: preOrderData.orderId,
       amount: preOrderData.amount,
