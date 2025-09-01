@@ -18,6 +18,8 @@ import PaymentModal from './PaymentModal';
 import { toast } from 'sonner';
 import { apiFetch, getAccessToken, headquartersApi } from '@/lib/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PAYMENT_CONFIG } from '@/lib/config';
+import { useToast } from '@/hooks/use-toast';
 
 
 declare global {
@@ -132,6 +134,36 @@ const HeadquartersDashboard = () => {
   });
   const [activeBranchesModal, setActiveBranchesModal] = useState(false);
   const [activeBranches, setActiveBranches] = useState<ActiveBranch[]>([]);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const { toast: showToast } = useToast();
+
+  // 결제 스크립트 로딩
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = PAYMENT_CONFIG.scriptUrl;
+    
+    script.onload = () => {
+      console.log("✅ Payment script loaded");
+      setIsScriptLoaded(true);
+    };
+    
+    script.onerror = () => {
+      console.error("❌ Payment script load error");
+      showToast({
+        title: '오류',
+        description: '결제 모듈 로딩에 실패했습니다. 새로고침 후 다시 시도해주세요.',
+        variant: 'destructive',
+      });
+    };
+    
+    document.head.appendChild(script);
+    
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -324,6 +356,16 @@ const HeadquartersDashboard = () => {
 
   const handlePayment = async (orderNumbers: string[], paymethod: 'card' | 'bank') => {
     try {
+      // 결제 스크립트 로딩 상태 확인
+      if (!isScriptLoaded || !window.AUTHNICE) {
+        showToast({
+          title: "오류",
+          description: "결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // 결제 모달을 닫고 결제 준비 API 호출
       setPaymentModal(prev => ({ ...prev, isOpen: false }));
       
@@ -354,13 +396,8 @@ const HeadquartersDashboard = () => {
       }
       const { data } = await resp.json();
 
-      if (!window.AUTHNICE) {
-        throw new Error('결제 모듈이 로드되지 않았습니다.');
-      }
-
       // 현재 결제 모달의 정보 사용
       const currentModal = paymentModal;
-      const clientId = process.env.REACT_APP_CLIENT_ID;
       const orderId = String(data?.orderId ?? orderData.orderId);
       const amount = Number(100); // 테스트용 100원
 
@@ -370,22 +407,31 @@ const HeadquartersDashboard = () => {
           ? `${currentModal.orders[0].items[0].productName} 외 ${currentModal.orders[0].items.length - 1}건`
           : currentModal.orders[0]?.items[0]?.productName || '상품';
 
+      console.log("클라이언트 ID :", PAYMENT_CONFIG.clientId);
       window.AUTHNICE.requestPay({
-        clientId,
+        clientId: PAYMENT_CONFIG.clientId,
         method: paymethod,
         orderId,
         amount,
         goodsName,
-        returnUrl: `http://localhost:8080/api/payments/return/headquarters`,
+        returnUrl: PAYMENT_CONFIG.returnUrl,
         fnError: (result: any) => {
           console.error('결제 오류:', result);
-          toast.error(result.errorMsg || result.msg || "결제 중 오류가 발생했습니다.");
+          showToast({
+            title: '결제 오류',
+            description: `오류가 발생했습니다: ${result.errorMsg}`,
+            variant: 'destructive',
+          });
         }
       });
 
     } catch (error: any) {
       console.error('결제 처리 중 오류:', error);
-      toast.error(error.message || '결제 처리 중 오류가 발생했습니다.');
+      showToast({
+        title: "오류",
+        description: error.message || '결제 처리 중 오류가 발생했습니다.',
+        variant: "destructive"
+      });
     }
   };
 
