@@ -442,7 +442,7 @@ const HeadquartersDashboard = () => {
         orderId,
         amount,
         goodsName,
-        returnUrl: PAYMENT_CONFIG.returnUrl
+        returnUrl: PAYMENT_CONFIG.headquartersReturnUrl
       };
 
       console.log("💳 [결제 실행] AUTHNICE 결제 요청:", paymentRequestData);

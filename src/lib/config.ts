@@ -15,6 +15,7 @@ export interface PaymentConfig {
   readonly clientId: string;
   readonly scriptUrl: string;
   readonly returnUrl: string;
+  readonly headquartersReturnUrl: string;
 }
 
 // 외부 서비스 URL 타입
@@ -44,6 +45,7 @@ export const PAYMENT_CONFIG: PaymentConfig = {
   clientId: import.meta.env.VITE_NICEPAYMENT_CLIENT_ID || '',
   scriptUrl: 'https://pay.nicepay.co.kr/v1/js/',
   returnUrl: `${API_CONFIG.baseUrl}/api/payments/return`,
+  headquartersReturnUrl: `${API_CONFIG.baseUrl}/api/payments/return/headquarters`,
 } as const;
 
 // 외부 서비스 URL들
