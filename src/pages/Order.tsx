@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 import {apiFetch, getUserInfo} from "@/lib/api.ts";
+import { PAYMENT_CONFIG } from '@/lib/config';
 import { useToast } from '@/hooks/use-toast';
 
 interface UserInfo {
@@ -141,10 +142,9 @@ const Order = () => {
         });
         return;
     }
-    const clientId = process.env.REACT_APP_NICEPAYMENT_CLIENT_ID;
-    console.log("클라이언트아이디",clientId);
+    console.log("클라이언트아이디", PAYMENT_CONFIG.clientId);
     window.AUTHNICE.requestPay({
-      clientId: process.env.REACT_APP_NICEPAYMENT_CLIENT_ID || '',
+      clientId: PAYMENT_CONFIG.clientId,
       method: preOrderData.method === '신용카드' ? 'card' : 'bank',
       orderId: preOrderData.orderId,
       amount: preOrderData.amount,
