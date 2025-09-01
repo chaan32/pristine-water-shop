@@ -142,7 +142,7 @@ const Order = () => {
         });
         return;
     }
-    console.log("클라이언트아이디", PAYMENT_CONFIG.clientId);
+    console.log("클라이언트아이디 :", PAYMENT_CONFIG.clientId);
     window.AUTHNICE.requestPay({
       clientId: PAYMENT_CONFIG.clientId,
       method: preOrderData.method === '신용카드' ? 'card' : 'bank',
