@@ -169,7 +169,6 @@ const Register = () => {
     corporateForm.businessNumber3 &&
     corporateForm.address &&
     (corporateForm.corporateType === 'headquarters' ? corporateForm.phone : true) && // 본사는 회사전화번호 필수
-    corporateForm.businessRegistration && // 사업자등록증 필수
     // 프랜차이즈 지점 회원인 경우 추가 검증
     (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName && corporateForm.managerName && corporateForm.managerPhone && corporateForm.isPhoneVerified && corporateForm.companyPhone1 && corporateForm.companyPhone2 && corporateForm.companyPhone3));
 
