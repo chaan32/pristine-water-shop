@@ -330,6 +330,8 @@ const HeadquartersDashboard = () => {
   };
 
   const handleSelectedOrdersPayment = (selectedGroups: Array<{ items: FlattenedDataItem[], totalAmount: number, totalQuantity: number, shipmentFee: number }>) => {
+    console.log("📦 [결제 준비] 선택된 주문 그룹:", selectedGroups);
+    
     const orders = selectedGroups.map(group => {
       const firstItem = group.items[0];
       return {
@@ -346,6 +348,12 @@ const HeadquartersDashboard = () => {
     });
 
     const totalAmount = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    
+    console.log("💰 [결제 준비] 정리된 주문 데이터:", {
+      orders,
+      totalAmount,
+      orderCount: orders.length
+    });
 
     setPaymentModal({
       isOpen: true,
@@ -356,8 +364,16 @@ const HeadquartersDashboard = () => {
 
   const handlePayment = async (orderNumbers: string[], paymethod: 'card' | 'bank') => {
     try {
+      console.log("🔥 [결제 시작] 결제 요청 데이터:", {
+        orderNumbers,
+        paymethod,
+        isScriptLoaded,
+        hasAuthNice: !!window.AUTHNICE
+      });
+
       // 결제 스크립트 로딩 상태 확인
       if (!isScriptLoaded || !window.AUTHNICE) {
+        console.error("❌ [결제 실패] 결제 모듈이 준비되지 않음");
         showToast({
           title: "오류",
           description: "결제 모듈이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.",
@@ -385,16 +401,29 @@ const HeadquartersDashboard = () => {
         throw new Error('주문 정보를 찾을 수 없습니다.');
       }
 
+      console.log("📋 [결제 준비] 주문 ID 변환 완료:", {
+        orderNumbers,
+        orderIds,
+        firstOrderData: orderData
+      });
+
+      const requestPayload = { orderId: orderIds, paymethod };
+      console.log("🚀 [API 요청] 결제 준비 요청:", requestPayload);
+
       // 본사 결제 준비 API 호출: orderId 리스트와 paymethod 전달
       const resp = await apiFetch(`/api/payments/prepare/headquarters`, { 
         method: 'POST',
-        body: JSON.stringify({ orderId: orderIds, paymethod })
+        body: JSON.stringify(requestPayload)
       });
+      
       if (!resp.ok) {
         const e = await resp.json().catch(() => ({}));
+        console.error("❌ [API 오류] 결제 준비 실패:", e);
         throw new Error(e.message || '결제 준비에 실패했습니다.');
       }
+      
       const { data } = await resp.json();
+      console.log("✅ [API 응답] 결제 준비 성공:", data);
 
       // 현재 결제 모달의 정보 사용
       const currentModal = paymentModal;
@@ -407,16 +436,21 @@ const HeadquartersDashboard = () => {
           ? `${currentModal.orders[0].items[0].productName} 외 ${currentModal.orders[0].items.length - 1}건`
           : currentModal.orders[0]?.items[0]?.productName || '상품';
 
-      console.log("클라이언트 ID :", PAYMENT_CONFIG.clientId);
-      window.AUTHNICE.requestPay({
+      const paymentRequestData = {
         clientId: PAYMENT_CONFIG.clientId,
         method: paymethod,
         orderId,
         amount,
         goodsName,
-        returnUrl: PAYMENT_CONFIG.returnUrl,
+        returnUrl: PAYMENT_CONFIG.returnUrl
+      };
+
+      console.log("💳 [결제 실행] AUTHNICE 결제 요청:", paymentRequestData);
+      
+      window.AUTHNICE.requestPay({
+        ...paymentRequestData,
         fnError: (result: any) => {
-          console.error('결제 오류:', result);
+          console.error('❌ [결제 오류] AUTHNICE 오류:', result);
           showToast({
             title: '결제 오류',
             description: `오류가 발생했습니다: ${result.errorMsg}`,
@@ -426,7 +460,7 @@ const HeadquartersDashboard = () => {
       });
 
     } catch (error: any) {
-      console.error('결제 처리 중 오류:', error);
+      console.error('❌ [결제 처리 오류]:', error);
       showToast({
         title: "오류",
         description: error.message || '결제 처리 중 오류가 발생했습니다.',
@@ -437,13 +471,25 @@ const HeadquartersDashboard = () => {
 
   const handleActiveBranchesClick = async () => {
     try {
+      console.log("🏢 [활성 지점] API 요청 시작");
+      
       const response = await headquartersApi.getActiveBranches();
+      
+      console.log("📡 [활성 지점] API 응답 상태:", {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText
+      });
+      
       if (!response.ok) throw new Error('활성 지점 데이터를 불러오는 데 실패했습니다.');
       
       const result = await response.json();
+      console.log("✅ [활성 지점] API 응답 데이터:", result);
+      
       setActiveBranches(result.data.branches);
       setActiveBranchesModal(true);
     } catch (error: any) {
+      console.error("❌ [활성 지점] API 오류:", error);
       toast.error(error.message || '활성 지점 데이터를 불러오는 데 실패했습니다.');
     }
   };
