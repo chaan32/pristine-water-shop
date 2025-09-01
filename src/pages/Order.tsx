@@ -141,10 +141,8 @@ const Order = () => {
         });
         return;
     }
-    const clientId = process.env.REACT_APP_NICEPAYMENT_CLIENT_ID;
-    console.log(clientId);
     window.AUTHNICE.requestPay({
-      clientId: clientId,
+      clientId: preOrderData.clientId,
       method: preOrderData.method === '신용카드' ? 'card' : 'bank',
       orderId: preOrderData.orderId,
       amount: preOrderData.amount,
