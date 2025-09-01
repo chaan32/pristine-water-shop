@@ -176,6 +176,57 @@ const InquiriesTab = () => {
               상세보기
             </Button>
           </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5" />
+                일반문의 상세내용
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">일반문의</Badge>
+                <Badge variant={inquiry.isAnswered ? 'default' : 'destructive'}>
+                  {inquiry.isAnswered ? '답변완료' : '답변대기'}
+                </Badge>
+                {inquiry.orderNumber && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <ShoppingCart className="h-3 w-3" />
+                    {inquiry.orderNumber}
+                  </Badge>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-lg mb-2">{inquiry.title}</h3>
+                <div className="text-sm text-muted-foreground mb-4">
+                  {new Date(inquiry.createdAt).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">문의내용</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="whitespace-pre-wrap">{inquiry.question}</p>
+                </div>
+              </div>
+
+              {inquiry.answer && (
+                <div>
+                  <h4 className="font-semibold mb-2 text-primary">답변내용</h4>
+                  <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                    <p className="whitespace-pre-wrap mb-2">{inquiry.answer}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
         </Dialog>
       </div>
     </div>
@@ -217,6 +268,50 @@ const InquiriesTab = () => {
               상세보기
             </Button>
           </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                제품문의 상세내용
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">제품문의</Badge>
+                <Badge variant={inquiry.isAnswered ? 'default' : 'destructive'}>
+                  {inquiry.isAnswered ? '답변완료' : '답변대기'}
+                </Badge>
+              </div>
+
+              <div>
+                <div className="text-sm text-muted-foreground mb-4">
+                  {new Date(inquiry.createdAt).toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2">문의내용</h4>
+                <div className="bg-muted/50 p-4 rounded-lg">
+                  <p className="whitespace-pre-wrap">{inquiry.question}</p>
+                </div>
+              </div>
+
+              {inquiry.answer && (
+                <div>
+                  <h4 className="font-semibold mb-2 text-primary">답변내용</h4>
+                  <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                    <p className="whitespace-pre-wrap mb-2">{inquiry.answer}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
         </Dialog>
       </div>
     </div>
@@ -345,72 +440,6 @@ const InquiriesTab = () => {
         </CardContent>
       </Card>
 
-      <Dialog>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {selectedType === 'general' && <MessageCircle className="h-5 w-5" />}
-              {selectedType === 'product' && <Package className="h-5 w-5" />}
-              {selectedType === 'general' && '일반문의 상세내용'}
-              {selectedType === 'product' && '제품문의 상세내용'}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedItem && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  {selectedType === 'general' && '일반문의'}
-                  {selectedType === 'product' && '제품문의'}
-                </Badge>
-                <Badge variant={selectedItem.isAnswered ? 'default' : 'destructive'}>
-                  {selectedItem.isAnswered ? '답변완료' : '답변대기'}
-                </Badge>
-                {(selectedItem.orderNumber) && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <ShoppingCart className="h-3 w-3" />
-                    {selectedItem.orderNumber}
-                  </Badge>
-                )}
-              </div>
-
-              <div>
-                {selectedType !== 'product' && (
-                  <h3 className="font-semibold text-lg mb-2">
-                    {selectedType === 'general' ? selectedItem.title : selectedItem.title}
-                  </h3>
-                )}
-                <div className="text-sm text-muted-foreground mb-4">
-                  {selectedItem.createdAt && new Date(selectedItem.createdAt).toLocaleDateString('ko-KR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-2">문의내용</h4>
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <p className="whitespace-pre-wrap">
-                    {selectedType === 'general' ? selectedItem.question : selectedItem.question}
-                  </p>
-                </div>
-              </div>
-
-              {selectedItem.answer && (
-                <div>
-                  <h4 className="font-semibold mb-2 text-primary">답변내용</h4>
-                  <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
-                    <p className="whitespace-pre-wrap mb-2">{selectedItem.answer}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
       
       <ClaimDetailDialog
         isOpen={isClaimDetailOpen}

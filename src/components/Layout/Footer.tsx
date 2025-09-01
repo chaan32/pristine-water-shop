@@ -10,7 +10,7 @@ import {
   Instagram,
   Youtube
 } from 'lucide-react';
-import { createStorageUrl } from '@/lib/config';
+import greendragonLogo from '@/assets/greendragonLogo.png';
 
 const Footer = () => {
   return (
@@ -21,7 +21,7 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-6">
               <img
-                src={createStorageUrl('파란용배경어픈.png')}
+                src={greendragonLogo}
                 alt="드래곤 로고"
                 className="h-8 w-8 object-contain"
               />

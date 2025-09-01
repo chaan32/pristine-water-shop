@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { apiFetch, getUserInfo, clearTokens } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { createStorageUrl } from '@/lib/config';
+import greendragonLogo from '@/assets/greendragonLogo.png';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -181,7 +181,7 @@ const Header = () => {
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2 group">
             <img
-                src={createStorageUrl('초록용배경어픈.png')} 
+                src={greendragonLogo} 
                 alt="드래곤 로고"
                 className="h-16"
             />
