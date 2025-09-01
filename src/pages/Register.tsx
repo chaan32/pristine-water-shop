@@ -357,19 +357,14 @@ const Register = () => {
          })
       };
 
-      // 사업자등록증 파일이 있는 경우 FormData 사용
-      let body;
-      let headers: HeadersInit = {};
-
+      // 항상 FormData 사용 (파일은 선택 사항)
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(requestData));
       if (corporateForm.businessRegistration) {
-        const formData = new FormData();
-        formData.append('data', JSON.stringify(requestData));
         formData.append('businessRegistration', corporateForm.businessRegistration);
-        body = formData;
-      } else {
-        headers['Content-Type'] = 'application/json';
-        body = JSON.stringify(requestData);
       }
+      const body = formData;
+      const headers: HeadersInit = {}; // Content-Type은 브라우저가 자동 설정
 
 
       // 법인 유형별로 다른 endpoint 사용
@@ -1082,7 +1077,7 @@ const Register = () => {
                   
                   {/* 사업자등록증 업로드 */}
                   <div className="space-y-2">
-                    <Label htmlFor="businessRegistration">사업자등록증 업로드 (필수)</Label>
+                    <Label htmlFor="businessRegistration">사업자등록증 업로드 (선택)</Label>
                     <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors">
                       <input
                         id="businessRegistration"
