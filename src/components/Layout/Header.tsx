@@ -73,14 +73,31 @@ const Header = () => {
     computeCartCount();
   }, [computeCartCount, location.pathname]);
 
-  const handleLogout = () => {
-    clearTokens();
-    setUserInfo(null);
-    toast({
-      title: "로그아웃",
-      description: "성공적으로 로그아웃되었습니다.",
-    });
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      // API 로그아웃 요청
+      if (userInfo?.id) {
+        await apiFetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: userInfo.id }),
+        });
+      }
+    } catch (error) {
+      console.error('로그아웃 API 요청 실패:', error);
+      // API 요청이 실패해도 로컬 로그아웃은 진행
+    } finally {
+      // 로컬 토큰 정리 및 상태 업데이트
+      clearTokens();
+      setUserInfo(null);
+      toast({
+        title: "로그아웃",
+        description: "성공적으로 로그아웃되었습니다.",
+      });
+      navigate('/');
+    }
   };
 
   // 사용자 표시 정보 생성
