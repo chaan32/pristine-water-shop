@@ -372,4 +372,10 @@ export const passwordApi = {
 // Review APIs
 export const reviewApi = {
   createReview: (data: any) => apiFetch('/api/shop/products/review', { method: 'POST', body: JSON.stringify(data) }),
+  deleteReview: (reviewId: number) => apiFetch(`/api/reviews/${reviewId}`, { method: 'DELETE' }),
+};
+
+// Headquarters API
+export const headquartersApi = {
+  getActiveBranches: () => apiFetch('/api/users/headquarters/active/branches'),
 };

@@ -16,7 +16,8 @@ import {
 import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight, CreditCard } from 'lucide-react';
 import PaymentModal from './PaymentModal';
 import { toast } from 'sonner';
-import { apiFetch, getAccessToken } from '@/lib/api';
+import { apiFetch, getAccessToken, headquartersApi } from '@/lib/api';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
 declare global {
@@ -81,6 +82,11 @@ interface FlattenedDataItem {
   price: number; // Represents total price for this specific product line
 }
 
+interface ActiveBranch {
+  branchName: string;
+  totalPaymentPrice: number;
+}
+
 
 // Generates the last 12 months for the dropdown
 const generateLast12Months = () => {
@@ -124,6 +130,8 @@ const HeadquartersDashboard = () => {
     orders: [],
     totalAmount: 0,
   });
+  const [activeBranchesModal, setActiveBranchesModal] = useState(false);
+  const [activeBranches, setActiveBranches] = useState<ActiveBranch[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -381,6 +389,19 @@ const HeadquartersDashboard = () => {
     }
   };
 
+  const handleActiveBranchesClick = async () => {
+    try {
+      const response = await headquartersApi.getActiveBranches();
+      if (!response.ok) throw new Error('활성 지점 데이터를 불러오는 데 실패했습니다.');
+      
+      const result = await response.json();
+      setActiveBranches(result.data.branches);
+      setActiveBranchesModal(true);
+    } catch (error: any) {
+      toast.error(error.message || '활성 지점 데이터를 불러오는 데 실패했습니다.');
+    }
+  };
+
   if (loading) return <div className="text-center py-10">데이터를 불러오는 중...</div>;
   if (error) return <div className="text-center py-10 text-red-500">오류: {error}</div>;
   if (!dashboardData) return <div className="text-center py-10">데이터가 없습니다.</div>;
@@ -400,9 +421,9 @@ const HeadquartersDashboard = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">총 주문 수</CardTitle><Package className="h-4 w-4 text-muted-foreground" /></CardHeader>
             <CardContent><div className="text-2xl font-bold">{dashboardData.totalOrders}</div><p className="text-xs text-muted-foreground">전체 주문</p></CardContent>
           </Card>
-          <Card>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={handleActiveBranchesClick}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">활성 지점</CardTitle><Building2 className="h-4 w-4 text-muted-foreground" /></CardHeader>
-            <CardContent><div className="text-2xl font-bold">{dashboardData.branchNumber}</div><p className="text-xs text-muted-foreground">운영 중인 지점</p></CardContent>
+            <CardContent><div className="text-2xl font-bold">{dashboardData.branchNumber}</div><p className="text-xs text-muted-foreground">운영 중인 지점 (클릭하여 상세보기)</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">총 주문액</CardTitle><BarChart3 className="h-4 w-4 text-muted-foreground" /></CardHeader>
@@ -558,6 +579,38 @@ const HeadquartersDashboard = () => {
           totalAmount={paymentModal.totalAmount}
           onPayment={handlePayment}
         />
+
+        {/* 활성 지점 모달 */}
+        <Dialog open={activeBranchesModal} onOpenChange={setActiveBranchesModal}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>활성 지점 목록</DialogTitle>
+            </DialogHeader>
+            <div className="mt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>지점명</TableHead>
+                    <TableHead className="text-right">총 결제 금액</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeBranches.map((branch, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{branch.branchName}</TableCell>
+                      <TableCell className="text-right">{branch.totalPaymentPrice.toLocaleString()}원</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {activeBranches.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  활성 지점이 없습니다.
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
   );
 };
