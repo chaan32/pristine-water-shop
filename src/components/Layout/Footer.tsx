@@ -10,6 +10,7 @@ import {
   Instagram,
   Youtube
 } from 'lucide-react';
+import { createStorageUrl } from '@/lib/config';
 
 const Footer = () => {
   return (
@@ -20,7 +21,7 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-6">
               <img
-                src="https://kr.object.ncloudstorage.com/dragoncompany-cloudstorage/%E1%84%91%E1%85%A1%E1%84%85%E1%85%A1%E1%86%AB%E1%84%8B%E1%85%AD%E1%86%BC%E1%84%87%E1%85%A2%E1%84%80%E1%85%A7%E1%86%BC%E1%84%8B%E1%85%A5%E1%86%B9.png"
+                src={createStorageUrl('파란용배경어픈.png')}
                 alt="드래곤 로고"
                 className="h-8 w-8 object-contain"
               />

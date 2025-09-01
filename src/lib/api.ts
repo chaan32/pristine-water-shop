@@ -1,8 +1,8 @@
 // Centralized API helpers and base URL
-// Note: Avoid using Vite env vars per project guidelines; adjust base URL here if needed.
 import { jwtDecode } from 'jwt-decode';
+import { API_CONFIG, createApiEndpoint } from './config';
 
-export const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = API_CONFIG.baseUrl;
 
 // Legacy localStorage cleanup (ensure only tokens are stored)
 try {

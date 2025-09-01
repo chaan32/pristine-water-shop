@@ -107,7 +107,7 @@ const Order = () => {
     const script = document.createElement('script');
 
     // 링크 넣어주기
-    script.src = "https://pay.nicepay.co.kr/v1/js/";
+    script.src = PAYMENT_CONFIG.scriptUrl;
 
     // 다 하면 로그 찍기
     script.onload = () => {
@@ -149,7 +149,7 @@ const Order = () => {
       orderId: preOrderData.orderId,
       amount: preOrderData.amount,
       goodsName: preOrderData.goodsName,
-      returnUrl: `http://localhost:8080/api/payments/return`,
+      returnUrl: PAYMENT_CONFIG.returnUrl,
       fnError: function (result: any) {
         toast({
           title: '결제 오류',
