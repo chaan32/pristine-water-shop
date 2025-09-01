@@ -17,7 +17,7 @@ import { Building2, Package, BarChart3, Crown, ChevronDown, ChevronRight, Credit
 import PaymentModal from './PaymentModal';
 import { toast } from 'sonner';
 import { apiFetch, getAccessToken } from '@/lib/api';
-import { PAYMENT_CONFIG } from '@/lib/config';
+
 
 declare global {
   interface Window {
@@ -352,7 +352,7 @@ const HeadquartersDashboard = () => {
 
       // 현재 결제 모달의 정보 사용
       const currentModal = paymentModal;
-      const clientId = PAYMENT_CONFIG.clientId;
+      const clientId = process.env.REACT_APP_CLIENT_ID;
       const orderId = String(data?.orderId ?? orderData.orderId);
       const amount = Number(100); // 테스트용 100원
 

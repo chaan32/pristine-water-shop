@@ -4,7 +4,7 @@
 // 결제 시스템 설정
 export const PAYMENT_CONFIG = {
   // 실제 서비스에서는 이 값을 환경변수나 보안 저장소에서 가져와야 합니다
-  clientId: "R2_a62db6967356421d93f039fbfe6f8f44",
+  clientId: process.env.NICEPAYMENT_CLIENT_ID,
 };
 
 // API 설정

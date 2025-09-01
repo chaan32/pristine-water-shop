@@ -14,7 +14,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { MapPin, CreditCard, Gift, Coins } from 'lucide-react';
 import {apiFetch, getUserInfo} from "@/lib/api.ts";
 import { useToast } from '@/hooks/use-toast';
-import { PAYMENT_CONFIG } from '@/lib/config';
 
 interface UserInfo {
   name: string;
@@ -142,8 +141,10 @@ const Order = () => {
         });
         return;
     }
+    const clientId = process.env.REACT_APP_NICEPAYMENT_CLIENT_ID;
+    console.log(clientId);
     window.AUTHNICE.requestPay({
-      clientId: PAYMENT_CONFIG.clientId,
+      clientId: clientId,
       method: preOrderData.method === '신용카드' ? 'card' : 'bank',
       orderId: preOrderData.orderId,
       amount: preOrderData.amount,
