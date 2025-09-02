@@ -86,7 +86,7 @@ const FeaturedProducts = () => {
             추천 제품
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            고객들이 가장 선호하는 Dragon Company의 베스트셀러 정수 필터를 만나보세요
+            고객들이 가장 선호하는 Dragon Water의 베스트셀러 정수 필터를 만나보세요
           </p>
         </div>
 

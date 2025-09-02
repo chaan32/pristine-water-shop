@@ -56,7 +56,7 @@ const BrandPhilosophy = () => {
               필터란 무엇인가?
             </h2>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              Dragon Company의 필터는 단순한 필터가 아닙니다.
+              Dragon Water의 필터는 단순한 필터가 아닙니다.
               우리는 건강한 삶의 시작이자, 가족을 위한 안전한 선택입니다.
               <br /><br />
               다년간의 연구와 개발을 통해 완성된 정수 기술로

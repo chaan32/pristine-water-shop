@@ -7,11 +7,7 @@ import { MapPin, Phone, Mail, Clock, Award, Users, Droplets, Shield } from 'luci
 
 const About = () => {
   const milestones = [
-    { year: '2010', title: '회사 설립', description: '정수 필터 전문 기업으로 시작' },
-    { year: '2015', title: 'ISO 인증 획득', description: '품질 관리 시스템 구축' },
-    { year: '2018', title: '기업 고객 확대', description: '산업용 필터 사업 진출' },
-    { year: '2020', title: '온라인 쇼핑몰 런칭', description: '디지털 전환 및 D2C 서비스' },
-    { year: '2023', title: '누적 판매 100만대 돌파', description: '고객 신뢰 바탕 성장' }
+    { year: '2024', title: '회사 설립', description: '필터, 온수기 전문 기업으로 시작' },
   ];
 
   const philosophy = [
@@ -45,7 +41,7 @@ const About = () => {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4">회사소개</h1>
           <p className="text-lg text-muted-foreground">
-            깨끗한 물을 통해 건강한 삶을 만들어가는 AquaPure
+            깨끗한 물을 통해 건강한 삶을 만들어가는 Dragon WATER 입니다.
           </p>
         </div>
 

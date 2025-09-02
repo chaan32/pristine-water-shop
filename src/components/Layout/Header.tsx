@@ -126,11 +126,11 @@ const Header = () => {
       path: '/about',
       submenu: []
     },
-    { 
-      title: '제품소개', 
-      path: '/products',
-      submenu: ['샤워 필터', '주방 정수 필터', '산업용 필터']
-    },
+    // {
+    //   title: '제품소개',
+    //   path: '/products',
+    //   submenu: ['샤워 필터', '주방 정수 필터', '산업용 필터']
+    // },
     { 
       title: '쇼핑몰', 
       path: '/shop',
@@ -208,7 +208,7 @@ const Header = () => {
                 className="h-16"
             />
             <div>
-              <h1 className="text-2xl font-bold text-primary">DRAGON COMPANY</h1>
+              <h1 className="text-2xl font-bold text-primary">DRAGON WATER</h1>
               <p className="text-xs text-muted-foreground">수질의 혁신, 깨끗함의 기준</p> {/* 필요에 따라 문구 수정 */}
             </div>
           </Link>

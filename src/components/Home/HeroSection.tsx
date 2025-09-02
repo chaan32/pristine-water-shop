@@ -36,7 +36,7 @@ const HeroSection = () => {
 
           {/* Description */}
           <p className="text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed">
-            DRAGON COMPANY와 함께 시작하는 정수 필터의 새로운 경험.
+            DRAGON WATER와 함께 시작하는 정수 필터의 새로운 경험.
             <br />
             믿을 수 있는 품질로 당신의 건강을 지켜드립니다.
           </p>
