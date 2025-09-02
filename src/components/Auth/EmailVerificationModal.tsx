@@ -86,7 +86,6 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
         });
       }
     } catch (error: any) {
-      console.error('Auth code send error:', error);
       toast({
         title: "발송 실패",
         description: error.message || "이메일 발송 중 오류가 발생했습니다.",
@@ -134,7 +133,6 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({
         });
       }
     } catch (error) {
-      console.error('Auth verification error:', error);
       toast({
         title: "인증 실패",
         description: "인증번호가 올바르지 않습니다. 다시 확인해주세요.",

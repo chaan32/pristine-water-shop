@@ -242,7 +242,6 @@ const getCategoryLabel = (value?: string) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('상품 목록 응답:', data);
 
         // 응답 데이터 정규화 (id, name만)
         const normalizedProducts = data.map((item: any) => ({

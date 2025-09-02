@@ -47,7 +47,6 @@ const CorporateRequests = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Corporate requests data:', data);
         
         // API 응답이 직접 배열인 경우와 { success, data } 형태 모두 처리
         if (Array.isArray(data)) {
@@ -121,7 +120,7 @@ const CorporateRequests = () => {
   };
 
   const handleViewDetail = (id: number) => {
-    console.log('상세 조회:', id);
+    // 상세 조회 기능 추가 가능
   };
 
   const getBusinessTypeText = (type: string) => {
