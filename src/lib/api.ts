@@ -342,6 +342,17 @@ export const adminApi = {
   getClaims: () => apiFetch('/api/admin/claims'),
   approveClaim: (claimId: number, data?: any) => apiFetch(`/api/admin/claims/${claimId}/approved`, { method: 'POST', body: data ? JSON.stringify(data) : undefined }),
   rejectClaim: (claimId: number, data: any) => apiFetch(`/api/admin/claims/${claimId}/rejected`, { method: 'POST', body: JSON.stringify(data) }),
+  
+  // Statistics
+  getTotalSales: () => apiFetch('/api/admin/statistics/sales/total'),
+  getYearlySales: () => apiFetch('/api/admin/statistics/sales/yearly'),
+  getMonthlySales: (year: number) => apiFetch(`/api/admin/statistics/sales/monthly/${year}`),
+  getDailySales: (year: number, month: number) => apiFetch(`/api/admin/statistics/sales/daily/${year}/${month}`),
+  getTotalOrders: () => apiFetch('/api/admin/statistics/orders/total'),
+  getYearlyOrders: () => apiFetch('/api/admin/statistics/orders/yearly'),
+  getMonthlyOrders: (year: number) => apiFetch(`/api/admin/statistics/orders/monthly/${year}`),
+  getDailyOrders: (year: number, month: number) => apiFetch(`/api/admin/statistics/orders/daily/${year}/${month}`),
+  getCumulativeStats: () => apiFetch('/api/admin/statistics/cumulative'),
 };
 
 // Support APIs
