@@ -122,6 +122,11 @@ const Header = () => {
 
   const mainMenuItems = [
     { 
+      title: '회사소개', 
+      path: '/about',
+      submenu: []
+    },
+    { 
       title: '제품소개', 
       path: '/products',
       submenu: ['샤워 필터', '주방 정수 필터', '산업용 필터']
