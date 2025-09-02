@@ -344,7 +344,6 @@ const OrderManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
         if (data.success) {
           const processedData = data.data.map((order: Order) => {
             const orderDate = new Date(order.orderDate);

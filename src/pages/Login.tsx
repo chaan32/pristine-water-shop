@@ -99,7 +99,6 @@ const Login = () => {
         }
       }
     } catch (error) {
-      console.error('Login error:', error);
       toast({ title: '알 수 없는 오류', description: '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.', variant: 'destructive' });
     }
   };

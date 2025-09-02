@@ -61,7 +61,6 @@ const ProductManagement = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('메인 카테고리 응답:', data);
         setMainCategories(data);
       }
     } catch (error) {
@@ -76,7 +75,6 @@ const ProductManagement = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('서브 카테고리 응답:', data);
         
         // 서버 응답을 { id: string, name: string } 형태로 변환
         const subCategoryArray = Array.isArray(data) ? data.map((item: any) => ({
@@ -100,7 +98,6 @@ const ProductManagement = () => {
       
       if (response.ok) {
         const responseData = await response.json();
-        console.log('메인 카테고리 추가 응답:', responseData);
         
         toast({
           title: "메인 카테고리 추가 성공",
@@ -133,7 +130,6 @@ const ProductManagement = () => {
       
       if (response.ok) {
         const responseData = await response.json();
-        console.log('서브 카테고리 추가 응답:', responseData);
         
         toast({
           title: "서브 카테고리 추가 성공",
@@ -321,10 +317,8 @@ const ProductManagement = () => {
 
       if (response.ok) {
         const createdProduct = await response.json();
-        console.log('생성된 상품 데이터:', createdProduct);
         
         const productId = createdProduct.id || createdProduct.productId;
-        console.log('추출된 productId:', productId);
         
         toast({
           title: "상품 등록 성공",

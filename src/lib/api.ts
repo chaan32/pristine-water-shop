@@ -55,7 +55,6 @@ export const decodeAccessToken = (): JwtPayload | null => {
   try {
     return jwtDecode<JwtPayload>(token);
   } catch (error) {
-    console.error('Token decode error:', error);
     return null;
   }
 };
@@ -115,7 +114,6 @@ export const refreshAccessToken = async (): Promise<boolean> => {
     return false;
 
   } catch (error) {
-    console.error('Token refresh failed:', error);
     clearTokens();
     window.location.href = '/login'; // 로그인 페이지로 이동
     return false;
@@ -142,11 +140,9 @@ export async function apiFetch(input: string, init: RequestInit = {}): Promise<R
 
   // 2. 응답이 401 (Unauthorized) 에러인 경우에만 재발급 로직을 실행합니다.
   if (response.status === 401) {
-    console.log('Access token expired. Attempting to refresh...');
     const refreshed = await refreshAccessToken();
 
     if (refreshed) {
-      console.log('Token refreshed successfully. Retrying the original request...');
       // 토큰 재발급에 성공했다면, 새로운 토큰으로 헤더를 다시 만들어 원래 요청을 재시도합니다.
       const newHeaders: HeadersInit = {
         ...baseHeaders,
@@ -204,12 +200,10 @@ export const authApi = {
     }),
 
   verifyAuthPhone: (phone: string, verifyCode: string) => {
-    const payload = { phone, verifyCode };
-    console.log('API 전송 데이터:', payload);
     return fetch(`${API_BASE_URL}/api/auth/try/phone`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ phone, verifyCode }),
     });
   },
 

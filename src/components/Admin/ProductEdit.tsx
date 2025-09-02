@@ -146,22 +146,6 @@ const ProductEdit = () => {
       }
 
       const data = await response.json();
-      console.log('=== API 응답 데이터 ===');
-      console.log('전체 상품 목록:', data);
-      if (data.length > 0) {
-        console.log('첫 번째 상품 상세:', data[0]);
-        console.log('할인 가격 필드들:');
-        data.forEach((product: any, index: number) => {
-          console.log(`상품 ${index + 1} (${product.name}):`, {
-            customerPrice: product.customerPrice,
-            businessPrice: product.businessPrice,
-            discountPrice: product.discountPrice,
-            discountPercent: product.discountPercent,
-            할인가격타입: typeof product.discountPrice,
-            할인율타입: typeof product.discountPercent
-          });
-        });
-      }
       setProducts(data);
     } catch (error) {
       toast({
@@ -182,7 +166,6 @@ const ProductEdit = () => {
       const response = await adminApi.getMainCategories();
       if (response.ok) {
         const data = await response.json();
-        console.log('메인 카테고리 응답:', data);
         setMainCategories(data);
       }
     } catch (error) {
@@ -198,7 +181,6 @@ const ProductEdit = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('서브 카테고리 응답:', data);
         
         // 응답을 표준 구조로 변환 { id: string, name: string }
         const subCategoryArray = (Array.isArray(data) ? data : []).map((item: any) => ({
@@ -289,12 +271,19 @@ const ProductEdit = () => {
 
   // 서브 카테고리 선택 시
   const handleSubCategorySelect = (subCategory: { id: string; name: string }) => {
-    if (subCategory && subCategory.name && subCategory.id) {
-      setSelectedCategoryName(`${selectedMainCategoryName} > ${subCategory.name}`);
-      handleInputChange('categoryId', subCategory.id);
-      handleInputChange('category', subCategory.name);
-    } else {
-      console.error('서브카테고리 정보가 올바르지 않습니다:', subCategory);
+    try {
+      if (subCategory && subCategory.name && subCategory.id) {
+        setSelectedCategoryName(`${selectedMainCategoryName} > ${subCategory.name}`);
+        handleInputChange('categoryId', subCategory.id);
+        handleInputChange('category', subCategory.name);
+      } else {
+        toast({
+          title: "오류",
+          description: "서브카테고리 선택 중 오류가 발생했습니다.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
         title: "오류",
         description: "서브카테고리 선택 중 오류가 발생했습니다.",
@@ -353,7 +342,6 @@ const ProductEdit = () => {
         });
       }
     } catch (error) {
-      console.log(error);
       toast({
         title: "오류",
         description: "표현 추가에 실패했습니다.",
@@ -394,10 +382,6 @@ const ProductEdit = () => {
   };
 
   const handleEdit = async (product: any) => {
-    console.log('상품 수정 데이터:', product);
-    console.log('할인 가격:', product.discountPrice);
-    console.log('할인 퍼센트:', product.discountPercent);
-    
     setSelectedProduct(product);
     setEditForm({
       name: product.name || '',

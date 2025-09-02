@@ -98,7 +98,6 @@ const ProductContentManagement = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('상품 목록 응답:', data);
         
         // 응답 데이터 정규화 (id, name만)
         const normalizedProducts = data.map((item: any) => ({
@@ -140,10 +139,8 @@ const ProductContentManagement = () => {
       
       if (response.ok) {
         const text = await response.text();
-        console.log('응답 텍스트:', text);
         
         if (!text) {
-          console.log('빈 응답 - 새로 작성 모드');
           setContentData({ title: '', htmlContent: '' });
           if (editor) editor.commands.setContent('');
           setThumbnailPreview('');
@@ -177,7 +174,6 @@ const ProductContentManagement = () => {
         });
       } else if (response.status === 404) {
         // 콘텐츠가 없는 경우 - 새로 작성
-        console.log('콘텐츠가 없음, 새로 작성');
         setContentData({ title: '', htmlContent: '' });
         if (editor) {
           editor.commands.setContent('');
@@ -435,10 +431,6 @@ const ProductContentManagement = () => {
     editorImageFiles.forEach(file => {
       formData.append('editorImages', file);
     });
-    console.log("백엔드로 전송될 데이터 확인:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
     try {
       // API: POST /api/admin/products/content (multipart/form-data)
       const response = await adminApi.saveProductContentFormData(formData);
