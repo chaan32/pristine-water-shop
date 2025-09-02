@@ -536,7 +536,7 @@ const Register = () => {
                     <div className="flex gap-2">
                       <Input 
                         type="email" 
-                        placeholder="이메일"
+                        placeholder="이메일 인증 버튼을 통해서 인증해주세요."
                         value={individualForm.email}
                         disabled={individualForm.isEmailVerified}
                         readOnly={individualForm.isEmailVerified}
@@ -576,7 +576,7 @@ const Register = () => {
                     <Label>휴대폰 번호 (필수)</Label>
                     <div className="flex gap-2">
                       <Input 
-                        placeholder="010-1234-5678"
+                        placeholder="휴대폰 인증 버튼을 통해서 인증해주세요."
                         value={individualForm.phone}
                         readOnly
                         disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
@@ -964,7 +964,7 @@ const Register = () => {
                     <div className="flex gap-2">
                       <Input 
                         type="email" 
-                        placeholder="이메일"
+                        placeholder="이메일 버튼을 통해서 인증해주세요."
                         value={corporateForm.email}
                         disabled={corporateForm.isEmailVerified || !corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                         readOnly={corporateForm.isEmailVerified}
