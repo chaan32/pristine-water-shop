@@ -5,25 +5,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
-  LineChart, 
-  Line, 
   BarChart, 
   Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Area,
-  AreaChart
+  ResponsiveContainer
 } from 'recharts';
 import { 
   TrendingUp, 
-  TrendingDown, 
   DollarSign, 
   ShoppingCart, 
-  Calendar,
-  BarChart3,
   AlertCircle
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
@@ -219,7 +212,7 @@ const StatisticsDashboard = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
@@ -230,9 +223,9 @@ const StatisticsDashboard = () => {
             {loading ? (
               <Skeleton className="h-8 w-24 mb-2" />
             ) : (
-              <div className="text-2xl font-bold">₩{totalSales.toLocaleString()}</div>
+              <div className="text-3xl font-bold">₩{totalSales.toLocaleString()}</div>
             )}
-            <div className="flex items-center text-xs text-muted-foreground">
+            <div className="flex items-center text-xs text-muted-foreground mt-2">
               <TrendingUp className="h-3 w-3 mr-1 text-success" />
               전월 대비 +{salesGrowth}%
             </div>
@@ -249,89 +242,46 @@ const StatisticsDashboard = () => {
             {loading ? (
               <Skeleton className="h-8 w-20 mb-2" />
             ) : (
-              <div className="text-2xl font-bold">{totalOrders.toLocaleString()}</div>
+              <div className="text-3xl font-bold">{totalOrders.toLocaleString()}</div>
             )}
-            <div className="flex items-center text-xs text-muted-foreground">
+            <div className="flex items-center text-xs text-muted-foreground mt-2">
               <TrendingUp className="h-3 w-3 mr-1 text-success" />
               전월 대비 +{ordersGrowth}%
             </div>
           </CardContent>
         </Card>
-
-        <Card className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 to-chart-3/10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-            <CardTitle className="text-sm font-medium">평균 주문 금액</CardTitle>
-            <BarChart3 className="h-5 w-5 text-chart-3" />
-          </CardHeader>
-          <CardContent className="relative">
-            {loading ? (
-              <Skeleton className="h-8 w-24 mb-2" />
-            ) : (
-              <div className="text-2xl font-bold">
-                ₩{totalOrders > 0 ? Math.round(totalSales / totalOrders).toLocaleString() : '0'}
-              </div>
-            )}
-            <div className="flex items-center text-xs text-muted-foreground">
-              <TrendingDown className="h-3 w-3 mr-1 text-destructive" />
-              전월 대비 {avgOrderGrowth}%
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-chart-4/5 to-chart-4/10" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-            <CardTitle className="text-sm font-medium">누적 통계</CardTitle>
-            <Calendar className="h-5 w-5 text-chart-4" />
-          </CardHeader>
-          <CardContent className="relative">
-            {loading ? (
-              <Skeleton className="h-8 w-24 mb-2" />
-            ) : (
-              <div className="space-y-1">
-                <div className="text-lg font-semibold">₩{cumulativeStats.sales.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">{cumulativeStats.orders.toLocaleString()} 건</div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Charts */}
+      {/* Simple Bar Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Chart */}
-        <Card className="lg:col-span-1">
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-lg">
               매출 현황
               <Badge variant="secondary">
-                {timeRange === 'yearly' ? '연도별' : timeRange === 'monthly' ? '월별' : '일별'} 조회
+                {timeRange === 'yearly' ? '연도별' : timeRange === 'monthly' ? '월별' : '일별'}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <Skeleton className="h-[300px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.2)" />
                   <XAxis 
                     dataKey="period" 
-                    fontSize={12}
+                    fontSize={14}
                     stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 12 }}
                   />
                   <YAxis 
                     tickFormatter={(value) => `₩${(value / 1000000).toFixed(0)}M`}
-                    fontSize={12}
+                    fontSize={14}
                     stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 12 }}
                   />
                   <Tooltip 
                     formatter={(value: number) => [`₩${value.toLocaleString()}`, '매출']}
@@ -339,27 +289,26 @@ const StatisticsDashboard = () => {
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}
                   />
-                  <Area 
-                    type="monotone" 
+                  <Bar 
                     dataKey="sales" 
-                    stroke="hsl(var(--primary))" 
-                    fillOpacity={1}
-                    fill="url(#salesGradient)"
-                    strokeWidth={3}
+                    fill="hsl(var(--primary))" 
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={60}
                   />
-                </AreaChart>
+                </BarChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
 
         {/* Orders Chart */}
-        <Card className="lg:col-span-1">
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-lg">
               주문 현황
               <Badge variant="outline">
                 주문 건수
@@ -368,19 +317,21 @@ const StatisticsDashboard = () => {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <Skeleton className="h-[300px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.2)" />
                   <XAxis 
                     dataKey="period" 
-                    fontSize={12}
+                    fontSize={14}
                     stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 12 }}
                   />
                   <YAxis 
-                    fontSize={12}
+                    fontSize={14}
                     stroke="hsl(var(--muted-foreground))"
+                    tick={{ fontSize: 12 }}
                   />
                   <Tooltip 
                     formatter={(value: number) => [`${value.toLocaleString()}건`, '주문 수']}
@@ -388,13 +339,15 @@ const StatisticsDashboard = () => {
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}
                   />
                   <Bar 
                     dataKey="orders" 
-                    fill="hsl(var(--primary))" 
-                    radius={[4, 4, 0, 0]}
+                    fill="hsl(var(--chart-2))" 
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={60}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -402,78 +355,6 @@ const StatisticsDashboard = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Combined Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            매출 & 주문 통합 차트
-            <Badge variant="secondary">
-              이중 축 차트
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <Skeleton className="h-[400px] w-full" />
-          ) : (
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.2)" />
-                <XAxis 
-                  dataKey="period" 
-                  fontSize={12}
-                  stroke="hsl(var(--muted-foreground))"
-                />
-                <YAxis 
-                  yAxisId="sales"
-                  orientation="left"
-                  tickFormatter={(value) => `₩${(value / 1000000).toFixed(0)}M`}
-                  fontSize={12}
-                  stroke="hsl(var(--primary))"
-                />
-                <YAxis 
-                  yAxisId="orders"
-                  orientation="right"
-                  fontSize={12}
-                  stroke="hsl(var(--chart-2))"
-                />
-                <Tooltip 
-                  formatter={(value: number, name: string) => [
-                    name === 'sales' ? `₩${value.toLocaleString()}` : `${value.toLocaleString()}건`,
-                    name === 'sales' ? '매출' : '주문 수'
-                  ]}
-                  labelFormatter={(label) => `${label}`}
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Line 
-                  yAxisId="sales"
-                  type="monotone" 
-                  dataKey="sales" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={3}
-                  dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 6 }}
-                  activeDot={{ r: 8, stroke: 'hsl(var(--primary))', strokeWidth: 2 }}
-                />
-                  <Line 
-                  yAxisId="orders"
-                  type="monotone" 
-                  dataKey="orders" 
-                  stroke="hsl(var(--chart-2))" 
-                  strokeWidth={3}
-                  strokeDasharray="5 5"
-                  dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 6 }}
-                  activeDot={{ r: 8, stroke: 'hsl(var(--chart-2))', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 };
