@@ -13,9 +13,11 @@ import { userApi, getAccessToken, clearTokens } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
 import ReviewModal from '@/components/MyPage/ReviewModal';
-import { User, Package, Settings, Truck, Crown, Building2, Search, Lock, MessageSquare } from 'lucide-react';
+import { User, Package, Settings, Truck, Crown, Building2, Search, Lock, MessageSquare, Mail, Phone } from 'lucide-react';
 import ReAuthDialog from '@/components/MyPage/ReAuthDialog';
 import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog';
+import EmailVerificationModal from '@/components/Auth/EmailVerificationModal';
+import PhoneVerificationModal from '@/components/Auth/PhoneVerificationModal';
 
 const MyPage = () => {
   const { toast } = useToast();
@@ -33,6 +35,8 @@ const MyPage = () => {
   const [selectedOrderName, setSelectedOrderName] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isEmailVerificationOpen, setIsEmailVerificationOpen] = useState(false);
+  const [isPhoneVerificationOpen, setIsPhoneVerificationOpen] = useState(false);
 
 
   useEffect(() => {
@@ -253,6 +257,34 @@ const MyPage = () => {
       navigate('/login');
     }, 2000);
   };
+
+  // 이메일 인증 핸들러
+  const handleEmailVerificationClick = () => {
+    setIsEmailVerificationOpen(true);
+  };
+
+  const handleEmailVerificationSuccess = (verifiedEmail: string) => {
+    handleFormChange('email', verifiedEmail);
+    setIsEmailVerificationOpen(false);
+    toast({
+      title: "이메일 인증 완료",
+      description: "이메일이 인증되었습니다.",
+    });
+  };
+
+  // 전화번호 인증 핸들러
+  const handlePhoneVerificationClick = () => {
+    setIsPhoneVerificationOpen(true);
+  };
+
+  const handlePhoneVerificationSuccess = (verifiedPhone: string) => {
+    handleFormChange('phone', verifiedPhone);
+    setIsPhoneVerificationOpen(false);
+    toast({
+      title: "전화번호 인증 완료",
+      description: "전화번호가 인증되었습니다.",
+    });
+  };
   // 폼 입력 핸들러
   const handleFormChange = (field: string, value: string) => {
     setEditForm((prev: any) => ({
@@ -400,21 +432,41 @@ const MyPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">이메일</label>
-                          <input
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                            value={editForm.email || ''}
-                            type="email"
-                            onChange={(e) => handleFormChange('email', e.target.value)}
-                          />
+                          <div className="flex gap-2">
+                            <input
+                              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                              value={editForm.email || ''}
+                              type="email"
+                              onChange={(e) => handleFormChange('email', e.target.value)}
+                            />
+                            <Button
+                              onClick={handleEmailVerificationClick}
+                              variant="outline"
+                              className="px-3"
+                            >
+                              <Mail className="w-4 h-4 mr-1" />
+                              인증
+                            </Button>
+                          </div>
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">전화번호</label>
-                          <input
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                            value={editForm.phone || ''}
-                            type="tel"
-                            onChange={(e) => handleFormChange('phone', e.target.value)}
-                          />
+                          <div className="flex gap-2">
+                            <input
+                              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                              value={editForm.phone || ''}
+                              type="tel"
+                              onChange={(e) => handleFormChange('phone', e.target.value)}
+                            />
+                            <Button
+                              onClick={handlePhoneVerificationClick}
+                              variant="outline"
+                              className="px-3"
+                            >
+                              <Phone className="w-4 h-4 mr-1" />
+                              인증
+                            </Button>
+                          </div>
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">우편번호</label>
@@ -617,6 +669,18 @@ const MyPage = () => {
           product={selectedProductForReview}
           orderName={selectedOrderName}
           onReviewSubmitted={handleReviewSubmitted}
+        />
+
+        <EmailVerificationModal
+          isOpen={isEmailVerificationOpen}
+          onClose={() => setIsEmailVerificationOpen(false)}
+          onVerificationSuccess={handleEmailVerificationSuccess}
+        />
+
+        <PhoneVerificationModal
+          isOpen={isPhoneVerificationOpen}
+          onClose={() => setIsPhoneVerificationOpen(false)}
+          onVerificationSuccess={handlePhoneVerificationSuccess}
         />
 
         <Footer />
