@@ -5,7 +5,7 @@ import { getUserInfo } from '@/lib/api';
 import ProductManagement from '@/components/Admin/ProductManagement';
 import ProductEdit from '@/components/Admin/ProductEdit';
 import ProductContentManagement from '@/components/Admin/ProductContentManagement';
-import StatisticsDashboard from '@/components/Admin/StatisticsDashboard';
+import SalesChart from '@/components/Admin/SalesChart';
 import OrderManagement from '@/components/Admin/OrderManagement';
 import MemberList from '@/components/Admin/MemberList';
 import CorporateRequests from '@/components/Admin/CorporateRequests';
@@ -29,7 +29,7 @@ const Admin = () => {
         <Route path="/products" element={<ProductManagement />} />
         <Route path="/products/edit/:id?" element={<ProductEdit />} />
         <Route path="/products/content" element={<ProductContentManagement />} />
-        <Route path="/sales" element={<StatisticsDashboard />} />
+        <Route path="/sales" element={<SalesChart />} />
         <Route path="/orders" element={<OrderManagement />} />
         <Route path="/members" element={<MemberList />} />
         <Route path="/corporate-requests" element={<CorporateRequests />} />
