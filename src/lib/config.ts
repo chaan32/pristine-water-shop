@@ -34,7 +34,7 @@ export const ENVIRONMENT: Environment = import.meta.env.MODE as Environment;
 
 // API 설정
 export const API_CONFIG: ApiConfig = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://localhost:8080',
   timeout: 10000,
 } as const;
 
