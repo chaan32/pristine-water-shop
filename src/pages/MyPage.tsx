@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from '@/components/ui/pagination';
 import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard';
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
-import { userApi, getAccessToken, clearTokens } from '@/lib/api';
+import { orderApi, userApi, authApi, apiFetch, getAccessToken, clearTokens } from '@/lib/api';
+import { formatPriceWithComma } from '@/lib/price-format';
+import { createTrackingUrl } from '@/lib/config';
 import { useToast } from '@/hooks/use-toast';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
 import ReviewModal from '@/components/MyPage/ReviewModal';
@@ -580,7 +582,7 @@ const MyPage = () => {
                                 variant="outline"
                                 size="sm"
                                 className="w-full text-xs"
-                                onClick={() => window.open(`https://trace.cjlogistics.com/next/tracking.html?wblNo=${order.trackingNumber}`, '_blank')}
+                                onClick={() => window.open(createTrackingUrl('cjlogistics', order.trackingNumber), '_blank')}
                               >
                                 배송추적
                               </Button>

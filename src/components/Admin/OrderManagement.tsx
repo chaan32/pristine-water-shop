@@ -20,9 +20,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Package, Truck, CheckCircle, RefreshCw, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react';
-import { apiFetch } from '@/lib/api';
+import { Search, Package, Truck, CheckCircle, RefreshCw, ExternalLink, ChevronDown, ChevronRight, Eye } from 'lucide-react';
+import { apiFetch, adminApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { createTrackingUrl } from '@/lib/config';
 
 // --- 타입 정의 ---
 interface OrderItem {
@@ -269,7 +270,7 @@ const OrderTable = ({ orders, onOpenModal, showStatusColumns = true, showTrackin
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(`https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${selectedOrderForDetail.trackingNumber}`, '_blank')}
+                            onClick={() => window.open(createTrackingUrl('epost', selectedOrderForDetail.trackingNumber), '_blank')}
                             className="flex items-center gap-1"
                           >
                             <ExternalLink className="w-3 h-3" />
@@ -425,7 +426,7 @@ const OrderManagement = () => {
 
   const getTrackingUrl = (trackingNumber: string) => {
     // 일반적인 택배사 추적 URL (실제로는 택배사에 따라 다름)
-    return `https://service.epost.go.kr/trace.RetrieveDomRigiTraceList.comm?sid1=${trackingNumber}`;
+    return createTrackingUrl('epost', trackingNumber);
   };
 
   if (loading) {

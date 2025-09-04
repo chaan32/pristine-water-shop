@@ -9,8 +9,10 @@ import HeadquartersDashboard from '@/components/Corporate/HeadquartersDashboard'
 import OrderDetailModal from '@/components/MyPage/OrderDetailModal';
 import ReAuthDialog from '@/components/MyPage/ReAuthDialog';
 import PasswordChangeDialog from '@/components/MyPage/PasswordChangeDialog';
-import { userApi, getAccessToken, clearTokens } from '@/lib/api';
+import { orderApi, userApi, authApi, apiFetch, getAccessToken, clearTokens } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { formatPriceWithComma } from '@/lib/price-format';
+import { createTrackingUrl } from '@/lib/config';
 import InquiriesTab from '@/components/MyPage/InquiriesTab';
 
 const MyPageContent = () => {
@@ -500,7 +502,7 @@ const MyPageContent = () => {
                             variant="outline"
                             size="sm"
                             className="w-full text-xs"
-                            onClick={() => window.open(`https://trace.cjlogistics.com/next/tracking.html?wblNo=${order.trackingNumber}`, '_blank')}
+                            onClick={() => window.open(createTrackingUrl('cjlogistics', order.trackingNumber), '_blank')}
                           >
                             배송추적
                           </Button>
