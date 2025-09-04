@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { UserPlus, Building, User, Check, X, Upload, Search, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authApi, registerApi } from '@/lib/api';
+import { API_CONFIG } from '@/lib/config';
 import EmailVerificationModal from '@/components/Auth/EmailVerificationModal';
 import PhoneVerificationModal from '@/components/Auth/PhoneVerificationModal';
 
@@ -371,14 +372,14 @@ const Register = () => {
       let endpoint;
       switch (corporateForm.corporateType) {
         case 'franchise':
-          endpoint = 'http://localhost:8080/api/register/franchise';
+          endpoint = `${API_CONFIG.baseUrl}/api/register/franchise`;
           break;
         case 'headquarters':
-          endpoint = 'http://localhost:8080/api/register/headquarters';
+          endpoint = `${API_CONFIG.baseUrl}/api/register/headquarters`;
           break;
         case 'single':
         default:
-          endpoint = 'http://localhost:8080/api/register/corporate';
+          endpoint = `${API_CONFIG.baseUrl}/api/register/corporate`;
           break;
       }
 

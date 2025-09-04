@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { Save, Plus, ChevronDown, Edit2, Trash2 } from 'lucide-react';
 import { adminApi, getAccessToken } from '@/lib/api';
+import { API_CONFIG } from '@/lib/config';
 import { formatPriceWithComma, extractNumbers, createPriceChangeHandler } from '@/lib/price-format';
 
 const ProductManagement = () => {
@@ -179,8 +180,8 @@ const ProductManagement = () => {
     try {
       const token = getAccessToken();
       const endpoint = editingCategory.type === 'main' 
-        ? `http://localhost:8080/api/admin/main/categories/${editingCategory.id}/${editCategoryName.trim()}`
-        : `http://localhost:8080/api/admin/sub/categories/${editingCategory.id}/${editCategoryName.trim()}`;
+        ? `${API_CONFIG.baseUrl}/api/admin/main/categories/${editingCategory.id}/${editCategoryName.trim()}`
+        : `${API_CONFIG.baseUrl}/api/admin/sub/categories/${editingCategory.id}/${editCategoryName.trim()}`;
       
       const response = await fetch(endpoint, {
         method: 'PUT',
@@ -236,8 +237,8 @@ const ProductManagement = () => {
     try {
       const token = getAccessToken();
       const endpoint = deletingCategory.type === 'main' 
-        ? `http://localhost:8080/api/admin/main/categories/${deletingCategory.id}`
-        : `http://localhost:8080/api/admin/sub/categories/${deletingCategory.id}`;
+        ? `${API_CONFIG.baseUrl}/api/admin/main/categories/${deletingCategory.id}`
+        : `${API_CONFIG.baseUrl}/api/admin/sub/categories/${deletingCategory.id}`;
       
       const response = await fetch(endpoint, {
         method: 'DELETE',
@@ -306,7 +307,7 @@ const ProductManagement = () => {
         expressions: expressions
       };
 
-      const response = await fetch('http://localhost:8080/api/admin/products/add', {
+      const response = await fetch(`${API_CONFIG.baseUrl}/api/admin/products/add`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

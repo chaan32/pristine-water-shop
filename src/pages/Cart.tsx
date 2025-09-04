@@ -73,7 +73,7 @@ const Cart = () => {
   /*
   ==================== API 요청 명세 (장바구니 수량 변경) ====================
   Method: PUT
-  URL: http://localhost:8080/api/cart/items/{itemId}
+  URL: {API_BASE_URL}/api/cart/items/{itemId}
   Headers: {
     'Authorization': 'Bearer {accessToken}',
     'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ const Cart = () => {
   /*
   ==================== API 요청 명세 (장바구니 상품 삭제) ====================
   Method: DELETE
-  URL: http://localhost:8080/api/cart/items/{itemId}
+  URL: {API_BASE_URL}/api/cart/items/{itemId}
   Headers: {
     'Authorization': 'Bearer {accessToken}'
   }
