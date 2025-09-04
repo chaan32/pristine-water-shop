@@ -166,7 +166,7 @@ export type CartItemDto = { productId: number; quantity: number };
 // CENTRALIZED API CALLS
 // ===========================================
 
-// Auth APIs
+// Auth APIs (uses direct fetch to avoid circular dependency with apiFetch)
 export const authApi = {
   login: (data: { username: string; password: string; deviceInfo?: any }) =>
     fetch(`${API_BASE_URL}/api/auth/login`, { 
