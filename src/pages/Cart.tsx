@@ -162,7 +162,7 @@ const Cart = () => {
     }
   };
 
-  const shippingFee = 3000;
+  const shippingFee = 0;
   const totalPrice = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
   const finalPrice = totalPrice + (cartItems.length > 0 ? shippingFee : 0);
 

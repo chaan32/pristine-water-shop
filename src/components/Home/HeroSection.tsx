@@ -43,7 +43,11 @@ const HeroSection = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mb-12">
-            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground water-drop">
+            <Button 
+              size="lg" 
+              className="bg-accent hover:bg-accent/90 text-accent-foreground water-drop"
+              onClick={() => window.location.href = '/shop'}
+            >
               제품 둘러보기
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>

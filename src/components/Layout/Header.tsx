@@ -15,6 +15,18 @@ import { apiFetch, getUserInfo, clearTokens } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import greendragonLogo from '@/assets/greendragonLogo.png';
 
+// 타입 정의
+interface MenuSubItem {
+  title: string;
+  path: string;
+}
+
+interface MenuItem {
+  title: string;
+  path: string;
+  submenu: MenuSubItem[];
+}
+
 const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -120,7 +132,7 @@ const Header = () => {
 
   const displayInfo = getUserDisplayInfo();
 
-  const mainMenuItems = [
+  const mainMenuItems: MenuItem[] = [
     { 
       title: '회사소개', 
       path: '/about',
@@ -139,7 +151,11 @@ const Header = () => {
     { 
       title: '고객센터', 
       path: '/support',
-      submenu: ['공지사항', '1:1 문의', 'FAQ']
+      submenu: [
+        { title: '공지사항', path: '/support#notice' },
+        { title: '1:1 문의', path: '/support#inquiry' },
+        { title: 'FAQ', path: '/support#faq' }
+      ]
     }
   ];
 
@@ -226,15 +242,15 @@ const Header = () => {
                   {item.title}
                 </Link>
                 {item.submenu.length > 0 && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-smooth">
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-smooth z-50">
                     <div className="py-2">
                        {item.submenu.map((subItem, index) => (
                         <Link
                           key={index}
-                          to={`${item.path}#${subItem.toLowerCase().replace(/\s+/g, '-').replace(/:/g, '')}`}
+                          to={subItem.path}
                           className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary transition-smooth"
                         >
-                          {subItem}
+                          {subItem.title}
                         </Link>
                       ))}
                     </div>
@@ -307,11 +323,11 @@ const Header = () => {
                       {item.submenu.map((subItem, index) => (
                         <Link
                           key={index}
-                          to={`${item.path}#${subItem.toLowerCase().replace(/\s+/g, '-').replace(/:/g, '')}`}
+                          to={subItem.path}
                           className="block text-sm text-muted-foreground hover:text-primary transition-smooth"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          {subItem}
+                          {subItem.title}
                         </Link>
                       ))}
                     </div>
