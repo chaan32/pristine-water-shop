@@ -1,9 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Shield, Droplets, Award } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import heroImage from '@/assets/hero-water-filter.jpg';
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   console.log('HeroSection is rendering');
   console.log('Hero image path:', heroImage);
   
@@ -46,7 +48,7 @@ const HeroSection = () => {
             <Button 
               size="lg" 
               className="bg-accent hover:bg-accent/90 text-accent-foreground water-drop"
-              onClick={() => window.location.href = '/shop'}
+              onClick={() => navigate('/products')}
             >
               제품 둘러보기
               <ArrowRight className="w-4 h-4 ml-2" />
