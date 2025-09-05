@@ -143,11 +143,12 @@ const Order = () => {
         return;
     }
     console.log("클라이언트아이디 :", PAYMENT_CONFIG.clientId);
+    const normalizedMethod = preOrderData.method === '신용카드' || preOrderData.method === 'card' ? 'card' : 'bank';
     window.AUTHNICE.requestPay({
       clientId: PAYMENT_CONFIG.clientId,
-      method: preOrderData.method === '신용카드' ? 'card' : 'bank',
-      orderId: preOrderData.orderId,
-      amount: preOrderData.amount,
+      method: normalizedMethod,
+      orderId: String(preOrderData.orderId),
+      amount: Number(preOrderData.amount),
       goodsName: preOrderData.goodsName,
       returnUrl: PAYMENT_CONFIG.returnUrl,
       fnError: function (result: any) {
@@ -395,8 +396,40 @@ const Order = () => {
           navigate('/mypage');
         }
         else {
-          // 개인회원과 본사회원은 결제창 호출
-          await handlePaymentRequest(preOrderData);
+          // 개인회원과 본사회원은 결제 준비(API) -> 결제창 호출
+          try {
+            const prepareResp = await apiFetch('/api/payments/prepare', {
+              method: 'POST',
+              body: JSON.stringify({
+                orderId: preOrderData.orderId,
+                paymethod: paymentMethod === 'card' ? 'card' : 'bank'
+              })
+            });
+            if (!prepareResp.ok) {
+              const e = await prepareResp.json().catch(() => ({} as any));
+              throw new Error(e.message || '결제 준비에 실패했습니다.');
+            }
+            const prepareJson = await prepareResp.json();
+            const paymentData = (prepareJson as any).data ?? prepareJson;
+            const merged = {
+              orderId: String(paymentData.orderId ?? preOrderData.orderId),
+              amount: Number(paymentData.amount ?? finalTotal),
+              method: String(paymentData.method ?? paymentMethod),
+              goodsName: String(
+                paymentData.goodsName ??
+                (items.length > 1
+                  ? `${items[0]?.productName || items[0]?.name || '상품'} 외 ${items.length - 1}건`
+                  : items[0]?.productName || items[0]?.name || '상품')
+              ),
+              clientId: PAYMENT_CONFIG.clientId,
+            } as PreOrderResponse;
+
+            await handlePaymentRequest(merged);
+          } catch (e) {
+            console.error('결제 준비/호출 실패:', e);
+            toast({ title: '결제 실패', description: (e as any)?.message || '결제 준비 중 오류가 발생했습니다.', variant: 'destructive' });
+            return;
+          }
           // 결제창 호출 후 장바구니 비우기 (직접구매가 아닌 경우)
           if (!isDirectPurchase) {
             try {
