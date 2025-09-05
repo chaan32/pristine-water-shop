@@ -48,7 +48,7 @@ const HeroSection = () => {
             <Button 
               size="lg" 
               className="bg-accent hover:bg-accent/90 text-accent-foreground water-drop"
-              onClick={() => navigate('/products')}
+              onClick={() => navigate('/shop')}
             >
               제품 둘러보기
               <ArrowRight className="w-4 h-4 ml-2" />
