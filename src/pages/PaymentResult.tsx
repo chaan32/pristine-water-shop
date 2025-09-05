@@ -43,8 +43,12 @@ const PaymentResult = () => {
     try {
       const token = getAccessToken();
       if (token) {
-        // 로그인된 사용자: 서버 장바구니 비우기
-        await apiFetch('/api/cart', { method: 'DELETE' });
+        // 로그인된 사용자: 서버 장바구니 비우기 (에러 무시)
+        try {
+          await apiFetch('/api/cart', { method: 'DELETE' });
+        } catch (apiError) {
+          console.warn('서버 장바구니 비우기 실패 (무시):', apiError);
+        }
       }
       // 로컬 장바구니도 비우기
       localStorage.removeItem('cart');
