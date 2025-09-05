@@ -401,8 +401,7 @@ const Order = () => {
             const prepareResp = await apiFetch('/api/payments/prepare', {
               method: 'POST',
               body: JSON.stringify({
-                orderId: preOrderData.orderId,
-                paymethod: paymentMethod === 'card' ? 'card' : 'bank'
+                orderId: preOrderData.orderId
               })
             });
             if (!prepareResp.ok) {
