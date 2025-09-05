@@ -151,11 +151,7 @@ const Header = () => {
     { 
       title: '고객센터', 
       path: '/support',
-      submenu: [
-        { title: '공지사항', path: '/support#notice' },
-        { title: '1:1 문의', path: '/support#inquiry' },
-        { title: 'FAQ', path: '/support#faq' }
-      ]
+      submenu: []
     }
   ];
 
