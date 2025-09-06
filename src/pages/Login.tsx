@@ -143,7 +143,14 @@ const Login = () => {
                   <Checkbox id="remember" />
                   <label htmlFor="remember" className="text-sm">로그인 상태 유지</label>
                 </div>
-                <Button variant="link" className="text-sm">비밀번호 찾기</Button>
+                <div className="flex gap-2">
+                  <Link to="/find/loginId">
+                    <Button variant="link" className="text-sm">아이디 찾기</Button>
+                  </Link>
+                  <Link to="/find/password">
+                    <Button variant="link" className="text-sm">비밀번호 찾기</Button>
+                  </Link>
+                </div>
               </div>
 
               <Button onClick={handleLogin} className="w-full water-drop" size="lg">
