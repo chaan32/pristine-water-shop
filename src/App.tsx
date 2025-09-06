@@ -21,6 +21,8 @@ import Admin from "./pages/Admin";
 import HeadquartersDashboard from "./pages/HeadquartersDashboard";
 import NotFound from "./pages/NotFound";
 import EmptyCart from "./pages/EmptyCart";
+import FindPassword from "./pages/FindPassword";
+import FindLoginId from "./pages/FindLoginId";
 
 // Global window declarations for NICEPAY
 declare global {
@@ -55,6 +57,8 @@ const App = () => (
           <Route path="/registration-success" element={<RegistrationSuccess />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/headquarters-dashboard" element={<HeadquartersDashboard />} />
+          <Route path="/find/password" element={<FindPassword />} />
+          <Route path="/find/loginId" element={<FindLoginId />} />
           <Route path="/admin/*" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -374,6 +374,22 @@ export const passwordApi = {
   recheck: (data: { password: string }) => apiFetch('/api/auth/login/recheck', { method: 'POST', body: JSON.stringify(data) }),
 };
 
+// Find (ID/Password Recovery) APIs
+export const findApi = {
+  // 비밀번호 찾기 1단계: 본인 인증 수단으로 인증번호 발송
+  passwordCert: (data: { method: 'email' | 'phone'; value: string; loginId: string }) =>
+    apiFetch('/api/auth/find/password/cert', { method: 'POST', body: JSON.stringify(data) }),
+  // 비밀번호 찾기 2단계: 인증코드 검증 및 임시 비밀번호 발급
+  passwordReset: (data: { verifyCode: string; value: string; method: 'email' | 'phone' }) =>
+    apiFetch('/api/auth/find/password/reset', { method: 'POST', body: JSON.stringify(data) }),
+  // 아이디 찾기 1단계: 인증번호 발송
+  loginIdCert: (data: { method: 'email' | 'phone'; value: string }) =>
+    apiFetch('/api/auth/find/loginId/cert', { method: 'POST', body: JSON.stringify(data) }),
+  // 아이디 찾기 2단계: 인증코드 검증 후 아이디 전송
+  loginIdSend: (data: { verifyCode: string; value: string; method: 'email' | 'phone' }) =>
+    apiFetch('/api/auth/find/loginId/send', { method: 'POST', body: JSON.stringify(data) }),
+};
+
 // Review APIs
 export const reviewApi = {
   createReview: (data: any) => apiFetch('/api/shop/products/review', { method: 'POST', body: JSON.stringify(data) }),
