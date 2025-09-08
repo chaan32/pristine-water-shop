@@ -20,7 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Package, Truck, CheckCircle, RefreshCw, ExternalLink, ChevronDown, ChevronRight, Eye } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, RefreshCw, ExternalLink, ChevronDown, ChevronRight, Eye, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { apiFetch, adminApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { createTrackingUrl } from '@/lib/config';
@@ -378,6 +379,90 @@ const OrderManagement = () => {
 
   const unprocessedOrders = filteredOrders.filter(order => !order.isShipmentProcessed);
 
+  const exportToExcel = () => {
+    try {
+      // 현재 보고 있는 주문 목록을 엑셀 형태로 변환
+      const excelData = filteredOrders.map((order) => ({
+        '주문번호': order.orderNumber,
+        '주문일자': order.orderDate.split('T')[0],
+        '주문자명': order.ordererName,
+        '주문자유형': getOrdererTypeText(order.ordererType),
+        '지점명': order.branchName || '-',
+        '수령인': order.recipientName,
+        '수령인전화번호': order.recipientPhone,
+        '배송지': order.shippingAddress,
+        '우편번호': order.postalCode || '-',
+        '상품명': order.productName,
+        '총결제금액': order.totalAmount,
+        '결제상태': getPaymentStatusText(order.paymentStatus),
+        '결제방법': getPaymentMethodText(order.paymentMethod),
+        '배송상태': getShippingStatusText(order.shippingStatus),
+        '발송처리': order.isShipmentProcessed ? '완료' : '미처리',
+        '송장번호': order.trackingNumber || '-'
+      }));
+
+      // 워크시트 생성
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      
+      // 컬럼 너비 자동 조정
+      const colWidths = Object.keys(excelData[0] || {}).map(key => ({
+        wch: Math.max(key.length, 15)
+      }));
+      ws['!cols'] = colWidths;
+
+      // 워크북 생성
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '주문목록');
+
+      // 파일명 생성 (현재 날짜 포함)
+      const today = new Date();
+      const dateStr = today.getFullYear() + 
+        String(today.getMonth() + 1).padStart(2, '0') + 
+        String(today.getDate()).padStart(2, '0');
+      const fileName = `주문목록_${dateStr}.xlsx`;
+
+      // 파일 다운로드
+      XLSX.writeFile(wb, fileName);
+      
+      toast({
+        title: "성공",
+        description: `${filteredOrders.length}건의 주문 데이터가 엑셀 파일로 내보내졌습니다.`
+      });
+    } catch (error) {
+      console.error('엑셀 내보내기 오류:', error);
+      toast({
+        title: "오류",
+        description: "엑셀 파일 내보내기에 실패했습니다.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getOrdererTypeText = (type: string) => ({
+    individual: '개인',
+    headquarters: '본사',
+    branch: '지점'
+  }[type] || type);
+
+  const getPaymentStatusText = (status: string) => ({
+    REFUNDED: '환불완료',
+    APPROVED: '결제승인',
+    PENDING: '결제대기',
+    UNPAID: '미결제'
+  }[status] || status);
+
+  const getPaymentMethodText = (method: string) => ({
+    CARD: '신용카드',
+    BANK_TRANSFER: '계좌이체',
+    CORPORATE_PAYMENT: '법인결제'
+  }[method] || method);
+
+  const getShippingStatusText = (status: string) => ({
+    preparing: '준비중',
+    shipped: '배송중',
+    delivered: '완료'
+  }[status] || status);
+
   const handleTrackingSubmit = async () => {
     if (!selectedOrder || !trackingNumber.trim()) {
       toast({ title: "오류", description: "송장번호를 입력해주세요.", variant: "destructive" });
@@ -453,6 +538,10 @@ const OrderManagement = () => {
                 </div>
                 <Button variant="outline" size="icon" onClick={fetchOrders} disabled={isRefreshing}>
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button variant="outline" onClick={exportToExcel} className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  엑셀 다운로드
                 </Button>
               </div>
             </div>
