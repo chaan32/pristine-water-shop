@@ -24,7 +24,7 @@ const FindLoginId = () => {
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    document.title = "아이디 찾기 | 그린드래곤";
+    document.title = "아이디 찾기 | Dragon Water";
     const meta = document.querySelector('meta[name="description"]');
     const content = "이메일 또는 휴대폰 인증으로 가입 아이디를 확인하세요.";
     if (meta) meta.setAttribute("content", content);

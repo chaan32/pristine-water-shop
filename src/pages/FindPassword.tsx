@@ -31,7 +31,7 @@ const FindPassword = () => {
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    document.title = "비밀번호 찾기 | 그린드래곤";
+    document.title = "비밀번호 찾기 | Dragon Water";
     const meta = document.querySelector('meta[name="description"]');
     const content = "이메일 또는 휴대폰 인증으로 임시 비밀번호를 발급받으세요.";
     if (meta) meta.setAttribute("content", content);
