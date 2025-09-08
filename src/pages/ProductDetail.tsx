@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Minus, Plus, ShoppingCart, Heart } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch, shopApi, cartApi, getUserInfo, getAccessToken } from '@/lib/api';
@@ -506,9 +506,6 @@ const ProductDetail = () => {
                   <Button className="flex-1" size="lg" onClick={handleAddToCart}>
                     <ShoppingCart className="w-5 h-5 mr-2" />
                     장바구니 담기
-                  </Button>
-                  <Button variant="outline" size="lg">
-                    <Heart className="w-5 h-5" />
                   </Button>
                 </div>
 

@@ -11,11 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { UserPlus, Building, User, Check, X, Upload, Search, Mail } from 'lucide-react';
+import { UserPlus, Building, User, Check, X, Upload, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { authApi, registerApi } from '@/lib/api';
 import { API_CONFIG } from '@/lib/config';
-import EmailVerificationModal from '@/components/Auth/EmailVerificationModal';
 import PhoneVerificationModal from '@/components/Auth/PhoneVerificationModal';
 
 interface Headquarters {
@@ -44,8 +43,7 @@ const Register = () => {
     detailAddress: '',
     postalCode: '',
     phone: '',
-    isPhoneVerified: false,
-    isEmailVerified: false
+    isPhoneVerified: false
   });
   const [corporateForm, setCorporateForm] = useState({
     id: '',
@@ -68,7 +66,6 @@ const Register = () => {
     postalCode: '',
     phone: '', // 본사용 회사전화번호 (인증 없음)
     isPhoneVerified: false,
-    isEmailVerified: false,
     // 프랜차이즈 지점 회원 전용 필드
     headquartersName: '',
     branchName: '',
@@ -85,10 +82,6 @@ const Register = () => {
   const [headquartersSearchTerm, setHeadquartersSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false); // 검색 중 로딩 상태
   const [searchedHeadquarters, setSearchedHeadquarters] = useState<Headquarters[]>([]);
-  
-  // 이메일 인증 모달 상태
-  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [currentEmailType, setCurrentEmailType] = useState<'individual' | 'corporate'>('individual');
   
   // 핸드폰 인증 모달 상태
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
@@ -406,22 +399,6 @@ const Register = () => {
 
 
 
-  // 이메일 인증 성공 핸들러
-  const handleEmailVerificationSuccess = (email: string) => {
-    if (currentEmailType === 'individual') {
-      setIndividualForm(prev => ({ 
-        ...prev, 
-        email: email, 
-        isEmailVerified: true 
-      }));
-    } else {
-      setCorporateForm(prev => ({ 
-        ...prev, 
-        email: email, 
-        isEmailVerified: true 
-      }));
-    }
-  };
 
 
   return (
@@ -534,44 +511,13 @@ const Register = () => {
                   {/* 이메일 */}
                   <div className="space-y-2">
                     <Label>이메일 (필수)</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        type="email" 
-                        placeholder="이메일 인증 버튼을 통해서 인증해주세요."
-                        value={individualForm.email}
-                        disabled={individualForm.isEmailVerified}
-                        readOnly={individualForm.isEmailVerified}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setCurrentEmailType('individual');
-                          setIsEmailModalOpen(true);
-                        }}
-                        disabled={individualForm.isEmailVerified}
-                        className="whitespace-nowrap"
-                      >
-                        {individualForm.isEmailVerified ? (
-                          <>
-                            <Check className="w-4 h-4 mr-1" />
-                            인증완료
-                          </>
-                        ) : (
-                          <>
-                            <Mail className="w-4 h-4 mr-1" />
-                            이메일 인증
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    {individualForm.isEmailVerified && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Check className="w-4 h-4 text-green-600" />
-                        <span className="text-green-600">이메일 인증이 완료되었습니다.</span>
-                      </div>
-                    )}
+                    <Input 
+                      placeholder="example@email.com" 
+                      type="email"
+                      value={individualForm.email}
+                      onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full"
+                    />
                   </div>
                   <div className="space-y-4">
                     <Label>휴대폰 번호 (필수)</Label>
@@ -962,44 +908,13 @@ const Register = () => {
                   {/* 이메일 */}
                   <div className="space-y-2">
                     <Label>이메일 (필수)</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        type="email" 
-                        placeholder="이메일 버튼을 통해서 인증해주세요."
-                        value={corporateForm.email}
-                        disabled={corporateForm.isEmailVerified || !corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                        readOnly={corporateForm.isEmailVerified}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setCurrentEmailType('corporate');
-                          setIsEmailModalOpen(true);
-                        }}
-                        disabled={corporateForm.isEmailVerified || !corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                        className="whitespace-nowrap"
-                      >
-                        {corporateForm.isEmailVerified ? (
-                          <>
-                            <Check className="w-4 h-4 mr-1" />
-                            인증완료
-                          </>
-                        ) : (
-                          <>
-                            <Mail className="w-4 h-4 mr-1" />
-                            이메일 인증
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    {corporateForm.isEmailVerified && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Check className="w-4 h-4 text-green-600" />
-                        <span className="text-green-600">이메일 인증이 완료되었습니다.</span>
-                      </div>
-                    )}
+                    <Input 
+                      placeholder="example@email.com" 
+                      type="email"
+                      value={corporateForm.email}
+                      onChange={(e) => setCorporateForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full"
+                    />
                   </div>
 
                   {/* 전화번호 - 본사는 회사전화번호, 지점은 매니저 핸드폰 */}
@@ -1160,13 +1075,6 @@ const Register = () => {
       </main>
 
       <Footer />
-      
-      {/* 이메일 인증 모달 */}
-      <EmailVerificationModal
-        isOpen={isEmailModalOpen}
-        onClose={() => setIsEmailModalOpen(false)}
-        onVerificationSuccess={handleEmailVerificationSuccess}
-      />
       
       {/* 핸드폰 인증 모달 */}
       <PhoneVerificationModal
