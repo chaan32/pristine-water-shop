@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Star, Minus, Plus, ShoppingCart, Heart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch, shopApi, cartApi, getUserInfo, getAccessToken } from '@/lib/api';
 import { toast } from '@/hooks/use-toast';
 
@@ -63,6 +63,7 @@ interface Qna {
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   // 페이지 상태
   const [product, setProduct] = useState<ProductDetailDTO | null>(null);
@@ -277,6 +278,40 @@ const ProductDetail = () => {
     }
   };
 
+  // 바로구매 핸들러
+  const handleDirectPurchase = () => {
+    if (!product) return;
+    
+    const userInfo = getUserInfo();
+    if (!userInfo) {
+      toast({ 
+        title: '로그인 필요', 
+        description: '로그인 후 구매할 수 있습니다.', 
+        variant: 'destructive' 
+      });
+      navigate('/login');
+      return;
+    }
+
+    // 바로구매 상품 정보
+    const directPurchaseItem = {
+      productId: product.productId,
+      productName: product.productName,
+      name: product.productName,
+      price: currentDisplayPrice(product),
+      quantity: quantity,
+      image: images[0]
+    };
+
+    // 주문 페이지로 이동 (바로구매 표시)
+    navigate('/order', {
+      state: {
+        items: [directPurchaseItem],
+        isDirectPurchase: true
+      }
+    });
+  };
+
   // 문의 등록 핸들러 함수 작성하기
   const handleInquirySubmit = async () =>{
     const userInfo = getUserInfo();
@@ -477,7 +512,13 @@ const ProductDetail = () => {
                   </Button>
                 </div>
 
-                <Button variant="outline" className="w-full" size="lg">
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  size="lg"
+                  onClick={handleDirectPurchase}
+                  disabled={product.salesStatus === "SOLD_OUT"}
+                >
                   바로 구매
                 </Button>
 
