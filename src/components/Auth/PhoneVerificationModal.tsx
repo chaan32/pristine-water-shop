@@ -257,7 +257,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
                 <Input
                   id="verification-code"
                   type="text"
-                  placeholder="인증번호 6자리 입력"
+                  placeholder="인증번호 5자리 입력"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
                   maxLength={6}

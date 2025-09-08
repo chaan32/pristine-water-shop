@@ -163,7 +163,7 @@ const FindLoginId = () => {
 
               <div className="space-y-3">
                 <Label htmlFor="verify">인증번호</Label>
-                <Input id="verify" placeholder="6자리 인증번호" value={verifyCode} onChange={(e) => setVerifyCode(e.target.value)} />
+                <Input id="verify" placeholder="5자리 인증번호" value={verifyCode} onChange={(e) => setVerifyCode(e.target.value)} />
                 <div className="flex justify-end">
                   <Button onClick={handleVerifyAndSend} disabled={!sent || verifying}>
                     {verifying ? "처리 중..." : "인증 및 아이디 발송"}

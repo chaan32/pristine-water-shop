@@ -32,7 +32,7 @@ const Footer = () => {
               <p><span className="font-medium text-foreground">대표자:</span> 문용현</p>
               <p className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>경기 안양시 동안구 귀인로 190번길 90-13</span>
+                <span>경기 안양시 동안구 귀인로 매곡로 23, 111동 2101호(비산동, 평촌엘프라우드)</span>
               </p>
               <p><span className="font-medium text-foreground">사업자등록번호:</span> 289-02-03583</p>
               <p><span className="font-medium text-foreground">개인정보책임자:</span> 문용현 (ttgy61@naver.com)</p>
