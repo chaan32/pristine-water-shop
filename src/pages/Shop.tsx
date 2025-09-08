@@ -113,15 +113,6 @@ const Shop = () => {
         <span className="text-2xl font-bold text-primary">
           {getDisplayPrice(product).toLocaleString()}원
         </span>
-          {userType === 'headquarters' || userType === 'branch' ? (
-              <Badge variant="secondary" className="text-xs">
-                법인가
-              </Badge>
-          ) : (
-              <Badge variant="outline" className="text-xs">
-                개인가
-              </Badge>
-          )}
         </div>
     );
   };

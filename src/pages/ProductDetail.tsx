@@ -209,11 +209,11 @@ const ProductDetail = () => {
       return (
           <div className="space-y-1 mb-6">
             <div className="flex items-center gap-2">
-              <Badge variant="outline">개인가</Badge>
+              <span className="text-lg text-muted-foreground">개인가:</span>
               <span className="text-3xl font-bold text-primary">{formatCurrency(p.customerPrice)}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">법인가</Badge>
+              <span className="text-lg text-muted-foreground">법인가:</span>
               <span className="text-3xl font-bold text-primary">{formatCurrency(p.businessPrice)}</span>
             </div>
           </div>
@@ -224,7 +224,6 @@ const ProductDetail = () => {
       return (
           <div className="flex items-center gap-2 mb-6">
             <span className="text-3xl font-bold text-primary">{formatCurrency(p.businessPrice)}</span>
-            <Badge variant="secondary" className="text-xs">법인가</Badge>
           </div>
       );
     }
@@ -233,7 +232,6 @@ const ProductDetail = () => {
     return (
         <div className="flex items-center gap-2 mb-6">
           <span className="text-3xl font-bold text-primary">{formatCurrency(p.customerPrice)}</span>
-          <Badge variant="outline" className="text-xs">개인가</Badge>
         </div>
     );
   };

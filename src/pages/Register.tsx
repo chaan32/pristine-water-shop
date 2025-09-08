@@ -637,21 +637,14 @@ const Register = () => {
                           <div className="text-sm text-muted-foreground">본사/가맹본부</div>
                         </Label>
                       </div>
-                      <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50">
-                        <RadioGroupItem value="franchise" id="franchise" />
-                        <Label htmlFor="franchise" className="cursor-pointer flex-1">
-                          <div className="font-medium">프랜차이즈 지점 회원</div>
-                          <div className="text-sm text-muted-foreground">가맹점/지점</div>
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50">
-                        <RadioGroupItem value="single" id="single" />
-                        <Label htmlFor="single" className="cursor-pointer flex-1">
-                          <div className="font-medium">단일 법인 회원</div>
-                          <div className="text-sm text-muted-foreground">일반 법인</div>
-                        </Label>
-                      </div>
-                    </RadioGroup>
+                       <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50">
+                         <RadioGroupItem value="franchise" id="franchise" />
+                         <Label htmlFor="franchise" className="cursor-pointer flex-1">
+                           <div className="font-medium">프랜차이즈 지점 회원</div>
+                           <div className="text-sm text-muted-foreground">가맹점/지점</div>
+                         </Label>
+                       </div>
+                     </RadioGroup>
                   </div>
 
                   {/* 법인 업종 선택 */}
