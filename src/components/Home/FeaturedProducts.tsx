@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Star, Heart } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { shopApi } from '@/lib/api';
@@ -96,7 +96,7 @@ const FeaturedProducts = () => {
             <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden flex flex-col h-full">
               <CardHeader className="p-0 relative">
                 {/* Status and Product Badges */}
-                <div className="absolute top-4 left-4 right-12 z-10 flex flex-wrap gap-2">
+                <div className="absolute top-4 left-4 right-4 z-10 flex flex-wrap gap-2">
                   {product.salesStatus === "SOLD_OUT" && (
                     <Badge variant="destructive">품절</Badge>
                   )}
@@ -111,14 +111,6 @@ const FeaturedProducts = () => {
                   )}
                 </div>
 
-                {/* Wishlist Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-4 right-4 z-10 w-8 h-8 p-0 bg-background/80 hover:bg-background"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
 
                 {/* Product Image */}
                 <div className="aspect-square bg-secondary overflow-hidden">
