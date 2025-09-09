@@ -4,8 +4,46 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Phone, Mail, Clock, Award, Users, Droplets, Shield } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const About = () => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+
+  useEffect(() => {
+    const mapElement = document.getElementById('map');
+    if (!mapElement || map.current) return;
+
+    // 임시 API 키 - 사용자가 실제 키를 입력해야 함
+    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTVxeWl2Y2gwNWFqMmxzOGpsMG9qZDFvIn0.Q_3_bX4T8DGsTq1g-KZgfA';
+    
+    map.current = new mapboxgl.Map({
+      container: mapElement,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [126.9515, 37.3897], // 안양시 동안구 대략 좌표
+      zoom: 16
+    });
+
+    // 마커 추가
+    new mapboxgl.Marker({
+      color: '#3B82F6'
+    })
+    .setLngLat([126.9515, 37.3897])
+    .setPopup(new mapboxgl.Popup().setHTML('<h3>Dragon WATER</h3><p>경기도 안양시 동안구 귀인로190번길 90-13</p>'))
+    .addTo(map.current);
+
+    // 네비게이션 컨트롤 추가
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    return () => {
+      if (map.current) {
+        map.current.remove();
+      }
+    };
+  }, []);
+
   const milestones = [
     { year: '2024', title: '회사 설립', description: '필터, 온수기 전문 기업으로 시작' },
   ];
@@ -184,21 +222,12 @@ const About = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">지하철</h4>
-                      <p className="text-sm text-muted-foreground">
-                        2호선 강남역 3번 출구에서 도보 5분<br />
-                        신분당선 강남역 4번 출구에서 도보 3분
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">버스</h4>
-                      <p className="text-sm text-muted-foreground">
-                        마을버스: <br />
-                        03 (평촌학원가.먹자거리 정류장 하차)<br />
-                        7 (귀인중학교 정류장 하차)<br />
-                        일반버스: <br />
-                        1 (귀인중학교 정류장 하차)<br />
-                      </p>
+                      <h4 className="font-semibold mb-2">지도</h4>
+                      <div 
+                        id="map" 
+                        className="w-full h-64 rounded-lg border"
+                        style={{ minHeight: '250px' }}
+                      ></div>
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2">주차</h4>
