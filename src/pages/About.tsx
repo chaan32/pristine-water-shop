@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-const NAVER_MAP_CLIENT_ID: string = "YOUR_NAVER_MAP_CLIENT_ID_HERE"; // 여기에 네이버 지도 Client ID를 넣어주세요
+const NAVER_MAP_CLIENT_ID: string = "vuaacmwuxb"; // 여기에 네이버 지도 Client ID를 넣어주세요
 
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
