@@ -54,9 +54,9 @@ const About = () => {
       console.log('[NaverMap] Removed existing Kakao script');
     }
 
-    // 네이버 지도 스크립트 로드
+    // 네이버 지도 스크립트 로드 (신규 API)
     const script = document.createElement('script');
-    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`;
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
     script.async = true;
     script.defer = true;
 
