@@ -382,15 +382,23 @@ const Order = () => {
       console.log("🚀 /api/order API 응답:", preOrderData);
       if (response.ok && preOrderData.orderId) {
 
-        // 지점 회원의 법인결제는 바로 승인 처리
-        if (paymentMethod === 'corporate_payment') {
+        // 지점 회원의 법인결제 또는 0원 주문은 바로 승인 처리
+        if (paymentMethod === 'corporate_payment' || finalTotal === 0) {
+          const orderCompleteMessage = finalTotal === 0 
+            ? `포인트로 결제가 완료되었습니다. 주문번호: ${preOrderData.orderId}`
+            : `법인 결제 신청이 접수되었습니다. 주문번호: ${preOrderData.orderId}`;
+          
           toast({
             title: "주문이 완료되었습니다!",
-            description: `법인 결제 신청이 접수되었습니다. 주문번호: ${preOrderData.orderId}`,
+            description: orderCompleteMessage,
           });
           // 직접구매가 아닌 경우 장바구니 비우기
           if (!isDirectPurchase) {
             await apiFetch('/api/cart', { method: 'DELETE' });
+            // 로컬 장바구니도 비우기
+            localStorage.removeItem('cart');
+            // 장바구니 업데이트 이벤트 발생
+            window.dispatchEvent(new Event('cart:updated'));
           }
           // 마이페이지로 이동
           navigate('/mypage');
