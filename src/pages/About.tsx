@@ -21,20 +21,51 @@ const About = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const initializeMap = (clientId: string) => {
-    if (!mapContainer.current || mapLoaded || !clientId) return;
+    console.log('[NaverMap] initializeMap called', {
+      clientIdMasked: clientId ? clientId.slice(0, 4) + '***' : '',
+      hasContainer: !!mapContainer.current,
+      mapLoaded,
+      host: window.location.host,
+    });
+
+    if (!mapContainer.current) {
+      console.error('[NaverMap] mapContainer not ready');
+      return;
+    }
+    if (mapLoaded) {
+      console.log('[NaverMap] map already loaded, skipping');
+      return;
+    }
+    if (!clientId) {
+      console.error('[NaverMap] Missing clientId');
+      return;
+    }
 
     // 기존 스크립트가 있으면 제거 (네이버/카카오 모두)
     const existingNaver = document.querySelector('script[src*="openapi.map.naver.com"]');
-    if (existingNaver) existingNaver.remove();
+    if (existingNaver) {
+      existingNaver.remove();
+      console.log('[NaverMap] Removed existing Naver script');
+    }
     const existingKakao = document.querySelector('script[src*="dapi.kakao.com"]');
-    if (existingKakao) existingKakao.remove();
+    if (existingKakao) {
+      existingKakao.remove();
+      console.log('[NaverMap] Removed existing Kakao script');
+    }
 
     // 네이버 지도 스크립트 로드
     const script = document.createElement('script');
     script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`;
     script.async = true;
     script.defer = true;
+
+    console.log('[NaverMap] Loading script', { src: script.src });
+
     script.onload = () => {
+      const naverExists = !!window.naver;
+      const mapsExists = !!window.naver?.maps;
+      console.log('[NaverMap] Script loaded', { naverExists, mapsExists });
+
       if (window.naver && window.naver.maps) {
         const { naver } = window;
 
@@ -45,12 +76,14 @@ const About = () => {
           center,
           zoom: 16,
         });
+        console.log('[NaverMap] Map created', { center: { lat: 37.3897, lng: 126.9515 }, zoom: 16 });
 
         // 마커 생성
         const marker = new naver.maps.Marker({
           position: center,
           map,
         });
+        console.log('[NaverMap] Marker added');
 
         // 인포윈도우 내용
         const contentString = `
@@ -63,28 +96,46 @@ const About = () => {
         const infoWindow = new naver.maps.InfoWindow({
           content: contentString,
         });
-
         infoWindow.open(map, marker);
+        console.log('[NaverMap] InfoWindow opened');
+
         setMapLoaded(true);
+        console.log('[NaverMap] Map initialization complete');
+      } else {
+        console.error('[NaverMap] naver.maps not available after script load. Possible domain whitelist issue. Host:', window.location.host);
       }
     };
 
-    script.onerror = () => {
-      console.error('네이버 지도 로드 실패');
+    script.onerror = (e) => {
+      console.error('[NaverMap] Script failed to load', {
+        src: script.src,
+        host: window.location.host,
+        hint: '확인: 네이버 클라우드 플랫폼 > Maps > Application > Referer(도메인) 등록',
+        event: e,
+      });
     };
 
     document.head.appendChild(script);
   };
 
   const handleKeySubmit = () => {
+    console.log('[NaverMap] handleKeySubmit clicked');
     if (NAVER_MAP_CLIENT_ID && NAVER_MAP_CLIENT_ID !== "YOUR_NAVER_MAP_CLIENT_ID_HERE") {
       initializeMap(NAVER_MAP_CLIENT_ID);
+    } else {
+      console.error('[NaverMap] Invalid NAVER_MAP_CLIENT_ID');
     }
   };
 
   useEffect(() => {
+    console.log('[NaverMap] useEffect mount - attempting init', {
+      hasKey: !!NAVER_MAP_CLIENT_ID,
+      host: window.location.host,
+    });
     if (NAVER_MAP_CLIENT_ID && NAVER_MAP_CLIENT_ID !== "YOUR_NAVER_MAP_CLIENT_ID_HERE") {
       initializeMap(NAVER_MAP_CLIENT_ID);
+    } else {
+      console.error('[NaverMap] NAVER_MAP_CLIENT_ID is missing or placeholder');
     }
   }, []);
 
