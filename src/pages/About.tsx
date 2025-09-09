@@ -276,7 +276,7 @@ const About = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="w-5 h-5" />
-                    본사 위치
+                    위치
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
