@@ -46,7 +46,6 @@ const About = () => {
     const existingNaver = document.querySelector('script[src*="openapi.map.naver.com"]');
     if (existingNaver) {
       existingNaver.remove();
-      console.log('[NaverMap] Removed existing Naver script');
     }
 
 
@@ -56,12 +55,10 @@ const About = () => {
     script.async = true;
     script.defer = true;
 
-    console.log('[NaverMap] Loading script', { src: script.src });
 
     script.onload = () => {
       const naverExists = !!window.naver;
       const mapsExists = !!window.naver?.maps;
-      console.log('[NaverMap] Script loaded', { naverExists, mapsExists });
 
       if (window.naver && window.naver.maps) {
         const { naver } = window;
@@ -73,19 +70,17 @@ const About = () => {
           center,
           zoom: 16,
         });
-        console.log('[NaverMap] Map created', { center: { lat: 37.382170, lng: 126.962665 }, zoom: 16 });
 
         // 마커 생성
         const marker = new naver.maps.Marker({
           position: center,
           map,
         });
-        console.log('[NaverMap] Marker added');
 
         // 인포윈도우 내용
         const contentString = `
           <div style="padding:10px;font-size:12px;text-align:center;min-width:150px;">
-            <strong>Dragon WATER</strong><br/>
+            <strong>DRAGON WATER</strong><br/>
             <span style="color:#666;">경기도 안양시 동안구<br/>귀인로190번길 90-13</span>
           </div>
         `;
