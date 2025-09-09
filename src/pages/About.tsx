@@ -48,11 +48,7 @@ const About = () => {
       existingNaver.remove();
       console.log('[NaverMap] Removed existing Naver script');
     }
-    const existingKakao = document.querySelector('script[src*="dapi.kakao.com"]');
-    if (existingKakao) {
-      existingKakao.remove();
-      console.log('[NaverMap] Removed existing Kakao script');
-    }
+
 
     // 네이버 지도 스크립트 로드 (신규 API)
     const script = document.createElement('script');
@@ -70,7 +66,7 @@ const About = () => {
       if (window.naver && window.naver.maps) {
         const { naver } = window;
 
-        const center = new naver.maps.LatLng(37.3897, 126.9515); // 안양시 동안구 좌표
+        const center = new naver.maps.LatLng(37.382170, 126.962665); // 안양시 동안구 좌표
 
         // 지도 생성
         const map = new naver.maps.Map(mapContainer.current as HTMLElement, {
