@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiFetch, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { validatePassword } from '@/lib/utils';
 
 interface PasswordChangeDialogProps {
   isOpen: boolean;
@@ -42,10 +43,11 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
       return;
     }
 
-    if (password.length < 6) {
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
       toast({
         title: "오류",
-        description: "비밀번호는 6자 이상이어야 합니다.",
+        description: passwordValidation.message,
         variant: "destructive"
       });
       return;
@@ -108,7 +110,7 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
               type="password"
               value={password}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="새 비밀번호를 입력하세요 (6자 이상)"
+              placeholder="새 비밀번호를 입력하세요 (영문소문자, 숫자 포함 8자 이상)"
             />
           </div>
           <div className="space-y-2">

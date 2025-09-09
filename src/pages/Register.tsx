@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { authApi, registerApi } from '@/lib/api';
 import { API_CONFIG } from '@/lib/config';
 import PhoneVerificationModal from '@/components/Auth/PhoneVerificationModal';
+import { validatePassword } from '@/lib/utils';
 
 interface Headquarters {
     id: string;
@@ -289,6 +290,17 @@ const Register = () => {
 
   // 회원가입 처리 함수
   const handleIndividualRegister = async () => {
+    // 비밀번호 유효성 검사
+    const passwordValidation = validatePassword(individualForm.password);
+    if (!passwordValidation.isValid) {
+      toast({
+        title: "오류",
+        description: passwordValidation.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const requestData = {
         memberType: "individual",
@@ -322,6 +334,17 @@ const Register = () => {
   };
 
   const handleCorporateRegister = async () => {
+    // 비밀번호 유효성 검사
+    const passwordValidation = validatePassword(corporateForm.password);
+    if (!passwordValidation.isValid) {
+      toast({
+        title: "오류",
+        description: passwordValidation.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const requestData = {
         memberType: "corporate",
@@ -478,7 +501,7 @@ const Register = () => {
                   <div className="space-y-4">
                     <Input 
                       type="password" 
-                      placeholder="비밀번호"
+                      placeholder="비밀번호 (영문소문자, 숫자 포함 8자 이상)"
                       value={individualForm.password}
                       onChange={(e) => setIndividualForm(prev => ({ ...prev, password: e.target.value }))}
                       disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
@@ -868,7 +891,7 @@ const Register = () => {
                   <div className="space-y-4">
                     <Input 
                       type="password" 
-                      placeholder="비밀번호"
+                      placeholder="비밀번호 (영문소문자, 숫자 포함 8자 이상)"
                       value={corporateForm.password}
                       onChange={(e) => setCorporateForm(prev => ({ ...prev, password: e.target.value }))}
                       disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
