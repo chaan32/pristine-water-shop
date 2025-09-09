@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiFetch, getAccessToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { validatePassword } from '@/lib/utils';
+import { validatePassword, getPasswordCriteria } from '@/lib/utils';
+import { Check, X } from 'lucide-react';
 
 interface PasswordChangeDialogProps {
   isOpen: boolean;
@@ -23,6 +24,10 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const passwordCriteria = getPasswordCriteria(password);
+  const isPasswordMatch = password && confirmPassword && password === confirmPassword;
+  const isPasswordMismatch = password && confirmPassword && password !== confirmPassword;
 
   const handlePasswordChange = async () => {
     if (!password.trim() || !confirmPassword.trim()) {
@@ -112,6 +117,22 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="새 비밀번호를 입력하세요 (영문소문자, 숫자 포함 8자 이상)"
             />
+            {password && (
+              <div className="space-y-1 text-sm">
+                <div className={`flex items-center gap-1 ${passwordCriteria.hasMinLength ? 'text-green-600' : 'text-red-600'}`}>
+                  {passwordCriteria.hasMinLength ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                  <span>8자 이상</span>
+                </div>
+                <div className={`flex items-center gap-1 ${passwordCriteria.hasLowercase ? 'text-green-600' : 'text-red-600'}`}>
+                  {passwordCriteria.hasLowercase ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                  <span>영문소문자 포함</span>
+                </div>
+                <div className={`flex items-center gap-1 ${passwordCriteria.hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+                  {passwordCriteria.hasNumber ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                  <span>숫자 포함</span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm-password">새 비밀번호 확인</Label>
@@ -123,6 +144,14 @@ const PasswordChangeDialog = ({ isOpen, onClose, onSuccess }: PasswordChangeDial
               onKeyDown={(e) => e.key === 'Enter' && handlePasswordChange()}
               placeholder="새 비밀번호를 다시 입력하세요"
             />
+            {confirmPassword && (
+              <div className="text-sm">
+                <div className={`flex items-center gap-1 ${isPasswordMatch ? 'text-green-600' : 'text-red-600'}`}>
+                  {isPasswordMatch ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                  <span>{isPasswordMatch ? '비밀번호가 일치합니다' : '비밀번호가 일치하지 않습니다'}</span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleClose}>

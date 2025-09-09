@@ -19,3 +19,12 @@ export function validatePassword(password: string): { isValid: boolean; message:
   
   return { isValid: true, message: "" };
 }
+
+export function getPasswordCriteria(password: string) {
+  return {
+    hasMinLength: password.length >= 8,
+    hasLowercase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    isValid: password.length >= 8 && /[a-z]/.test(password) && /[0-9]/.test(password)
+  };
+}
