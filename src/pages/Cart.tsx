@@ -10,9 +10,11 @@ import { useNavigate } from 'react-router-dom';
 import showerFilter from '@/assets/shower-filter.jpg';
 import kitchenFilter from '@/assets/kitchen-filter.jpg';
 import { cartApi, shopApi, getUserInfo, getAccessToken } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 const Cart = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -255,6 +257,16 @@ const Cart = () => {
                 <Button 
                   className="w-full water-drop"
                   onClick={() => {
+                    const token = getAccessToken();
+                    if (!token) {
+                      toast({
+                        title: "로그인 필요",
+                        description: "주문하려면 로그인이 필요합니다.",
+                        variant: "destructive"
+                      });
+                      navigate('/login');
+                      return;
+                    }
                     navigate('/order', { state: { items: cartItems, isDirectPurchase: false } });
                   }}
                 >

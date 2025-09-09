@@ -35,6 +35,22 @@ interface PreOrderResponse {
 const Order = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // 로그인 체크를 가장 먼저 수행
+  useEffect(() => {
+    const userInfo = getUserInfo();
+    if (!userInfo?.id) {
+      toast({
+        title: "로그인 필요",
+        description: "주문하려면 로그인이 필요합니다.",
+        variant: "destructive"
+      });
+      navigate('/login', { replace: true });
+      return;
+    }
+  }, [navigate, toast]);
+
   const initialItems = location.state?.items || JSON.parse(sessionStorage.getItem('orderItems') || '[]');
   const isDirectPurchase = location.state?.isDirectPurchase || false;
   const [items, setItems] = useState(initialItems);
@@ -45,7 +61,6 @@ const Order = () => {
   const [userType, setUserType] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null); // 현재 로그인한 사용자 정보
   const [isUserLoading, setIsUserLoading] = useState(true);
-  const { toast } = useToast();
   const [orderInfo, setOrderInfo] = useState({
     name: '',
     phone: '',
