@@ -3,39 +3,67 @@ import Footer from '@/components/Layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { MapPin, Phone, Mail, Clock, Award, Users, Droplets, Shield } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [mapboxToken, setMapboxToken] = useState(() => 
+    localStorage.getItem('mapbox-token') || ''
+  );
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  const initializeMap = (token: string) => {
+    const mapElement = document.getElementById('map');
+    if (!mapElement || map.current || !token) return;
+
+    mapboxgl.accessToken = token;
+    
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapElement,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [126.9515, 37.3897], // 안양시 동안구 대략 좌표
+        zoom: 16
+      });
+
+      // 마커 추가
+      new mapboxgl.Marker({
+        color: '#3B82F6'
+      })
+      .setLngLat([126.9515, 37.3897])
+      .setPopup(new mapboxgl.Popup().setHTML('<h3>Dragon WATER</h3><p>경기도 안양시 동안구 귀인로190번길 90-13</p>'))
+      .addTo(map.current);
+
+      // 네비게이션 컨트롤 추가
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      
+      setMapLoaded(true);
+    } catch (error) {
+      console.error('Map initialization failed:', error);
+    }
+  };
+
+  const handleTokenSubmit = () => {
+    if (mapboxToken) {
+      localStorage.setItem('mapbox-token', mapboxToken);
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+      initializeMap(mapboxToken);
+    }
+  };
 
   useEffect(() => {
-    const mapElement = document.getElementById('map');
-    if (!mapElement || map.current) return;
-
-    // 임시 API 키 - 사용자가 실제 키를 입력해야 함
-    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTVxeWl2Y2gwNWFqMmxzOGpsMG9qZDFvIn0.Q_3_bX4T8DGsTq1g-KZgfA';
-    
-    map.current = new mapboxgl.Map({
-      container: mapElement,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [126.9515, 37.3897], // 안양시 동안구 대략 좌표
-      zoom: 16
-    });
-
-    // 마커 추가
-    new mapboxgl.Marker({
-      color: '#3B82F6'
-    })
-    .setLngLat([126.9515, 37.3897])
-    .setPopup(new mapboxgl.Popup().setHTML('<h3>Dragon WATER</h3><p>경기도 안양시 동안구 귀인로190번길 90-13</p>'))
-    .addTo(map.current);
-
-    // 네비게이션 컨트롤 추가
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    if (mapboxToken) {
+      initializeMap(mapboxToken);
+    }
 
     return () => {
       if (map.current) {
@@ -221,6 +249,37 @@ const About = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {!mapLoaded && (
+                      <div className="p-4 bg-muted rounded-lg">
+                        <h4 className="font-semibold mb-2">Mapbox API 키 설정</h4>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          지도를 표시하려면 Mapbox API 키가 필요합니다. 
+                          <a 
+                            href="https://account.mapbox.com/access-tokens/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline ml-1"
+                          >
+                            여기서 무료로 발급받으세요
+                          </a>
+                        </p>
+                        <div className="flex gap-2">
+                          <Input
+                            type="text"
+                            placeholder="Mapbox API 키를 입력하세요 (pk.로 시작)"
+                            value={mapboxToken}
+                            onChange={(e) => setMapboxToken(e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button 
+                            onClick={handleTokenSubmit}
+                            disabled={!mapboxToken || !mapboxToken.startsWith('pk.')}
+                          >
+                            적용
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <h4 className="font-semibold mb-2">지도</h4>
                       <div 
