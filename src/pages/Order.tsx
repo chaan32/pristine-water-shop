@@ -798,18 +798,20 @@ const Order = () => {
                     </div>
                   </div>
 
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                          className="w-full water-drop"
-                          disabled={finalTotal <= 0 || isLoading || !currentUser || !isScriptLoaded} // 👈 !isScriptLoaded 추가
-                      >
-                        {isLoading
-                            ? '처리 중...'
-                            : !isScriptLoaded
-                                ? '결제 모듈 로딩 중...'
-                                : `${finalTotal.toLocaleString()}원 결제하기`}
-                      </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                            className="w-full water-drop"
+                            disabled={finalTotal < 0 || isLoading || !currentUser || (finalTotal > 0 && !isScriptLoaded)}
+                        >
+                          {isLoading
+                              ? '처리 중...'
+                              : finalTotal === 0
+                                  ? '주문 완료하기'
+                                  : !isScriptLoaded
+                                      ? '결제 모듈 로딩 중...'
+                                      : `${finalTotal.toLocaleString()}원 결제하기`}
+                        </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
