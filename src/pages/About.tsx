@@ -7,69 +7,78 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin, Phone, Mail, Clock, Award, Users, Droplets, Shield } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+
+declare global {
+  interface Window {
+    kakao: any;
+  }
+}
 
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState(() => 
-    localStorage.getItem('mapbox-token') || ''
+  const [kakaoKey, setKakaoKey] = useState(() => 
+    localStorage.getItem('kakao-key') || ''
   );
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  const initializeMap = (token: string) => {
-    const mapElement = document.getElementById('map');
-    if (!mapElement || map.current || !token) return;
+  const initializeMap = (appKey: string) => {
+    if (!mapContainer.current || mapLoaded || !appKey) return;
 
-    mapboxgl.accessToken = token;
-    
-    try {
-      map.current = new mapboxgl.Map({
-        container: mapElement,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [126.9515, 37.3897], // 안양시 동안구 대략 좌표
-        zoom: 16
+    // 카카오맵 스크립트 로드
+    const script = document.createElement('script');
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&libraries=services`;
+    script.onload = () => {
+      const { kakao } = window;
+      
+      // 지도 옵션
+      const options = {
+        center: new kakao.maps.LatLng(37.3897, 126.9515), // 안양시 동안구 좌표
+        level: 3
+      };
+
+      // 지도 생성
+      const map = new kakao.maps.Map(mapContainer.current, options);
+
+      // 마커 위치
+      const markerPosition = new kakao.maps.LatLng(37.3897, 126.9515);
+
+      // 마커 생성
+      const marker = new kakao.maps.Marker({
+        position: markerPosition
       });
 
-      // 마커 추가
-      new mapboxgl.Marker({
-        color: '#3B82F6'
-      })
-      .setLngLat([126.9515, 37.3897])
-      .setPopup(new mapboxgl.Popup().setHTML('<h3>Dragon WATER</h3><p>경기도 안양시 동안구 귀인로190번길 90-13</p>'))
-      .addTo(map.current);
+      // 인포윈도우 내용
+      const infowindow = new kakao.maps.InfoWindow({
+        content: '<div style="padding:5px;font-size:12px;">Dragon WATER<br/>경기도 안양시 동안구 귀인로190번길 90-13</div>'
+      });
 
-      // 네비게이션 컨트롤 추가
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      
+      // 마커를 지도에 표시
+      marker.setMap(map);
+
+      // 마커에 인포윈도우 표시
+      infowindow.open(map, marker);
+
       setMapLoaded(true);
-    } catch (error) {
-      console.error('Map initialization failed:', error);
-    }
+    };
+
+    script.onerror = () => {
+      console.error('카카오맵 로드 실패');
+    };
+
+    document.head.appendChild(script);
   };
 
-  const handleTokenSubmit = () => {
-    if (mapboxToken) {
-      localStorage.setItem('mapbox-token', mapboxToken);
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-      initializeMap(mapboxToken);
+  const handleKeySubmit = () => {
+    if (kakaoKey) {
+      localStorage.setItem('kakao-key', kakaoKey);
+      initializeMap(kakaoKey);
     }
   };
 
   useEffect(() => {
-    if (mapboxToken) {
-      initializeMap(mapboxToken);
+    if (kakaoKey) {
+      initializeMap(kakaoKey);
     }
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-      }
-    };
   }, []);
 
   const milestones = [
@@ -251,11 +260,11 @@ const About = () => {
                   <div className="space-y-4">
                     {!mapLoaded && (
                       <div className="p-4 bg-muted rounded-lg">
-                        <h4 className="font-semibold mb-2">Mapbox API 키 설정</h4>
+                        <h4 className="font-semibold mb-2">카카오맵 API 키 설정</h4>
                         <p className="text-sm text-muted-foreground mb-3">
-                          지도를 표시하려면 Mapbox API 키가 필요합니다. 
+                          지도를 표시하려면 카카오맵 JavaScript 키가 필요합니다. 
                           <a 
-                            href="https://account.mapbox.com/access-tokens/" 
+                            href="https://developers.kakao.com/console/app" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-primary hover:underline ml-1"
@@ -266,14 +275,14 @@ const About = () => {
                         <div className="flex gap-2">
                           <Input
                             type="text"
-                            placeholder="Mapbox API 키를 입력하세요 (pk.로 시작)"
-                            value={mapboxToken}
-                            onChange={(e) => setMapboxToken(e.target.value)}
+                            placeholder="카카오맵 JavaScript 키를 입력하세요"
+                            value={kakaoKey}
+                            onChange={(e) => setKakaoKey(e.target.value)}
                             className="flex-1"
                           />
                           <Button 
-                            onClick={handleTokenSubmit}
-                            disabled={!mapboxToken || !mapboxToken.startsWith('pk.')}
+                            onClick={handleKeySubmit}
+                            disabled={!kakaoKey}
                           >
                             적용
                           </Button>
@@ -283,7 +292,7 @@ const About = () => {
                     <div>
                       <h4 className="font-semibold mb-2">지도</h4>
                       <div 
-                        id="map" 
+                        ref={mapContainer}
                         className="w-full h-64 rounded-lg border"
                         style={{ minHeight: '250px' }}
                       ></div>
