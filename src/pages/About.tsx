@@ -14,8 +14,7 @@ declare global {
   }
 }
 
-// 여기에 카카오맵 JavaScript API 키를 넣어주세요
-const KAKAO_API_KEY = "YOUR_KAKAO_API_KEY_HERE";
+const KAKAO_API_KEY = "57dcdb639bfa4d8856d330897046b0ae";
 
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
