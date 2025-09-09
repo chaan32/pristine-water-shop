@@ -14,11 +14,11 @@ declare global {
   }
 }
 
+// 여기에 카카오맵 JavaScript API 키를 넣어주세요
+const KAKAO_API_KEY = "YOUR_KAKAO_API_KEY_HERE";
+
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const [kakaoKey, setKakaoKey] = useState(() => 
-    localStorage.getItem('kakao-key') || ''
-  );
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const initializeMap = (appKey: string) => {
@@ -84,15 +84,14 @@ const About = () => {
   };
 
   const handleKeySubmit = () => {
-    if (kakaoKey) {
-      localStorage.setItem('kakao-key', kakaoKey);
-      initializeMap(kakaoKey);
+    if (KAKAO_API_KEY && KAKAO_API_KEY !== "YOUR_KAKAO_API_KEY_HERE") {
+      initializeMap(KAKAO_API_KEY);
     }
   };
 
   useEffect(() => {
-    if (kakaoKey) {
-      initializeMap(kakaoKey);
+    if (KAKAO_API_KEY && KAKAO_API_KEY !== "YOUR_KAKAO_API_KEY_HERE") {
+      initializeMap(KAKAO_API_KEY);
     }
   }, []);
 
@@ -273,37 +272,6 @@ const About = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {!mapLoaded && (
-                      <div className="p-4 bg-muted rounded-lg">
-                        <h4 className="font-semibold mb-2">카카오맵 API 키 설정</h4>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          지도를 표시하려면 카카오맵 JavaScript 키가 필요합니다. 
-                          <a 
-                            href="https://developers.kakao.com/console/app" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline ml-1"
-                          >
-                            여기서 무료로 발급받으세요
-                          </a>
-                        </p>
-                        <div className="flex gap-2">
-                          <Input
-                            type="text"
-                            placeholder="카카오맵 JavaScript 키를 입력하세요"
-                            value={kakaoKey}
-                            onChange={(e) => setKakaoKey(e.target.value)}
-                            className="flex-1"
-                          />
-                          <Button 
-                            onClick={handleKeySubmit}
-                            disabled={!kakaoKey}
-                          >
-                            적용
-                          </Button>
-                        </div>
-                      </div>
-                    )}
                     <div>
                       <h4 className="font-semibold mb-2">지도</h4>
                       <div 
