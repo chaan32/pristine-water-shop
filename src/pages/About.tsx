@@ -24,41 +24,56 @@ const About = () => {
   const initializeMap = (appKey: string) => {
     if (!mapContainer.current || mapLoaded || !appKey) return;
 
+    // 기존 스크립트가 있으면 제거
+    const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
     // 카카오맵 스크립트 로드
     const script = document.createElement('script');
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&libraries=services`;
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
     script.onload = () => {
-      const { kakao } = window;
-      
-      // 지도 옵션
-      const options = {
-        center: new kakao.maps.LatLng(37.3897, 126.9515), // 안양시 동안구 좌표
-        level: 3
-      };
+      if (window.kakao && window.kakao.maps) {
+        window.kakao.maps.load(() => {
+          const { kakao } = window;
+          
+          // 지도 옵션
+          const options = {
+            center: new kakao.maps.LatLng(37.3897, 126.9515), // 안양시 동안구 좌표
+            level: 3
+          };
 
-      // 지도 생성
-      const map = new kakao.maps.Map(mapContainer.current, options);
+          // 지도 생성
+          const map = new kakao.maps.Map(mapContainer.current, options);
 
-      // 마커 위치
-      const markerPosition = new kakao.maps.LatLng(37.3897, 126.9515);
+          // 마커 위치
+          const markerPosition = new kakao.maps.LatLng(37.3897, 126.9515);
 
-      // 마커 생성
-      const marker = new kakao.maps.Marker({
-        position: markerPosition
-      });
+          // 마커 생성
+          const marker = new kakao.maps.Marker({
+            position: markerPosition
+          });
 
-      // 인포윈도우 내용
-      const infowindow = new kakao.maps.InfoWindow({
-        content: '<div style="padding:5px;font-size:12px;">Dragon WATER<br/>경기도 안양시 동안구 귀인로190번길 90-13</div>'
-      });
+          // 인포윈도우 내용
+          const infowindow = new kakao.maps.InfoWindow({
+            content: `
+              <div style="padding:10px;font-size:12px;text-align:center;min-width:150px;">
+                <strong>Dragon WATER</strong><br/>
+                <span style="color:#666;">경기도 안양시 동안구<br/>귀인로190번길 90-13</span>
+              </div>
+            `
+          });
 
-      // 마커를 지도에 표시
-      marker.setMap(map);
+          // 마커를 지도에 표시
+          marker.setMap(map);
 
-      // 마커에 인포윈도우 표시
-      infowindow.open(map, marker);
+          // 마커에 인포윈도우 표시
+          infowindow.open(map, marker);
 
-      setMapLoaded(true);
+          setMapLoaded(true);
+        });
+      }
     };
 
     script.onerror = () => {
