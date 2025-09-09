@@ -10,87 +10,81 @@ import { useEffect, useRef, useState } from 'react';
 
 declare global {
   interface Window {
-    kakao: any;
+    naver: any;
   }
 }
 
-const KAKAO_API_KEY: string = "f520dc1a81534bfab3089cb9fda77e54";
+const NAVER_MAP_CLIENT_ID: string = "YOUR_NAVER_MAP_CLIENT_ID_HERE"; // 여기에 네이버 지도 Client ID를 넣어주세요
 
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  const initializeMap = (appKey: string) => {
-    if (!mapContainer.current || mapLoaded || !appKey) return;
+  const initializeMap = (clientId: string) => {
+    if (!mapContainer.current || mapLoaded || !clientId) return;
 
-    // 기존 스크립트가 있으면 제거
-    const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
-    if (existingScript) {
-      existingScript.remove();
-    }
+    // 기존 스크립트가 있으면 제거 (네이버/카카오 모두)
+    const existingNaver = document.querySelector('script[src*="openapi.map.naver.com"]');
+    if (existingNaver) existingNaver.remove();
+    const existingKakao = document.querySelector('script[src*="dapi.kakao.com"]');
+    if (existingKakao) existingKakao.remove();
 
-    // 카카오맵 스크립트 로드
+    // 네이버 지도 스크립트 로드
     const script = document.createElement('script');
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`;
+    script.async = true;
+    script.defer = true;
     script.onload = () => {
-      if (window.kakao && window.kakao.maps) {
-        window.kakao.maps.load(() => {
-          const { kakao } = window;
-          
-          // 지도 옵션
-          const options = {
-            center: new kakao.maps.LatLng(37.3897, 126.9515), // 안양시 동안구 좌표
-            level: 3
-          };
+      if (window.naver && window.naver.maps) {
+        const { naver } = window;
 
-          // 지도 생성
-          const map = new kakao.maps.Map(mapContainer.current, options);
+        const center = new naver.maps.LatLng(37.3897, 126.9515); // 안양시 동안구 좌표
 
-          // 마커 위치
-          const markerPosition = new kakao.maps.LatLng(37.3897, 126.9515);
-
-          // 마커 생성
-          const marker = new kakao.maps.Marker({
-            position: markerPosition
-          });
-
-          // 인포윈도우 내용
-          const infowindow = new kakao.maps.InfoWindow({
-            content: `
-              <div style="padding:10px;font-size:12px;text-align:center;min-width:150px;">
-                <strong>Dragon WATER</strong><br/>
-                <span style="color:#666;">경기도 안양시 동안구<br/>귀인로190번길 90-13</span>
-              </div>
-            `
-          });
-
-          // 마커를 지도에 표시
-          marker.setMap(map);
-
-          // 마커에 인포윈도우 표시
-          infowindow.open(map, marker);
-
-          setMapLoaded(true);
+        // 지도 생성
+        const map = new naver.maps.Map(mapContainer.current as HTMLElement, {
+          center,
+          zoom: 16,
         });
+
+        // 마커 생성
+        const marker = new naver.maps.Marker({
+          position: center,
+          map,
+        });
+
+        // 인포윈도우 내용
+        const contentString = `
+          <div style="padding:10px;font-size:12px;text-align:center;min-width:150px;">
+            <strong>Dragon WATER</strong><br/>
+            <span style="color:#666;">경기도 안양시 동안구<br/>귀인로190번길 90-13</span>
+          </div>
+        `;
+
+        const infoWindow = new naver.maps.InfoWindow({
+          content: contentString,
+        });
+
+        infoWindow.open(map, marker);
+        setMapLoaded(true);
       }
     };
 
     script.onerror = () => {
-      console.error('카카오맵 로드 실패');
+      console.error('네이버 지도 로드 실패');
     };
 
     document.head.appendChild(script);
   };
 
   const handleKeySubmit = () => {
-    if (KAKAO_API_KEY && KAKAO_API_KEY !== "YOUR_KAKAO_API_KEY_HERE") {
-      initializeMap(KAKAO_API_KEY);
+    if (NAVER_MAP_CLIENT_ID && NAVER_MAP_CLIENT_ID !== "YOUR_NAVER_MAP_CLIENT_ID_HERE") {
+      initializeMap(NAVER_MAP_CLIENT_ID);
     }
   };
 
   useEffect(() => {
-    if (KAKAO_API_KEY && KAKAO_API_KEY !== "YOUR_KAKAO_API_KEY_HERE") {
-      initializeMap(KAKAO_API_KEY);
+    if (NAVER_MAP_CLIENT_ID && NAVER_MAP_CLIENT_ID !== "YOUR_NAVER_MAP_CLIENT_ID_HERE") {
+      initializeMap(NAVER_MAP_CLIENT_ID);
     }
   }, []);
 
