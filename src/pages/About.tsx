@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-const KAKAO_API_KEY = "57dcdb639bfa4d8856d330897046b0ae";
+const KAKAO_API_KEY = "f520dc1a81534bfab3089cb9fda77e54";
 
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
