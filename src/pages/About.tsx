@@ -19,6 +19,7 @@ const NAVER_MAP_CLIENT_ID: string = "vuaacmwuxb"; // 여기에 네이버 지도 
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [activeTab, setActiveTab] = useState('philosophy');
 
   const initializeMap = (clientId: string) => {
     console.log('[NaverMap] initializeMap called', {
@@ -128,16 +129,26 @@ const About = () => {
   };
 
   useEffect(() => {
-    console.log('[NaverMap] useEffect mount - attempting init', {
-      hasKey: !!NAVER_MAP_CLIENT_ID,
+    console.log('[NaverMap] useEffect - tab change', {
+      activeTab,
+      hasContainer: !!mapContainer.current,
+      mapLoaded,
       host: window.location.host,
     });
-    if (NAVER_MAP_CLIENT_ID && NAVER_MAP_CLIENT_ID !== "YOUR_NAVER_MAP_CLIENT_ID_HERE") {
-      initializeMap(NAVER_MAP_CLIENT_ID);
-    } else {
-      console.error('[NaverMap] NAVER_MAP_CLIENT_ID is missing or placeholder');
+
+    if (activeTab === 'location' && !mapLoaded) {
+      if (NAVER_MAP_CLIENT_ID && NAVER_MAP_CLIENT_ID !== "YOUR_NAVER_MAP_CLIENT_ID_HERE") {
+        if (mapContainer.current) {
+          initializeMap(NAVER_MAP_CLIENT_ID);
+        } else {
+          console.warn('[NaverMap] Container not ready on location tab; retrying next frame');
+          requestAnimationFrame(() => initializeMap(NAVER_MAP_CLIENT_ID));
+        }
+      } else {
+        console.error('[NaverMap] NAVER_MAP_CLIENT_ID is missing or placeholder');
+      }
     }
-  }, []);
+  }, [activeTab, mapLoaded]);
 
   const milestones = [
     { year: '2024', title: '회사 설립', description: '필터, 온수기 전문 기업으로 시작' },
@@ -178,7 +189,7 @@ const About = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="philosophy" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="philosophy">브랜드 철학</TabsTrigger>
             <TabsTrigger value="history">회사 연혁</TabsTrigger>
