@@ -73,7 +73,7 @@ const About = () => {
           center,
           zoom: 16,
         });
-        console.log('[NaverMap] Map created', { center: { lat: 37.3897, lng: 126.9515 }, zoom: 16 });
+        console.log('[NaverMap] Map created', { center: { lat: 37.382170, lng: 126.962665 }, zoom: 16 });
 
         // 마커 생성
         const marker = new naver.maps.Marker({
