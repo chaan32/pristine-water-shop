@@ -148,18 +148,18 @@ const About = () => {
                   <div>
                     <h4 className="font-semibold mb-2">주소</h4>
                     <p className="text-muted-foreground">
-                      서울특별시 강남구 테헤란로 123, AquaPure 빌딩 5층
+                      경기도 안양시 동안구 귀인로190번길 90-13
                     </p>
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-primary" />
-                      <span>1588-1234</span>
+                      <span>010-4658-7418</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-primary" />
-                      <span>info@aquapure.co.kr</span>
+                      <span>ttgy61@naver.com</span>
                     </div>
                   </div>
 
@@ -193,16 +193,18 @@ const About = () => {
                     <div>
                       <h4 className="font-semibold mb-2">버스</h4>
                       <p className="text-sm text-muted-foreground">
-                        간선버스: 146, 360, 740<br />
-                        지선버스: 3412, 6411<br />
-                        강남역 정류장 하차
+                        마을버스: <br />
+                        03 (평촌학원가.먹자거리 정류장 하차)<br />
+                        7 (귀인중학교 정류장 하차)<br />
+                        일반버스: <br />
+                        1 (귀인중학교 정류장 하차)<br />
                       </p>
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2">주차</h4>
                       <p className="text-sm text-muted-foreground">
-                        건물 내 지하주차장 이용 가능<br />
-                        방문 고객 2시간 무료 주차
+                        건물 앞 주차장 이용 가능<br />
+                        방문 고객 무료 주차
                       </p>
                     </div>
                   </div>
