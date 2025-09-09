@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-const KAKAO_API_KEY = "f520dc1a81534bfab3089cb9fda77e54";
+const KAKAO_API_KEY: string = "f520dc1a81534bfab3089cb9fda77e54";
 
 const About = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -31,7 +31,7 @@ const About = () => {
 
     // 카카오맵 스크립트 로드
     const script = document.createElement('script');
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
     script.onload = () => {
       if (window.kakao && window.kakao.maps) {
         window.kakao.maps.load(() => {
