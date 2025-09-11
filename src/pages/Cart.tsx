@@ -25,10 +25,31 @@ const Cart = () => {
   const fetchCartItems = async () => {
     try {
       const token = getAccessToken();
+      const userInfo = getUserInfo();
+      const userType = userInfo?.role;
+      
       if (!token) {
-        // 비로그인 상태에서는 localStorage에서 장바구니 정보 조회
+        // 비로그인 상태에서는 localStorage에서 장바구니 정보 조회하고 가격 재계산
         const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
-        setCartItems(localCart);
+        
+        // 각 상품의 가격을 현재 사용자 타입에 맞게 재계산
+        const updatedItems = await Promise.all(
+          localCart.map(async (item: any) => {
+            try {
+              const pdRes = await shopApi.getProduct(item.productId.toString());
+              if (!pdRes.ok) return item; // 상품 정보를 못가져오면 기존 정보 유지
+              const pd = await pdRes.json();
+              const price = userType === 'headquarters' || userType === 'branch'
+                ? pd.businessPrice
+                : pd.customerPrice;
+              return { ...item, price };
+            } catch (error) {
+              return item; // 오류 시 기존 정보 유지
+            }
+          })
+        );
+        
+        setCartItems(updatedItems);
         setLoading(false);
         return;
       }
@@ -41,8 +62,6 @@ const Cart = () => {
       const dtos: Array<{ productId: number; quantity: number }> = await res.json();
 
       // 각 상품 상세를 병렬로 조회하여 표시용 데이터 구성
-      const userInfo = getUserInfo();
-      const userType = userInfo?.role;
       const items = await Promise.all(
         dtos.map(async (dto) => {
           const pdRes = await shopApi.getProduct(dto.productId.toString());
@@ -64,9 +83,33 @@ const Cart = () => {
       setCartItems(items);
     } catch (error) {
       console.error('Cart fetch error:', error);
-      // 에러 시 로컬 장바구니 사용
-      const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
-      setCartItems(localCart);
+      // 에러 시 로컬 장바구니 사용하되 가격 재계산
+      try {
+        const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const userInfo = getUserInfo();
+        const userType = userInfo?.role;
+        
+        // 각 상품의 가격을 현재 사용자 타입에 맞게 재계산
+        const updatedItems = await Promise.all(
+          localCart.map(async (item: any) => {
+            try {
+              const pdRes = await shopApi.getProduct(item.productId.toString());
+              if (!pdRes.ok) return item;
+              const pd = await pdRes.json();
+              const price = userType === 'headquarters' || userType === 'branch'
+                ? pd.businessPrice
+                : pd.customerPrice;
+              return { ...item, price };
+            } catch (error) {
+              return item;
+            }
+          })
+        );
+        setCartItems(updatedItems);
+      } catch (localError) {
+        // 로컬 장바구니도 읽을 수 없는 경우
+        setCartItems([]);
+      }
     } finally {
       setLoading(false);
     }
