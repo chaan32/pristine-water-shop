@@ -26,7 +26,7 @@ const Cart = () => {
     try {
       const token = getAccessToken();
       const userInfo = getUserInfo();
-      const userType = userInfo?.role;
+      const userType = typeof userInfo?.role === 'string' ? userInfo.role.toLowerCase() : null;
       
       if (!token) {
         // 비로그인 상태에서는 localStorage에서 장바구니 정보 조회하고 가격 재계산
@@ -40,9 +40,9 @@ const Cart = () => {
               if (!pdRes.ok) return item; // 상품 정보를 못가져오면 기존 정보 유지
               const pd = await pdRes.json();
               const price = userType === 'headquarters' || userType === 'branch'
-                ? pd.businessPrice
-                : pd.customerPrice;
-              return { ...item, price };
+                ? parseInt(pd.businessPrice)
+                : parseInt(pd.customerPrice);
+              return { ...item, price: Number.isNaN(price) ? 0 : price };
             } catch (error) {
               return item; // 오류 시 기존 정보 유지
             }
@@ -69,12 +69,12 @@ const Cart = () => {
           const pd = await pdRes.json();
           const price =
             userType === 'headquarters' || userType === 'branch'
-              ? pd.businessPrice
-              : pd.customerPrice;
+              ? parseInt(pd.businessPrice)
+              : parseInt(pd.customerPrice);
           return {
             productId: dto.productId,
             name: pd.productName,
-            price,
+            price: Number.isNaN(price) ? 0 : price,
             quantity: dto.quantity,
             image: pd.thumbnailImageUrl || '/placeholder.svg',
           };
@@ -97,9 +97,9 @@ const Cart = () => {
               if (!pdRes.ok) return item;
               const pd = await pdRes.json();
               const price = userType === 'headquarters' || userType === 'branch'
-                ? pd.businessPrice
-                : pd.customerPrice;
-              return { ...item, price };
+                ? parseInt(pd.businessPrice)
+                : parseInt(pd.customerPrice);
+              return { ...item, price: Number.isNaN(price) ? 0 : price };
             } catch (error) {
               return item;
             }
@@ -208,7 +208,7 @@ const Cart = () => {
   };
 
   const shippingFee = 0;
-  const totalPrice = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+  const totalPrice = cartItems.reduce((sum: number, item: any) => sum + (Number(item.price || 0) * item.quantity), 0);
   const finalPrice = totalPrice + (cartItems.length > 0 ? shippingFee : 0);
 
   useEffect(() => {
@@ -247,7 +247,7 @@ const Cart = () => {
                     <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded" />
                     <div className="flex-1">
                       <h3 className="font-semibold">{item.name}</h3>
-                      <p className="text-primary font-bold">{item.price.toLocaleString()}원</p>
+                      <p className="text-primary font-bold">{Number(item.price || 0).toLocaleString()}원</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button 
