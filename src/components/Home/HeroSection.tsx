@@ -6,8 +6,6 @@ import heroImage from '@/assets/hero-water-filter.jpg';
 
 const HeroSection = () => {
   const navigate = useNavigate();
-  console.log('HeroSection is rendering');
-  console.log('Hero image path:', heroImage);
   
   return (
     <section className="relative min-h-[600px] flex items-center overflow-hidden">

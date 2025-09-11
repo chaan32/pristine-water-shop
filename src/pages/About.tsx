@@ -22,12 +22,6 @@ const About = () => {
   const [activeTab, setActiveTab] = useState('philosophy');
 
   const initializeMap = (clientId: string) => {
-    console.log('[NaverMap] initializeMap called', {
-      clientIdMasked: clientId ? clientId.slice(0, 4) + '***' : '',
-      hasContainer: !!mapContainer.current,
-      mapLoaded,
-      host: window.location.host,
-    });
 
     if (!mapContainer.current) {
       console.error('[NaverMap] mapContainer not ready');
@@ -89,10 +83,8 @@ const About = () => {
           content: contentString,
         });
         infoWindow.open(map, marker);
-        console.log('[NaverMap] InfoWindow opened');
 
         setMapLoaded(true);
-        console.log('[NaverMap] Map initialization complete');
       } else {
         console.error('[NaverMap] naver.maps not available after script load. Possible domain whitelist issue. Host:', window.location.host);
       }
@@ -111,7 +103,6 @@ const About = () => {
   };
 
   const handleKeySubmit = () => {
-    console.log('[NaverMap] handleKeySubmit clicked');
     if (NAVER_MAP_CLIENT_ID && NAVER_MAP_CLIENT_ID !== "YOUR_NAVER_MAP_CLIENT_ID_HERE") {
       initializeMap(NAVER_MAP_CLIENT_ID);
     } else {

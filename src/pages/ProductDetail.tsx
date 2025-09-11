@@ -92,10 +92,7 @@ const ProductDetail = () => {
   const userInfo = getUserInfo();
   const rawRole = userInfo?.role;
   const userRole = typeof rawRole === 'string' ? rawRole.toLowerCase() : undefined; // null이면 비로그인
-  
-  // 디버깅용 콘솔 로그
-  console.log('UserInfo:', userInfo);
-  console.log('UserRole (normalized):', userRole);
+
 
   // 상세 데이터 로드 - DTO 기반
   useEffect(() => {

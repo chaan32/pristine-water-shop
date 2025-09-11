@@ -81,9 +81,7 @@ const Order = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // 🕵️‍♂️ 1. getUserInfo()가 어떤 값을 반환하는지 확인합니다.
         const userInfo = getUserInfo();
-        console.log('🕵️‍♂️ 디버깅 1: getUserInfo() 결과:', userInfo);
 
         if (!userInfo?.id) {
           console.error("로그인 정보가 없습니다.");
@@ -91,8 +89,6 @@ const Order = () => {
           return;
         }
 
-        // 🕵️‍♂️ 2. state에 설정하려는 role 값이 무엇인지 확인합니다.
-        console.log('🕵️‍♂️ 디버깅 2: 설정할 사용자 역할(userInfo.role):', userInfo.role);
 
         setCurrentUser(userInfo);
         setUserType(userInfo.role);
@@ -109,8 +105,6 @@ const Order = () => {
         console.error("초기 데이터 로딩 중 에러 발생:", error);
         // ... (기존 토스트 메시지)
       } finally {
-        // 🕵️‍♂️ 3. 로직의 마지막까지 도달했는지 확인합니다.
-        console.log('🕵️‍♂️ 디버깅 3: useEffect 로직 완료');
         setIsUserLoading(false);
       }
     };
@@ -126,7 +120,6 @@ const Order = () => {
 
     // 다 하면 로그 찍기
     script.onload = () => {
-      console.log("✅ script loaded");
       setIsScriptLoaded(true); // 스크립트 로딩 완료 시 상태 업데이트
     };
 
@@ -144,7 +137,6 @@ const Order = () => {
 
     return () => {
       document.head.removeChild(script);
-      console.log("🧼 script removed");
     }
   },[]);
 
@@ -157,7 +149,6 @@ const Order = () => {
         });
         return;
     }
-    console.log("클라이언트아이디 :", PAYMENT_CONFIG.clientId);
     const normalizedMethod = preOrderData.method === '신용카드' || preOrderData.method === 'card' ? 'card' : 'bank';
     window.AUTHNICE.requestPay({
       clientId: PAYMENT_CONFIG.clientId,
@@ -179,18 +170,13 @@ const Order = () => {
   // 사용자 배송지 정보 가져오는 함수 분리
   const fetchUserShippingInfo = async (userId: number) => {
     try {
-      console.log(`사용자 배송지 정보 조회 요청: userId=${userId}`);
       const response = await apiFetch(`/api/order/recipient/same/${userId}`);
 
       if (!response.ok) {
-        console.error(`API 요청 실패: ${response.status} ${response.statusText}`);
         throw new Error(`API 요청 실패: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log("API 응답 결과:", result);
-      console.log(paymentMethod)
-      console.log("userType:", userType)
       if (result) {
         const normalized = {
           name: result.name ?? result.recipientName ?? result.username ?? result.memberName ?? '',
@@ -251,9 +237,6 @@ const Order = () => {
   const finalTotal = Math.max(0, totalAfterCoupon - pointUsage);
 
   const fillOrdererInfo = () => {
-    console.log('주문자와 동일 버튼 클릭됨');
-    console.log('현재 로그인한 사용자:', currentUser);
-    console.log('API에서 가져온 배송지 정보:', loggedInUser);
     setUserType(currentUser.role);
     if (!currentUser) {
       toast({
@@ -275,8 +258,7 @@ const Order = () => {
         zipCode: loggedInUser.zipCode || '',
         memo: orderInfo.memo // 기존 메모는 유지
       };
-      
-      console.log('새로 설정할 주문 정보:', newOrderInfo);
+
       setOrderInfo(newOrderInfo);
 
       toast({
@@ -295,8 +277,7 @@ const Order = () => {
         zipCode: '',
         memo: orderInfo.memo // 기존 메모는 유지
       };
-      
-      console.log('기본 정보로 설정할 주문 정보:', newOrderInfo);
+
       setOrderInfo(newOrderInfo);
 
       toast({
@@ -308,9 +289,7 @@ const Order = () => {
   };
 
   const openPostcode = () => {
-    console.log('우편번호 찾기 버튼 클릭됨');
     if (!(window as any).daum) {
-      console.error('Daum Postcode API가 로드되지 않았습니다.');
       toast({
         title: "오류",
         description: "우편번호 검색 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.",
@@ -322,7 +301,6 @@ const Order = () => {
     try {
       new (window as any).daum.Postcode({
         oncomplete: function(data: any) {
-          console.log('우편번호 검색 완료:', data);
           setOrderInfo({
             ...orderInfo,
             zipCode: data.zonecode,
@@ -384,7 +362,6 @@ const Order = () => {
       shipmentFee: shippingFee,
       paymentMethod: paymentMethod,
     };
-    console.log("🚀 /api/order API 요청으로 전송할 데이터:", JSON.stringify(orderData, null, 2));
 
     try {
       const response = await apiFetch('/api/order', {
@@ -394,7 +371,6 @@ const Order = () => {
 
       const preOrderData: PreOrderResponse = await response.json();
 
-      console.log("🚀 /api/order API 응답:", preOrderData);
       if (response.ok && preOrderData.orderId) {
 
         // 지점 회원의 법인결제 또는 0원 주문은 바로 승인 처리

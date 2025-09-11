@@ -43,7 +43,7 @@ const MyPageContent = () => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('User data:', result);
+
         
         if (result.data) {
           setUserInfo(result.data);
@@ -74,7 +74,6 @@ const MyPageContent = () => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('API Response:', result);
 
         if (result.data && Array.isArray(result.data)) {
           const ordersData = result.data.map((order: any) => ({
@@ -94,7 +93,6 @@ const MyPageContent = () => {
             items: order.items || []
           }));
           setOrders(ordersData);
-          console.log('Processed orders:', ordersData);
         } else {
           console.error('Unexpected data structure:', result);
           setOrders([]);

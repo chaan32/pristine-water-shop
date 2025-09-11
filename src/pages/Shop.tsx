@@ -26,7 +26,6 @@ const Shop = () => {
     const userInfo = getUserInfo();
     const normalized = typeof userInfo?.role === 'string' ? userInfo.role.toLowerCase() : null;
     setUserType(normalized); // null이면 비로그인 상태
-    console.log('Shop userType (normalized):', normalized);
   }, []);
 
   // 상품 데이터 가져오기

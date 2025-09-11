@@ -62,7 +62,6 @@ const MyPage = () => {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('User data:', result);
 
         if (result.data) {
           setUserInfo(result.data);
@@ -96,7 +95,6 @@ const MyPage = () => {
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log('API Response:', responseData);
 
         // 백엔드에서 { data: List<MPOrdersResDto>, totalElements: number } 형태로 반환
         if (responseData && responseData.data) {
