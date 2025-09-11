@@ -434,31 +434,21 @@ const MyPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="text-sm font-medium mb-2 block">이메일</label>
-                          <div className="flex gap-2">
-                            <input
-                              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
-                              value={editForm.email || ''}
-                              type="email"
-                              onChange={(e) => handleFormChange('email', e.target.value)}
-                            />
-                            <Button
-                              onClick={handleEmailVerificationClick}
-                              variant="outline"
-                              className="px-3"
-                            >
-                              <Mail className="w-4 h-4 mr-1" />
-                              인증
-                            </Button>
-                          </div>
+                          <input
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                            value={editForm.email || ''}
+                            type="email"
+                            onChange={(e) => handleFormChange('email', e.target.value)}
+                          />
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-2 block">전화번호</label>
                           <div className="flex gap-2">
                             <input
-                              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                              className="flex-1 p-2 border rounded bg-gray-50 text-gray-600"
                               value={editForm.phone || ''}
                               type="tel"
-                              onChange={(e) => handleFormChange('phone', e.target.value)}
+                              readOnly
                             />
                             <Button
                               onClick={handlePhoneVerificationClick}
