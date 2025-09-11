@@ -604,12 +604,12 @@ const ProductContentManagement = () => {
                 <div className="space-y-4">
                   {/* 제품 제목 */}
                   <div className="grid gap-2">
-                    <Label htmlFor="title">제품 제목</Label>
+                    <Label htmlFor="title">제품 요약</Label>
                     <Input
                       id="title"
                       value={contentData.title}
                       onChange={(e) => handleInputChange('title', e.target.value)}
-                      placeholder="제품의 메인 제목을 입력하세요"
+                      placeholder="제품의 요약 내용을 입력하세요"
                     />
                   </div>
                   
