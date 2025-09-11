@@ -275,7 +275,7 @@ export const adminApi = {
   getProductImages: (productId: string) => apiFetch(`/api/admin/products/${productId}/images`),
   uploadProductImage: (formData: FormData) => apiFetch('/api/admin/products/images/upload', { method: 'POST', body: formData }),
   updateProductImages: (data: any) => apiFetch('/api/admin/products/images', { method: 'PUT', body: JSON.stringify(data) }),
-  setThumbnail: (data: any) => apiFetch('/api/admin/products/images/thumbnail', { method: 'POST', body: JSON.stringify(data) }),
+  setThumbnail: (data: any) => apiFetch('/api/admin/products/images/thumbnail', { method: 'PUT', body: JSON.stringify(data) }),
   
   // Categories
   getMainCategories: () => apiFetch('/api/admin/main/categories'),
