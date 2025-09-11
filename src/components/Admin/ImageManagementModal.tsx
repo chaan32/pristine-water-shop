@@ -137,7 +137,7 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
   const handleImageDelete = async (image: ProductImage) => {
     try {
       // API: DELETE /api/admin/products/images
-      const response = await adminApi.updateProductImages({ imageId: image.id, _method: 'DELETE' });
+      const response = await adminApi.deleteProductImage(image.id!);
 
 
       if (response.ok) {

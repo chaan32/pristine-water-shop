@@ -274,6 +274,7 @@ export const adminApi = {
   // Product Images
   getProductImages: (productId: string) => apiFetch(`/api/admin/products/${productId}/images`),
   uploadProductImage: (formData: FormData) => apiFetch('/api/admin/products/images/upload', { method: 'POST', body: formData }),
+  deleteProductImage: (imageId: number) => apiFetch('/api/admin/products/images', { method: 'DELETE', body: JSON.stringify({ imageId }) }),
   updateProductImages: (data: any) => apiFetch('/api/admin/products/images', { method: 'PUT', body: JSON.stringify(data) }),
   setThumbnail: (data: any) => apiFetch('/api/admin/products/images/thumbnail', { method: 'PUT', body: JSON.stringify(data) }),
   
