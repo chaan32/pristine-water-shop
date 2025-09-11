@@ -158,6 +158,9 @@ const Shop = () => {
 
   const handleAddToCart = async (product: any) => {
     const token = getAccessToken();
+    const userInfo = getUserInfo();
+    const currentUserType = userInfo?.role;
+    
     try {
       if (token) {
         const res = await cartApi.add({ productId: product.productId, quantity: 1 });
@@ -165,14 +168,23 @@ const Shop = () => {
       } else {
         const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
         const existing = localCart.find((item: any) => item.productId === product.productId);
-        if (existing) existing.quantity += 1;
-        else localCart.push({
-          productId: product.productId,
-          name: product.productName,
-          price: getDisplayPrice(product),
-          quantity: 1,
-          image: product.thumbnailImageUrl,
-        });
+        
+        // 현재 사용자 타입에 맞는 가격 계산
+        const price = currentUserType === 'headquarters' || currentUserType === 'branch'
+          ? parseInt(product.businessPrice)
+          : parseInt(product.customerPrice);
+          
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          localCart.push({
+            productId: product.productId,
+            name: product.productName,
+            price: price,
+            quantity: 1,
+            image: product.thumbnailImageUrl,
+          });
+        }
         localStorage.setItem('cart', JSON.stringify(localCart));
       }
 
