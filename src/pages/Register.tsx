@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { authApi, registerApi } from '@/lib/api';
 import { API_CONFIG } from '@/lib/config';
 import PhoneVerificationModal from '@/components/Auth/PhoneVerificationModal';
+import { validatePassword, getPasswordCriteria } from '@/lib/utils';
 
 interface Headquarters {
     id: string;
@@ -147,6 +148,8 @@ const Register = () => {
   const isIndividualPasswordMismatch = individualForm.password && individualForm.confirmPassword && individualForm.password !== individualForm.confirmPassword;
   const isIndividualFormValid = isIndividualPasswordMatch && individualForm.termsAccepted && individualForm.privacyAccepted && individualForm.isIdChecked && individualForm.isIdAvailable && individualForm.email;
 
+  const individualPasswordCriteria = getPasswordCriteria(individualForm.password);
+
   const isCorporatePasswordMatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password === corporateForm.confirmPassword;
   const isCorporatePasswordMismatch = corporateForm.password && corporateForm.confirmPassword && corporateForm.password !== corporateForm.confirmPassword;
   const isCorporateFormValid = isCorporatePasswordMatch && 
@@ -165,6 +168,8 @@ const Register = () => {
     (corporateForm.corporateType === 'headquarters' ? corporateForm.phone : true) && // 본사는 회사전화번호 필수
     // 프랜차이즈 지점 회원인 경우 추가 검증
     (corporateForm.corporateType !== 'franchise' || (corporateForm.headquartersName && corporateForm.branchName && corporateForm.managerName && corporateForm.managerPhone && corporateForm.isPhoneVerified && corporateForm.companyPhone1 && corporateForm.companyPhone2 && corporateForm.companyPhone3));
+
+  const corporatePasswordCriteria = getPasswordCriteria(corporateForm.password);
 
   const handleIdCheck = async (type: 'individual' | 'corporate') => {
     const id = type === 'individual' ? individualForm.id : corporateForm.id;
@@ -289,6 +294,17 @@ const Register = () => {
 
   // 회원가입 처리 함수
   const handleIndividualRegister = async () => {
+    // 비밀번호 유효성 검사
+    const passwordValidation = validatePassword(individualForm.password);
+    if (!passwordValidation.isValid) {
+      toast({
+        title: "오류",
+        description: passwordValidation.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const requestData = {
         memberType: "individual",
@@ -322,6 +338,17 @@ const Register = () => {
   };
 
   const handleCorporateRegister = async () => {
+    // 비밀번호 유효성 검사
+    const passwordValidation = validatePassword(corporateForm.password);
+    if (!passwordValidation.isValid) {
+      toast({
+        title: "오류",
+        description: passwordValidation.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const requestData = {
         memberType: "corporate",
@@ -476,13 +503,31 @@ const Register = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    <Input 
-                      type="password" 
-                      placeholder="비밀번호"
-                      value={individualForm.password}
-                      onChange={(e) => setIndividualForm(prev => ({ ...prev, password: e.target.value }))}
-                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                    />
+                    <div className="space-y-2">
+                      <Input 
+                        type="password" 
+                        placeholder="비밀번호 (영문소문자, 숫자 포함 8자 이상)"
+                        value={individualForm.password}
+                        onChange={(e) => setIndividualForm(prev => ({ ...prev, password: e.target.value }))}
+                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                      />
+                      {individualForm.password && (
+                        <div className="space-y-1 text-sm">
+                          <div className={`flex items-center gap-1 ${individualPasswordCriteria.hasMinLength ? 'text-green-600' : 'text-red-600'}`}>
+                            {individualPasswordCriteria.hasMinLength ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            <span>8자 이상</span>
+                          </div>
+                          <div className={`flex items-center gap-1 ${individualPasswordCriteria.hasLowercase ? 'text-green-600' : 'text-red-600'}`}>
+                            {individualPasswordCriteria.hasLowercase ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            <span>영문소문자 포함</span>
+                          </div>
+                          <div className={`flex items-center gap-1 ${individualPasswordCriteria.hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+                            {individualPasswordCriteria.hasNumber ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            <span>숫자 포함</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div className="space-y-2">
                       <Input 
                         type="password" 
@@ -866,13 +911,31 @@ const Register = () => {
                   </div>
                   
                   <div className="space-y-4">
-                    <Input 
-                      type="password" 
-                      placeholder="비밀번호"
-                      value={corporateForm.password}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, password: e.target.value }))}
-                      disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                    />
+                    <div className="space-y-2">
+                      <Input 
+                        type="password" 
+                        placeholder="비밀번호 (영문소문자, 숫자 포함 8자 이상)"
+                        value={corporateForm.password}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, password: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                      />
+                      {corporateForm.password && (
+                        <div className="space-y-1 text-sm">
+                          <div className={`flex items-center gap-1 ${corporatePasswordCriteria.hasMinLength ? 'text-green-600' : 'text-red-600'}`}>
+                            {corporatePasswordCriteria.hasMinLength ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            <span>8자 이상</span>
+                          </div>
+                          <div className={`flex items-center gap-1 ${corporatePasswordCriteria.hasLowercase ? 'text-green-600' : 'text-red-600'}`}>
+                            {corporatePasswordCriteria.hasLowercase ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            <span>영문소문자 포함</span>
+                          </div>
+                          <div className={`flex items-center gap-1 ${corporatePasswordCriteria.hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+                            {corporatePasswordCriteria.hasNumber ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                            <span>숫자 포함</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div className="space-y-2">
                       <Input 
                         type="password" 
