@@ -772,7 +772,7 @@ const ProductEdit = () => {
                                 id="newMainCategory"
                                 value={newMainCategoryName}
                                 onChange={(e) => setNewMainCategoryName(e.target.value)}
-                                placeholder="메인 카테고리명을 입력하세요"
+                                placeholder="메인 카테고리명을 입력하세요 (최대 20자)"
                               />
                             </div>
                             <div className="flex gap-2 justify-end">
@@ -836,7 +836,7 @@ const ProductEdit = () => {
                                   id="newSubCategory"
                                   value={newSubCategoryName}
                                   onChange={(e) => setNewSubCategoryName(e.target.value)}
-                                  placeholder="서브 카테고리명을 입력하세요"
+                                  placeholder="서브 카테고리명을 입력하세요 (최대 20자)"
                                 />
                               </div>
                               <div className="flex gap-2 justify-end">

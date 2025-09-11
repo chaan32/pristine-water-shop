@@ -400,7 +400,7 @@ const Order = () => {
         // 지점 회원의 법인결제 또는 0원 주문은 바로 승인 처리
         if (paymentMethod === 'corporate_payment' || finalTotal === 0) {
           const orderCompleteMessage = finalTotal === 0 
-            ? `포인트로 결제가 완료되었습니다. 주문번호: ${preOrderData.orderId}`
+            ? `결제가 완료되었습니다. 주문번호: ${preOrderData.orderId}`
             : `법인 결제 신청이 접수되었습니다. 주문번호: ${preOrderData.orderId}`;
           
           toast({
