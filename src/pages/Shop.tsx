@@ -273,7 +273,11 @@ const Shop = () => {
                                   <Button
                                     key={subCategory.categoryId}
                                     variant={filterCategory === String(subCategory.categoryId) ? 'default' : 'ghost'}
-                                    className="w-full justify-start text-xs text-muted-foreground hover:text-foreground"
+                                    className={`w-full justify-start text-xs hover:text-foreground ${
+                                      filterCategory === String(subCategory.categoryId) 
+                                        ? 'text-white' 
+                                        : 'text-muted-foreground'
+                                    }`}
                                     onClick={() => setFilterCategory(String(subCategory.categoryId))}
                                   >
                                     └ {subCategory.categoryName}
