@@ -502,7 +502,7 @@ const ProductContentManagement = () => {
                       <img 
                         src={thumbnailPreview} 
                         alt="제품 썸네일" 
-                        className="w-48 h-48 object-cover rounded-lg border"
+                        className="w-48 h-48 object-contain rounded-lg border"
                       />
                     </CardContent>
                   </Card>
@@ -521,7 +521,7 @@ const ProductContentManagement = () => {
                             key={index}
                             src={image}
                             alt={`갤러리 이미지 ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg border"
+                            className="w-full h-32 object-contain rounded-lg border"
                           />
                         ))}
                       </div>
@@ -910,7 +910,7 @@ const ProductContentManagement = () => {
                         <img 
                           src={thumbnailPreview} 
                           alt="썸네일 미리보기" 
-                          className="w-16 h-16 object-cover rounded border"
+                          className="w-16 h-16 object-contain rounded border"
                         />
                         <Button
                           variant="destructive"
@@ -958,7 +958,7 @@ const ProductContentManagement = () => {
                             <img
                               src={image}
                               alt={`갤러리 이미지 ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-md border"
+                              className="w-full h-24 object-contain rounded-md border"
                             />
                             <Button
                               variant="destructive"
