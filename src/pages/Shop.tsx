@@ -20,6 +20,7 @@ const Shop = () => {
   const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hoveredCategory, setHoveredCategory] = useState<number | null>(null);
 
   // 사용자 type 정보 가져오기
   useEffect(() => {
@@ -251,25 +252,34 @@ const Shop = () => {
                       {categories.map((category) => (
                         <div key={category.mainCategoryId}>
                           {/* 메인 카테고리 */}
-                          <Button
-                            variant={filterCategory === `main-${category.mainCategoryId}` ? 'default' : 'ghost'}
-                            className="w-full justify-start font-semibold text-sm"
-                            onClick={() => setFilterCategory(`main-${category.mainCategoryId}`)}
+                          <div
+                            onMouseEnter={() => setHoveredCategory(category.mainCategoryId)}
+                            onMouseLeave={() => setHoveredCategory(null)}
                           >
-                            {category.mainCategory}
-                          </Button>
-                          
-                          {/* 서브 카테고리들 */}
-                          {category.subCategories.map((subCategory) => (
                             <Button
-                              key={subCategory.categoryId}
-                              variant={filterCategory === String(subCategory.categoryId) ? 'default' : 'ghost'}
-                              className="w-full justify-start ml-4 text-xs text-muted-foreground hover:text-foreground"
-                              onClick={() => setFilterCategory(String(subCategory.categoryId))}
+                              variant={filterCategory === `main-${category.mainCategoryId}` ? 'default' : 'ghost'}
+                              className="w-full justify-start font-semibold text-sm"
+                              onClick={() => setFilterCategory(`main-${category.mainCategoryId}`)}
                             >
-                              └ {subCategory.categoryName}
+                              {category.mainCategory}
                             </Button>
-                          ))}
+                          
+                            {/* 서브 카테고리들 - 클릭되었거나 hover 시 표시 */}
+                            {(filterCategory === `main-${category.mainCategoryId}` || hoveredCategory === category.mainCategoryId) && (
+                              <div className="ml-4 space-y-1 animate-fade-in">
+                                {category.subCategories.map((subCategory) => (
+                                  <Button
+                                    key={subCategory.categoryId}
+                                    variant={filterCategory === String(subCategory.categoryId) ? 'default' : 'ghost'}
+                                    className="w-full justify-start text-xs text-muted-foreground hover:text-foreground"
+                                    onClick={() => setFilterCategory(String(subCategory.categoryId))}
+                                  >
+                                    └ {subCategory.categoryName}
+                                  </Button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
