@@ -264,8 +264,10 @@ const Shop = () => {
                               {category.mainCategory}
                             </Button>
                           
-                            {/* 서브 카테고리들 - 클릭되었거나 hover 시 표시 */}
-                            {(filterCategory === `main-${category.mainCategoryId}` || hoveredCategory === category.mainCategoryId) && (
+                            {/* 서브 카테고리들 - 클릭되었거나 hover 시 또는 해당 서브카테고리가 선택된 경우 표시 */}
+                            {(filterCategory === `main-${category.mainCategoryId}` || 
+                              hoveredCategory === category.mainCategoryId ||
+                              category.subCategories.some(sub => filterCategory === String(sub.categoryId))) && (
                               <div className="ml-4 space-y-1 animate-fade-in">
                                 {category.subCategories.map((subCategory) => (
                                   <Button
