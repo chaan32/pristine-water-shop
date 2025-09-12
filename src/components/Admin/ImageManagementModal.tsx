@@ -276,17 +276,8 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
                           </span>
                         </div>
                       </div>
-                      <div className="p-3 space-y-2">
+                      <div className="p-3">
                         <p className="text-sm font-medium truncate">{thumbnailImage.fileName}</p>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleImageDelete(thumbnailImage)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          삭제
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
