@@ -16,11 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter, Image } from 'lucide-react';
+import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter, Image, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import ImageManagementModal from './ImageManagementModal';
 import { adminApi, apiFetch, getAccessToken } from '@/lib/api';
+import { API_CONFIG } from '@/lib/config';
 import { formatPriceWithComma, extractNumbers, createPriceChangeHandler } from '@/lib/price-format';
 
 const ProductEdit = () => {
@@ -512,6 +513,51 @@ const ProductEdit = () => {
     }
   };
 
+  const handleCopy = async (id: number) => {
+    try {
+      const accessToken = getAccessToken();
+      if (!accessToken) {
+        toast({
+          title: "인증 오류",
+          description: "로그인이 필요합니다.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // API: POST /api/admin/products/add/copy
+      const response = await fetch(`${API_CONFIG.baseUrl}/api/admin/products/add/copy`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId: id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '상품 복제에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      
+      toast({
+        title: "상품 복제 성공",
+        description: "상품이 성공적으로 복제되었습니다.",
+      });
+      
+      fetchProducts();
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "상품 복제에 실패했습니다.",
+        variant: "destructive"
+      });
+      console.error('Error copying product:', error);
+    }
+  };
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
   };
@@ -685,6 +731,14 @@ const ProductEdit = () => {
                           onClick={() => handleEdit(product)}
                         >
                           <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCopy(product.id)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Copy className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="outline"
