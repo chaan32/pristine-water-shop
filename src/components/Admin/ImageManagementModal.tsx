@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
@@ -203,6 +203,9 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>이미지 관리 - {productName}</DialogTitle>
+          <DialogDescription>
+            상품의 이미지를 업로드하고 관리할 수 있습니다. 썸네일과 갤러리 이미지를 설정하세요.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

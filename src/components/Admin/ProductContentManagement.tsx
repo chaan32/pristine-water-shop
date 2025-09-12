@@ -308,10 +308,8 @@ const ProductContentManagement = () => {
         variant: "destructive",
       });
       
-      // 실패 시 로컬 프리뷰 URL 사용
-      const previewUrl = URL.createObjectURL(file);
-      editor?.chain().focus().setImage({ src: previewUrl }).run();
-      return previewUrl;
+      // 실패 시 아무것도 삽입하지 않음
+      return null;
     }
   };
 
