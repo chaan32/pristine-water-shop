@@ -277,12 +277,9 @@ const ProductContentManagement = () => {
   // 에디터용 이미지 업로드 처리 (백엔드 API 연동)
   const handleEditorImageUpload = async (file: File) => {
     try {
-      // 413 방지: 업로드 전 가볍게 압축 (최대 1600px, 1.5MB 목표)
-      const { compressImage } = await import('@/lib/image');
-      const compressed = await compressImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.82, maxBytes: 1.5 * 1024 * 1024 });
-
+      // 원본 이미지 그대로 업로드
       const formData = new FormData();
-      formData.append('image', compressed);
+      formData.append('image', file);
       formData.append('productId', selectedProduct || '');
       
       // API: POST /api/admin/products/upload/image

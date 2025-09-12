@@ -102,18 +102,8 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
     setUploading(true);
     const formData = new FormData();
 
-    try {
-      const { compressImage } = await import('@/lib/image');
-
-      for (const file of Array.from(files)) {
-        // 413 방지: 업로드 전 압축 (최대 1600px, 1.5MB 목표)
-        const compressed = await compressImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.82, maxBytes: 1.5 * 1024 * 1024 });
-        formData.append('images', compressed);
-      }
-    } catch (e) {
-      // 압축 실패 시 원본 업로드로 폴백
-      Array.from(files).forEach((file) => formData.append('images', file));
-    }
+    // 원본 이미지 그대로 업로드
+    Array.from(files).forEach((file) => formData.append('images', file));
     formData.append('productId', productId.toString());
 
     try {
