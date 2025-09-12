@@ -328,7 +328,8 @@ const Shop = () => {
                               <img
                                   src={product.thumbnailImageUrl}
                                   alt={product.productName}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
+                                  className="w-full h-full object-contain transition-smooth"
+                                  loading="lazy"
                               />
                             </div>
                           </CardHeader>
