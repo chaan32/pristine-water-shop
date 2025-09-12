@@ -217,7 +217,8 @@ const Header = () => {
             <img
                 src={greendragonLogo} 
                 alt="드래곤 로고"
-                className="h-16"
+                className="h-16 w-auto"
+                onError={(e) => console.error('Logo load error:', e)}
             />
             <div>
               <h1 className="text-2xl font-bold text-primary">DRAGON WATER</h1>
