@@ -389,7 +389,7 @@ const ProductDetail = () => {
             {/* Product Images - 기존 레이아웃 */}
             <div className="space-y-4">
               <div className="aspect-square bg-secondary rounded-lg overflow-hidden">
-                <img src={images[selectedImage]} alt={product.productName} className="w-full h-full object-cover" />
+                <img src={images[selectedImage]} alt={product.productName} className="w-full h-full object-contain" />
               </div>
               <div className="flex gap-2">
                 {images.map((image, index) => (
@@ -398,7 +398,7 @@ const ProductDetail = () => {
                         onClick={() => setSelectedImage(index)}
                         className={`aspect-square w-20 bg-secondary rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}
                     >
-                      <img src={image} alt={`${product.productName} ${index + 1}`} className="w-full h-full object-cover" />
+                      <img src={image} alt={`${product.productName} ${index + 1}`} className="w-full h-full object-contain" />
                     </button>
                 ))}
               </div>
