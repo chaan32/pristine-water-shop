@@ -25,6 +25,7 @@ interface ProductImage {
 
 interface ImageApiResponse {
   thumbnailImageS3URL: string;
+  thumbnailImageId?: number;
   galleryImagesS3URL: Record<string, number>;
 }
 
@@ -44,7 +45,8 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
       result.push({
         url: data.thumbnailImageS3URL,
         fileName: fileName,
-        isThumbnail: true
+        isThumbnail: true,
+        id: data.thumbnailImageId
       });
     }
     
@@ -134,10 +136,18 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
 
   // 이미지 삭제
   const handleImageDelete = async (image: ProductImage) => {
+    if (!image.id) {
+      toast({
+        title: "오류",
+        description: "이미지 ID가 없어 삭제할 수 없습니다.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       // API: DELETE /api/admin/products/images
-      const response = await adminApi.deleteProductImage(image.id!);
-
+      const response = await adminApi.deleteProductImage(image.id);
 
       if (response.ok) {
         toast({
