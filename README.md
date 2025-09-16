@@ -1,4 +1,4 @@
-# DRAGON WATER 홈페이지 프론트엔드 레포지토리
+# DRAGON WATER 홈페이지
 
 ## Project info
 
@@ -6,6 +6,7 @@
 [https://www.dragonwater.co.kr](https://www.dragonwater.co.kr/)
 [https://dragonwater.co.kr](https://dragonwater.co.kr/)
 
+![Uploading image.png…]()
 
 
 ## What technologies are used for this project?
