@@ -19,7 +19,7 @@
 - Tailwind CSS
 
 
-This Project made by Lovable and I
+This Project was made by Lovable and I
 
 
 
