@@ -3,8 +3,8 @@
 ## Project info
 
 **URL**: 
-[https:](https://www.dragonwater.co.kr/)
-[https:](https://dragonwater.co.kr/)
+[https://www.dragonwater.co.kr](https://www.dragonwater.co.kr/)
+[https://dragonwater.co.kr](https://dragonwater.co.kr/)
 
 
 
@@ -16,7 +16,8 @@
 - shadcn-ui
 - Tailwind CSS
 
-## This Project made by Lovable and I
+
+This Project made by Lovable and I
 
 
 
