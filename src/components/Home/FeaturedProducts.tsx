@@ -114,12 +114,14 @@ const FeaturedProducts = () => {
 
                 {/* Product Image */}
                 <div className="aspect-square bg-secondary overflow-hidden">
-                  <img
-                    src={product.thumbnailImageUrl}
-                    alt={product.productName}
-                    className="w-full h-full object-contain transition-smooth"
-                    loading="lazy"
-                  />
+                  <Link to={`/product/${product.productId}`}>
+                    <img
+                      src={product.thumbnailImageUrl}
+                      alt={product.productName}
+                      className="w-full h-full object-contain transition-smooth cursor-pointer hover:opacity-80"
+                      loading="lazy"
+                    />
+                  </Link>
                 </div>
               </CardHeader>
 
