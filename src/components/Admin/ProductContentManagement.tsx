@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Upload, Save, Eye, Trash2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
@@ -80,6 +81,7 @@ const ProductContentManagement = () => {
 
   // 에디터 이미지 업로드를 위한 상태
   const [editorImageFiles, setEditorImageFiles] = useState<File[]>([]);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
 
   // FAQ 관리를 위한 상태
   const [faqList, setFaqList] = useState<{question: string, answer: string}[]>([]);
@@ -276,6 +278,7 @@ const ProductContentManagement = () => {
 
   // 에디터용 이미지 업로드 처리 (백엔드 API 연동)
   const handleEditorImageUpload = async (file: File) => {
+    setImageUploadLoading(true);
     try {
       // 원본 이미지 그대로 업로드
       const formData = new FormData();
@@ -311,6 +314,8 @@ const ProductContentManagement = () => {
       
       // 실패 시 삽입하지 않음
       return null;
+    } finally {
+      setImageUploadLoading(false);
     }
   };
 
@@ -751,14 +756,16 @@ const ProductContentManagement = () => {
                           }}
                           className="hidden"
                           id="editor-image-upload"
+                          disabled={imageUploadLoading}
                         />
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => document.getElementById('editor-image-upload')?.click()}
+                          disabled={imageUploadLoading}
                         >
-                          📷 이미지
+                          {imageUploadLoading ? '업로드 중...' : '📷 이미지'}
                         </Button>
                         
                         <Button
@@ -775,6 +782,15 @@ const ProductContentManagement = () => {
                           🔗 URL 이미지
                         </Button>
                       </div>
+                      
+                      {/* 이미지 업로드 로딩 표시 */}
+                      {imageUploadLoading && (
+                        <div className="flex items-center gap-2 mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                          <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                          <span>이미지를 업로드하고 있습니다...</span>
+                          <Progress value={undefined} className="flex-1 h-2" />
+                        </div>
+                      )}
                       
                       {/* 에디터 사용법 */}
                       <div className="mt-2 p-2 bg-background rounded text-xs text-muted-foreground">
