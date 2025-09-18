@@ -312,9 +312,26 @@ const ProductEdit = () => {
     
     const matchesStatus = !statusFilter || product.status === statusFilter;
     
+    // isHide 값을 안전하게 처리
+    const isHidden = Boolean(product.isHide);
     const matchesHide = hideFilter === 'all' || 
-      (hideFilter === 'visible' && !product.isHide) ||
-      (hideFilter === 'hidden' && product.isHide);
+      (hideFilter === 'visible' && !isHidden) ||
+      (hideFilter === 'hidden' && isHidden);
+    
+    // 디버깅용 로그
+    console.log('Filter Debug:', {
+      productName: product.name,
+      hideFilter,
+      originalIsHide: product.isHide,
+      isHidden,
+      matchesHide,
+      matchesSearch,
+      matchesCategory,
+      matchesStatus,
+      finalResult: matchesSearch && matchesCategory && matchesStatus && matchesHide
+  });
+
+  console.log('Filtered Products Count:', filteredProducts.length, 'Total Products:', products.length);
     
     return matchesSearch && matchesCategory && matchesStatus && matchesHide;
   });
@@ -659,19 +676,28 @@ const ProductEdit = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-white dark:bg-gray-800 border">
                 <DropdownMenuItem 
-                  onClick={() => setHideFilter('all')}
+                  onClick={() => {
+                    console.log('Setting hideFilter to: all');
+                    setHideFilter('all');
+                  }}
                   className={hideFilter === 'all' ? "bg-primary/10" : ""}
                 >
                   전체 상품
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => setHideFilter('visible')}
+                  onClick={() => {
+                    console.log('Setting hideFilter to: visible');
+                    setHideFilter('visible');
+                  }}
                   className={hideFilter === 'visible' ? "bg-primary/10" : ""}
                 >
                   표시 중인 상품
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => setHideFilter('hidden')}
+                  onClick={() => {
+                    console.log('Setting hideFilter to: hidden');
+                    setHideFilter('hidden');
+                  }}
                   className={hideFilter === 'hidden' ? "bg-primary/10" : ""}
                 >
                   숨겨진 상품
