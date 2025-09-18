@@ -301,8 +301,8 @@ const ProductEdit = () => {
     fetchMainPageProducts();
   }, []);
 
-  // 필터링 함수
-  const getFilteredProducts = () => {
+
+  const filteredProducts = React.useMemo(() => {
     let result = [...products];
     
     // 검색어 필터
@@ -339,9 +339,7 @@ const ProductEdit = () => {
     // hideFilter === 'all'인 경우는 모든 상품 표시
     
     return result;
-  };
-
-  const filteredProducts = getFilteredProducts();
+  }, [products, searchTerm, categoryFilter, statusFilter, hideFilter]);
 
   // 카테고리 목록 생성 (필터용)
   const availableCategories = [...new Set(products.map(p => p.mainCategory).filter(Boolean))];
