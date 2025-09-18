@@ -415,7 +415,10 @@ export const productInjectApi = {
     return response.ok;
   },
   deleteInjectedProduct: async (specializeProductId: number) => {
-    const response = await apiFetch(`/api/admin/products/injected/delete?specializeProductId=${specializeProductId}`, { 
+    console.log('Deleting product with ID:', specializeProductId);
+    const url = `/api/admin/products/injected/delete?specializeProductId=${specializeProductId}`;
+    console.log('Request URL:', url);
+    const response = await apiFetch(url, { 
       method: 'POST'
     });
     return response.ok;

@@ -158,6 +158,7 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
   };
 
   const handleRemoveProduct = async (specializeProductId: number) => {
+    console.log('handleRemoveProduct called with ID:', specializeProductId);
     try {
       await productInjectApi.deleteInjectedProduct(specializeProductId);
       
@@ -169,6 +170,7 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
       // Call update callback to refresh member data
       if (onUpdate) onUpdate();
     } catch (error) {
+      console.error('Delete product error:', error);
       toast({
         title: "상품 삭제 실패",
         description: "특별 상품 삭제에 실패했습니다.",
