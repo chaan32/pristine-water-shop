@@ -301,8 +301,11 @@ const ProductEdit = () => {
     fetchMainPageProducts();
   }, []);
 
-  // 필터링 함수 - 가장 간단한 형태로 작성
+  // 필터링 함수 - 디버깅이 가능하도록 로그 추가
   const getFilteredProducts = () => {
+    console.log('현재 필터 상태:', { hideFilter, searchTerm, categoryFilter, statusFilter });
+    console.log('전체 상품 수:', products.length);
+    
     let result = [...products];
     
     // 검색어 필터
@@ -314,6 +317,7 @@ const ProductEdit = () => {
         (p.subCategory && p.subCategory.toLowerCase().includes(search)) ||
         (p.category && p.category.toLowerCase().includes(search))
       );
+      console.log('검색어 필터 후:', result.length);
     }
     
     // 카테고리 필터
@@ -323,19 +327,23 @@ const ProductEdit = () => {
         (p.mainCategory && p.mainCategory.toLowerCase().includes(category)) ||
         (p.subCategory && p.subCategory.toLowerCase().includes(category))
       );
+      console.log('카테고리 필터 후:', result.length);
     }
     
     // 상태 필터
     if (statusFilter) {
       result = result.filter(p => p.status === statusFilter);
+      console.log('상태 필터 후:', result.length);
     }
     
     // 숨김 필터
+    console.log('숨김 필터 적용 전 상품들의 isHide 값:', result.map(p => ({name: p.name, isHide: p.isHide})));
     if (hideFilter === 'visible') {
-      result = result.filter(p => !p.isHide);
+      result = result.filter(p => p.isHide !== true);
     } else if (hideFilter === 'hidden') {
-      result = result.filter(p => p.isHide);
+      result = result.filter(p => p.isHide === true);
     }
+    console.log('숨김 필터 후:', result.length);
     
     return result;
   };
@@ -611,37 +619,6 @@ const ProductEdit = () => {
                 className="pl-8"
               />
             </div>
-            
-            {/* 숨김 필터 */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="min-w-[120px] justify-between">
-                  <Filter className="w-4 h-4 mr-2" />
-                  {hideFilter === 'all' ? '전체' : hideFilter === 'visible' ? '표시 중' : '숨김'}
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white dark:bg-gray-800 border">
-                <DropdownMenuItem 
-                  onClick={() => setHideFilter('all')}
-                  className={hideFilter === 'all' ? "bg-primary/10" : ""}
-                >
-                  전체 상품
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setHideFilter('visible')}
-                  className={hideFilter === 'visible' ? "bg-primary/10" : ""}
-                >
-                  표시 중인 상품
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setHideFilter('hidden')}
-                  className={hideFilter === 'hidden' ? "bg-primary/10" : ""}
-                >
-                  숨겨진 상품
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
             
             {/* 카테고리 필터 */}
             <DropdownMenu>
