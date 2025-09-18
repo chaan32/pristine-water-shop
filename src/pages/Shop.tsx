@@ -318,68 +318,68 @@ const Shop = () => {
                 <div className="lg:w-64 flex-shrink-0">
                   <Card className="p-4">
                     <h3 className="font-semibold text-foreground mb-4">카테고리</h3>
-                    <div className="space-y-2">
-                      {/* 전체 제품 */}
-                      <Button
-                          variant={filterCategory === 'all' ? 'default' : 'ghost'}
-                          className="w-full justify-start"
-                          onClick={() => setFilterCategory('all')}
-                      >
-                        전체 제품
-                      </Button>
-                      
-                      {/* 전용 상품 - 로그인된 사용자에게만 표시 */}
-                      {userType && (
-                        <Button
-                          variant={filterCategory === 'special' ? 'default' : 'ghost'}
-                          className="w-full justify-start text-blue-600 font-semibold"
-                          onClick={() => setFilterCategory('special')}
-                        >
-                          ⭐ 전용 상품
-                        </Button>
-                      )}
-                      
-                      {/* 일반 카테고리들 */}
-                      {categories.map((category) => (
-                        <div key={category.mainCategoryId}>
-                          {/* 메인 카테고리 */}
-                          <div
-                            onMouseEnter={() => setHoveredCategory(category.mainCategoryId)}
-                            onMouseLeave={() => setHoveredCategory(null)}
-                          >
-                            <Button
-                              variant={filterCategory === `main-${category.mainCategoryId}` ? 'default' : 'ghost'}
-                              className="w-full justify-start font-semibold text-sm"
-                              onClick={() => setFilterCategory(`main-${category.mainCategoryId}`)}
-                            >
-                              {category.mainCategory}
-                            </Button>
-                          
-                            {/* 서브 카테고리들 - 클릭되었거나 hover 시 또는 해당 서브카테고리가 선택된 경우 표시 */}
-                            {(filterCategory === `main-${category.mainCategoryId}` || 
-                              hoveredCategory === category.mainCategoryId ||
-                              category.subCategories.some(sub => filterCategory === String(sub.categoryId))) && (
-                              <div className="ml-4 space-y-1 animate-fade-in">
-                                {category.subCategories.map((subCategory) => (
-                                  <Button
-                                    key={subCategory.categoryId}
-                                    variant={filterCategory === String(subCategory.categoryId) ? 'default' : 'ghost'}
-                                    className={`w-full justify-start text-xs ${
-                                      filterCategory === String(subCategory.categoryId) 
-                                        ? 'text-primary-foreground hover:text-primary-foreground' 
-                                        : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                    onClick={() => setFilterCategory(String(subCategory.categoryId))}
-                                  >
-                                    └ {subCategory.categoryName}
-                                  </Button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                     <div className="space-y-2">
+                       {/* 전체 제품 */}
+                       <Button
+                           variant={filterCategory === 'all' ? 'default' : 'ghost'}
+                           className="w-full justify-start"
+                           onClick={() => setFilterCategory('all')}
+                       >
+                         전체 제품
+                       </Button>
+                       
+                       {/* 일반 카테고리들 */}
+                       {categories.map((category) => (
+                         <div key={category.mainCategoryId}>
+                           {/* 메인 카테고리 */}
+                           <div
+                             onMouseEnter={() => setHoveredCategory(category.mainCategoryId)}
+                             onMouseLeave={() => setHoveredCategory(null)}
+                           >
+                             <Button
+                               variant={filterCategory === `main-${category.mainCategoryId}` ? 'default' : 'ghost'}
+                               className="w-full justify-start font-semibold text-sm"
+                               onClick={() => setFilterCategory(`main-${category.mainCategoryId}`)}
+                             >
+                               {category.mainCategory}
+                             </Button>
+                           
+                             {/* 서브 카테고리들 - 클릭되었거나 hover 시 또는 해당 서브카테고리가 선택된 경우 표시 */}
+                             {(filterCategory === `main-${category.mainCategoryId}` || 
+                               hoveredCategory === category.mainCategoryId ||
+                               category.subCategories.some(sub => filterCategory === String(sub.categoryId))) && (
+                               <div className="ml-4 space-y-1 animate-fade-in">
+                                 {category.subCategories.map((subCategory) => (
+                                   <Button
+                                     key={subCategory.categoryId}
+                                     variant={filterCategory === String(subCategory.categoryId) ? 'default' : 'ghost'}
+                                     className={`w-full justify-start text-xs ${
+                                       filterCategory === String(subCategory.categoryId) 
+                                         ? 'text-primary-foreground hover:text-primary-foreground' 
+                                         : 'text-muted-foreground hover:text-foreground'
+                                     }`}
+                                     onClick={() => setFilterCategory(String(subCategory.categoryId))}
+                                   >
+                                     └ {subCategory.categoryName}
+                                   </Button>
+                                 ))}
+                               </div>
+                             )}
+                           </div>
+                         </div>
+                       ))}
+                       
+                       {/* 전용 상품 - 로그인된 사용자에게만 표시, 맨 아래 위치 */}
+                       {userType && (
+                         <Button
+                           variant={filterCategory === 'special' ? 'default' : 'ghost'}
+                           className="w-full justify-start text-blue-600 font-semibold"
+                           onClick={() => setFilterCategory('special')}
+                         >
+                           ⭐ 전용 상품
+                         </Button>
+                       )}
+                     </div>
                   </Card>
                 </div>
 
