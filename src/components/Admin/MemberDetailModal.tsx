@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -82,11 +82,13 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
   const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [localMemberData, setLocalMemberData] = useState<MemberDetail | null>(memberData);
+  const [refreshKey, setRefreshKey] = useState(0); // 강제 재렌더링용
 
   // memberData가 변경될 때 로컬 상태도 업데이트 (모달이 처음 열릴 때만)
   useEffect(() => {
     if (memberData && isOpen) {
       setLocalMemberData(memberData);
+      setRefreshKey(prev => prev + 1); // 새로운 데이터로 완전히 재렌더링
     }
   }, [memberData, isOpen]);
 
@@ -184,21 +186,35 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
     }
   };
 
-  const handleRemoveProduct = async (specializeProductId: number) => {
+  const handleRemoveProduct = useCallback(async (specializeProductId: number) => {
     if (!localMemberData) return;
+
+    console.log('=== 삭제 시작 ===');
+    console.log('삭제할 상품 ID:', specializeProductId);
+    console.log('현재 상품 목록:', localMemberData.specializeProduct);
 
     // 원래 상태 저장
     const originalData = localMemberData;
 
     // 삭제할 상품 찾기 및 낙관적 업데이트
     const originalProducts = localMemberData.specializeProduct || [];
+    console.log('삭제 전 상품 개수:', originalProducts.length);
+    
     const updatedProducts = originalProducts.filter(p => p.id !== specializeProductId);
+    console.log('삭제 후 상품 개수:', updatedProducts.length);
+    console.log('삭제 후 상품 목록:', updatedProducts);
     
     const updatedMemberData = {
       ...localMemberData,
       specializeProduct: updatedProducts
     };
+    
+    console.log('업데이트할 데이터:', updatedMemberData.specializeProduct);
+    
+    // 상태 업데이트와 강제 재렌더링
     setLocalMemberData(updatedMemberData);
+    setRefreshKey(prev => prev + 1);
+    console.log('setLocalMemberData 호출 완료');
 
     try {
       await productInjectApi.deleteInjectedProduct(specializeProductId);
@@ -208,10 +224,12 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
         description: "특별 상품이 성공적으로 삭제되었습니다.",
       });
 
-      // 성공 시에는 onUpdate 호출하지 않음 (이미 UI가 업데이트됨)
+      console.log('API 호출 성공');
     } catch (error) {
+      console.log('API 호출 실패, 원래 상태로 복원');
       // 실패 시 원래 상태로 되돌리기
       setLocalMemberData(originalData);
+      setRefreshKey(prev => prev + 1);
       
       toast({
         title: "상품 삭제 실패",
@@ -219,7 +237,7 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
         variant: "destructive",
       });
     }
-  };
+  }, [localMemberData]);
 
   if (!localMemberData) return null;
 
@@ -445,10 +463,14 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
               {/* 현재 특별 상품 목록 */}
               <div>
                 <p className="text-sm font-medium mb-2">현재 특별 상품</p>
+                {(() => {
+                  console.log('렌더링 시점 localMemberData.specializeProduct:', localMemberData?.specializeProduct);
+                  return null;
+                })()}
                 {localMemberData.specializeProduct && localMemberData.specializeProduct.length > 0 ? (
-                  <div className="space-y-2">
-                    {localMemberData.specializeProduct.map((product) => (
-                      <div key={product.id} className="flex items-center justify-between p-2 border rounded">
+                  <div className="space-y-2" key={`products-${refreshKey}`}>
+                    {localMemberData.specializeProduct.map((product, index) => (
+                      <div key={`product-${product.id}-${refreshKey}-${index}`} className="flex items-center justify-between p-2 border rounded">
                         <div className="flex items-center gap-3">
                           <img 
                             src={product.imageUrl} 
