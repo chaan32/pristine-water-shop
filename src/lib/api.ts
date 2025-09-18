@@ -403,3 +403,19 @@ export const reviewApi = {
 export const headquartersApi = {
   getActiveBranches: () => apiFetch('/api/users/headquarters/active/branches'),
 };
+
+// Product inject APIs for members
+export const productInjectApi = {
+  searchProductsByName: async (term: string) => {
+    const response = await apiFetch(`/api/admin/products/name?term=${encodeURIComponent(term)}`);
+    return response.json();
+  },
+  injectProductToMember: async (data: { memberId: number; productId: number }) => {
+    const response = await apiFetch('/api/products/inject', { method: 'POST', body: JSON.stringify(data) });
+    return response.json();
+  },
+  deleteInjectedProduct: async (specializeProductId: number) => {
+    const response = await apiFetch('/api/admin/products/injected/delete', { method: 'POST', body: JSON.stringify({ specializeProductId }) });
+    return response.json();
+  },
+};

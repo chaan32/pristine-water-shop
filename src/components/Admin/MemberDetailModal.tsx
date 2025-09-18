@@ -9,7 +9,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { apiFetch } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { X, Search, Plus } from 'lucide-react';
+import { apiFetch, productInjectApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface MemberDetail {
@@ -30,6 +33,11 @@ interface MemberDetail {
     shipmentFee: number;
   }[];
   totalAmount: number;
+  specializeProduct?: {
+    id: number;
+    name: string;
+    imageUrl: string;
+  }[];
   headQuartersInform?: {
     memberType: "HEADQUARTERS";
     name: string;
@@ -54,14 +62,25 @@ interface MemberDetail {
   };
 }
 
+interface SearchProduct {
+  id: number;
+  name: string;
+  imageUrl: string;
+}
+
 interface MemberDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   memberData: MemberDetail | null;
   memberType: 'individual' | 'corporate';
+  onUpdate?: () => void;
 }
 
-const MemberDetailModal = ({ isOpen, onClose, memberData, memberType }: MemberDetailModalProps) => {
+const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }: MemberDetailModalProps) => {
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchProduct[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const getBusinessTypeText = (businessType: string) => {
     const typeMap: { [key: string]: string } = {
@@ -89,6 +108,73 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType }: MemberDe
     return memberData.orders.reduce((total, order) => 
       total + order.productPrice + order.shipmentFee, 0
     );
+  };
+
+  const handleSearchProducts = async () => {
+    if (!searchTerm.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const response: SearchProduct[] = await productInjectApi.searchProductsByName(searchTerm);
+      setSearchResults(response);
+    } catch (error) {
+      toast({
+        title: "검색 실패",
+        description: "상품 검색에 실패했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAddProduct = async (productId: number) => {
+    if (!memberData) return;
+
+    try {
+      await productInjectApi.injectProductToMember({
+        memberId: memberData.id,
+        productId: productId
+      });
+      
+      toast({
+        title: "상품 추가 완료",
+        description: "특별 상품이 성공적으로 추가되었습니다.",
+      });
+
+      // Reset search
+      setSearchTerm('');
+      setSearchResults([]);
+      
+      // Call update callback to refresh member data
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      toast({
+        title: "상품 추가 실패",
+        description: "특별 상품 추가에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveProduct = async (specializeProductId: number) => {
+    try {
+      await productInjectApi.deleteInjectedProduct(specializeProductId);
+      
+      toast({
+        title: "상품 삭제 완료",
+        description: "특별 상품이 성공적으로 삭제되었습니다.",
+      });
+
+      // Call update callback to refresh member data
+      if (onUpdate) onUpdate();
+    } catch (error) {
+      toast({
+        title: "상품 삭제 실패",
+        description: "특별 상품 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!memberData) return null;
@@ -258,6 +344,94 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType }: MemberDe
               </CardContent>
             </Card>
           )}
+
+          {/* 특별 상품 관리 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">특별 상품 관리</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* 상품 검색 */}
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Input
+                    placeholder="상품명으로 검색..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearchProducts()}
+                  />
+                </div>
+                <Button 
+                  onClick={handleSearchProducts}
+                  disabled={isSearching || !searchTerm.trim()}
+                  size="icon"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* 검색 결과 */}
+              {searchResults.length > 0 && (
+                <div className="border rounded-lg p-3 max-h-48 overflow-y-auto">
+                  <p className="text-sm font-medium mb-2">검색 결과</p>
+                  <div className="space-y-2">
+                    {searchResults.map((product) => (
+                      <div key={product.id} className="flex items-center justify-between p-2 border rounded hover:bg-muted/50">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={product.imageUrl} 
+                            alt={product.name}
+                            className="w-10 h-10 object-cover rounded"
+                          />
+                          <span className="text-sm">{product.name}</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddProduct(product.id)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          추가
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 현재 특별 상품 목록 */}
+              <div>
+                <p className="text-sm font-medium mb-2">현재 특별 상품</p>
+                {memberData.specializeProduct && memberData.specializeProduct.length > 0 ? (
+                  <div className="space-y-2">
+                    {memberData.specializeProduct.map((product) => (
+                      <div key={product.id} className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={product.imageUrl} 
+                            alt={product.name}
+                            className="w-10 h-10 object-cover rounded"
+                          />
+                          <span className="text-sm">{product.name}</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleRemoveProduct(product.id)}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          삭제
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground py-4 text-center">
+                    등록된 특별 상품이 없습니다.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* 주문 요약 */}
           <Card>

@@ -436,6 +436,23 @@ const MemberList = () => {
         onClose={closeMemberDetailModal}
         memberData={memberDetailModal.memberData}
         memberType={memberDetailModal.memberType}
+        onUpdate={() => {
+          // Refresh member data
+          fetchMembers();
+          // Close and reopen modal to show updated data
+          const currentMember = memberDetailModal.memberData;
+          const currentType = memberDetailModal.memberType;
+          closeMemberDetailModal();
+          if (currentMember) {
+            setTimeout(() => {
+              setMemberDetailModal({
+                isOpen: true,
+                memberData: currentMember,
+                memberType: currentType
+              });
+            }, 100);
+          }
+        }}
       />
     </div>
   );
