@@ -232,6 +232,7 @@ export const shopApi = {
     apiFetch('/api/shop/inquiry', { method: 'POST', body: JSON.stringify(data) }),
   getAllCategories: () => apiFetch('/api/shop/all/categories'),
   getDisplayProducts: () => apiFetch('/api/shop/display'),
+  getSpecializeProducts: () => apiFetch('/api/shop/products/specialize'),
 };
 
 // Cart APIs
