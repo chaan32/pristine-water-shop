@@ -591,7 +591,7 @@ const ProductEdit = () => {
       <TableBody>
         {productList.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+            <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
               상품이 없습니다.
             </TableCell>
           </TableRow>
@@ -775,11 +775,10 @@ const ProductEdit = () => {
                   <TableHead>사업자가격</TableHead>
                   <TableHead>할인가격</TableHead>
                   <TableHead>할인율</TableHead>
-                  <TableHead>재고</TableHead>
-                  <TableHead>상태</TableHead>
-                  <TableHead>숨김</TableHead>
-                  <TableHead>등록일</TableHead>
-                  <TableHead className="text-right">관리</TableHead>
+          <TableHead>재고</TableHead>
+          <TableHead>상태</TableHead>
+          <TableHead>등록일</TableHead>
+          <TableHead className="text-right">관리</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -818,23 +817,18 @@ const ProductEdit = () => {
                         {product.stock || 0}개
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        product.status === '판매 중' ? 'default' : 
-                        product.status === '품절' ? 'destructive' : 
-                        product.status === '판매 중단' ? 'secondary' : 'secondary'
-                      }>
-                        {product.status || '상태미정'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={product.isHide ? 'secondary' : 'default'}>
-                        {product.isHide ? '숨김' : '표시'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {product.createdAt ? product.createdAt.split('T')[0] : '-'}
-                    </TableCell>
+              <TableCell>
+                <Badge variant={
+                  product.status === '판매 중' ? 'default' : 
+                  product.status === '품절' ? 'destructive' : 
+                  product.status === '판매 중단' ? 'secondary' : 'secondary'
+                }>
+                  {product.status || '상태미정'}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {product.createdAt ? product.createdAt.split('T')[0] : '-'}
+              </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
