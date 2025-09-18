@@ -28,7 +28,7 @@ const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [hideFilter, setHideFilter] = useState('all'); // 'all', 'visible', 'hidden'
+  const [hideFilter, setHideFilter] = useState('visible'); // 'all', 'visible', 'hidden'
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
