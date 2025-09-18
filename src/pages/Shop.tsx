@@ -431,17 +431,17 @@ const Shop = () => {
                                 <Badge variant="secondary">추천</Badge>
                               )}
                             </div>
-                            {/* Product Image */}
-                            <div className="aspect-square bg-secondary overflow-hidden">
-                              <Link to={`/product/${product.productId}`}>
-                                <img
-                                    src={product.thumbnailImageUrl}
-                                    alt={product.productName}
-                                    className="w-full h-full object-contain transition-smooth cursor-pointer hover:opacity-80"
-                                    loading="lazy"
-                                />
-                              </Link>
-                            </div>
+                             {/* Product Image */}
+                             <div className="aspect-square bg-white overflow-hidden">
+                               <Link to={`/product/${product.productId}`}>
+                                 <img
+                                     src={product.thumbnailImageUrl}
+                                     alt={product.productName}
+                                     className="w-full h-full object-contain transition-smooth cursor-pointer hover:opacity-80"
+                                     loading="lazy"
+                                 />
+                               </Link>
+                             </div>
                           </CardHeader>
 
                           <CardContent className="p-6">
