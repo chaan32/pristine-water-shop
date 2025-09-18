@@ -19,7 +19,6 @@ import {
 import { Edit, Search, Save, Upload, Plus, ChevronDown, Filter, Image, Copy, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ImageManagementModal from './ImageManagementModal';
 import { adminApi, apiFetch, getAccessToken } from '@/lib/api';
 import { API_CONFIG } from '@/lib/config';
@@ -29,6 +28,7 @@ const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [hideFilter, setHideFilter] = useState('visible'); // 'all', 'visible', 'hidden'
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -300,27 +300,24 @@ const ProductEdit = () => {
     fetchMainPageProducts();
   }, []);
 
-  const getFilteredProducts = (isHidden: boolean) => {
-    return products.filter(product => {
-      const matchesSearch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.mainCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.subCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.category || '').toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = !categoryFilter || 
-        (product.mainCategory || '').toLowerCase().includes(categoryFilter.toLowerCase()) ||
-        (product.subCategory || '').toLowerCase().includes(categoryFilter.toLowerCase());
-      
-      const matchesStatus = !statusFilter || product.status === statusFilter;
-      
-      const matchesHide = isHidden ? product.isHide : !product.isHide;
-      
-      return matchesSearch && matchesCategory && matchesStatus && matchesHide;
-    });
-  };
-
-  const visibleProducts = getFilteredProducts(false);
-  const hiddenProducts = getFilteredProducts(true);
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.mainCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.subCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = !categoryFilter || 
+      (product.mainCategory || '').toLowerCase().includes(categoryFilter.toLowerCase()) ||
+      (product.subCategory || '').toLowerCase().includes(categoryFilter.toLowerCase());
+    
+    const matchesStatus = !statusFilter || product.status === statusFilter;
+    
+    const matchesHide = hideFilter === 'all' || 
+      (hideFilter === 'visible' && !product.isHide) ||
+      (hideFilter === 'hidden' && product.isHide);
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesHide;
+  });
 
   // 카테고리 목록 생성 (필터용)
   const availableCategories = [...new Set(products.map(p => p.mainCategory).filter(Boolean))];
@@ -571,103 +568,6 @@ const ProductEdit = () => {
     setEditForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const renderProductTable = (productList: any[]) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>상품명</TableHead>
-          <TableHead>메인 카테고리</TableHead>
-          <TableHead>서브 카테고리</TableHead>
-          <TableHead>일반가격</TableHead>
-          <TableHead>사업자가격</TableHead>
-          <TableHead>할인가격</TableHead>
-          <TableHead>할인율</TableHead>
-          <TableHead>재고</TableHead>
-          <TableHead>상태</TableHead>
-          <TableHead>등록일</TableHead>
-          <TableHead className="text-right">관리</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {productList.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
-              상품이 없습니다.
-            </TableCell>
-          </TableRow>
-        ) : (
-          productList.map((product, index) => (
-            <TableRow key={product.id || `product-${index}`}>
-              <TableCell className="font-medium">
-                <div className="space-y-1">
-                  <div>{product.name || '-'}</div>
-                  <div className="text-xs text-muted-foreground">
-                    ID: {product.id}
-                  </div>
-                  <div className="flex gap-1">
-                    {product.isNew && <Badge variant="secondary" className="text-xs">NEW</Badge>}
-                    {product.isRecommendation && <Badge variant="secondary" className="text-xs">추천</Badge>}
-                    {product.isBest && <Badge variant="secondary" className="text-xs">BEST</Badge>}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>{product.mainCategory || '-'}</TableCell>
-              <TableCell>{product.subCategory || '-'}</TableCell>
-              <TableCell>₩{(product.customerPrice || 0).toLocaleString()}</TableCell>
-              <TableCell>₩{(product.businessPrice || 0).toLocaleString()}</TableCell>
-              <TableCell>₩{(product.discountPrice || 0).toLocaleString()}</TableCell>
-              <TableCell>{product.discountPercent || 0}%</TableCell>
-              <TableCell>
-                <span className={(product.stock || 0) === 0 ? 'text-destructive' : ''}>
-                  {product.stock || 0}개
-                </span>
-              </TableCell>
-              <TableCell>
-                <Badge variant={
-                  product.status === '판매 중' ? 'default' : 
-                  product.status === '품절' ? 'destructive' : 
-                  product.status === '판매 중단' ? 'secondary' : 'secondary'
-                }>
-                  {product.status || '상태미정'}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {product.createdAt ? product.createdAt.split('T')[0] : '-'}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(product)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopy(product.id)}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleToggleHide(product.id, product.isHide)}
-                    className={product.isHide ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
-                  >
-                    {product.isHide ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))
-        )}              
-      </TableBody>
-    </Table>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -688,6 +588,37 @@ const ProductEdit = () => {
                 className="pl-8"
               />
             </div>
+            
+            {/* 숨김 필터 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[120px] justify-between">
+                  <Filter className="w-4 h-4 mr-2" />
+                  {hideFilter === 'all' ? '전체' : hideFilter === 'visible' ? '표시 중' : '숨김'}
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white dark:bg-gray-800 border">
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('all')}
+                  className={hideFilter === 'all' ? "bg-primary/10" : ""}
+                >
+                  전체 상품
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('visible')}
+                  className={hideFilter === 'visible' ? "bg-primary/10" : ""}
+                >
+                  표시 중인 상품
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('hidden')}
+                  className={hideFilter === 'hidden' ? "bg-primary/10" : ""}
+                >
+                  숨겨진 상품
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             {/* 카테고리 필터 */}
             <DropdownMenu>
@@ -745,13 +676,14 @@ const ProductEdit = () => {
             </DropdownMenu>
             
             {/* 필터 초기화 버튼 */}
-            {(categoryFilter || statusFilter) && (
+            {(categoryFilter || statusFilter || hideFilter !== 'visible') && (
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => {
                   setCategoryFilter('');
                   setStatusFilter('');
+                  setHideFilter('visible');
                 }}
               >
                 필터 초기화
