@@ -264,6 +264,8 @@ export const adminApi = {
   editProduct: (data: any) => apiFetch('/api/admin/products/edit', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (id: string, data: any) => apiFetch(`/api/admin/products/edit/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProduct: (id: string) => apiFetch(`/api/admin/products/${id}`, { method: 'DELETE' }),
+  hideProduct: (id: string) => apiFetch(`/api/admin/products/${id}/hide`, { method: 'PUT' }),
+  showProduct: (id: string) => apiFetch(`/api/admin/products/${id}/show`, { method: 'PUT' }),
   
   // Product Content
   getProductContent: (productId: string) => apiFetch(`/api/admin/products/${productId}/content`),

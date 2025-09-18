@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter, Image, Copy } from 'lucide-react';
+import { Edit, Search, Save, Upload, Plus, ChevronDown, Filter, Image, Copy, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import ImageManagementModal from './ImageManagementModal';
@@ -28,6 +28,7 @@ const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [hideFilter, setHideFilter] = useState('all'); // 'all', 'visible', 'hidden'
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -311,7 +312,11 @@ const ProductEdit = () => {
     
     const matchesStatus = !statusFilter || product.status === statusFilter;
     
-    return matchesSearch && matchesCategory && matchesStatus;
+    const matchesHide = hideFilter === 'all' || 
+      (hideFilter === 'visible' && !product.isHide) ||
+      (hideFilter === 'hidden' && product.isHide);
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesHide;
   });
 
   // 카테고리 목록 생성 (필터용)
@@ -477,7 +482,7 @@ const ProductEdit = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleToggleHide = async (id: number, isHidden: boolean) => {
     try {
       const accessToken = getAccessToken();
       if (!accessToken) {
@@ -489,27 +494,28 @@ const ProductEdit = () => {
         return;
       }
 
-      // API: DELETE /api/admin/products/:id
-      const response = await adminApi.deleteProduct(String(id));
+      // API: PUT /api/admin/products/:id/hide 또는 /api/admin/products/:id/show
+      const response = isHidden 
+        ? await adminApi.showProduct(String(id))
+        : await adminApi.hideProduct(String(id));
 
       if (!response.ok) {
-        throw new Error('상품 삭제에 실패했습니다.');
+        throw new Error(isHidden ? '상품 표시에 실패했습니다.' : '상품 숨김에 실패했습니다.');
       }
 
       toast({
-        title: "상품 삭제",
-        description: "상품이 삭제되었습니다.",
-        variant: "destructive"
+        title: isHidden ? "상품 표시" : "상품 숨김",
+        description: isHidden ? "상품이 표시되었습니다." : "상품이 숨김 처리되었습니다.",
       });
       
       fetchProducts();
     } catch (error) {
       toast({
         title: "오류",
-        description: "상품 삭제에 실패했습니다.",
+        description: isHidden ? "상품 표시에 실패했습니다." : "상품 숨김에 실패했습니다.",
         variant: "destructive"
       });
-      console.error('Error deleting product:', error);
+      console.error('Error toggling product visibility:', error);
     }
   };
 
@@ -583,6 +589,37 @@ const ProductEdit = () => {
               />
             </div>
             
+            {/* 숨김 필터 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[120px] justify-between">
+                  <Filter className="w-4 h-4 mr-2" />
+                  {hideFilter === 'all' ? '전체' : hideFilter === 'visible' ? '표시 중' : '숨김'}
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white dark:bg-gray-800 border">
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('all')}
+                  className={hideFilter === 'all' ? "bg-primary/10" : ""}
+                >
+                  전체 상품
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('visible')}
+                  className={hideFilter === 'visible' ? "bg-primary/10" : ""}
+                >
+                  표시 중인 상품
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('hidden')}
+                  className={hideFilter === 'hidden' ? "bg-primary/10" : ""}
+                >
+                  숨겨진 상품
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             {/* 카테고리 필터 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -639,13 +676,14 @@ const ProductEdit = () => {
             </DropdownMenu>
             
             {/* 필터 초기화 버튼 */}
-            {(categoryFilter || statusFilter) && (
+            {(categoryFilter || statusFilter || hideFilter !== 'all') && (
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => {
                   setCategoryFilter('');
                   setStatusFilter('');
+                  setHideFilter('all');
                 }}
               >
                 필터 초기화
@@ -671,6 +709,7 @@ const ProductEdit = () => {
                   <TableHead>할인율</TableHead>
                   <TableHead>재고</TableHead>
                   <TableHead>상태</TableHead>
+                  <TableHead>숨김</TableHead>
                   <TableHead>등록일</TableHead>
                   <TableHead className="text-right">관리</TableHead>
                 </TableRow>
@@ -720,6 +759,11 @@ const ProductEdit = () => {
                         {product.status || '상태미정'}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Badge variant={product.isHide ? 'secondary' : 'default'}>
+                        {product.isHide ? '숨김' : '표시'}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {product.createdAt ? product.createdAt.split('T')[0] : '-'}
                     </TableCell>
@@ -743,10 +787,10 @@ const ProductEdit = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDelete(product.id)}
-                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleToggleHide(product.id, product.isHide)}
+                          className={product.isHide ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {product.isHide ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                         </Button>
                       </div>
                     </TableCell>
