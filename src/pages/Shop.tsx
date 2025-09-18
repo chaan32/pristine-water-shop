@@ -49,16 +49,66 @@ const Shop = () => {
             setShowSpecialProducts(false);
             return;
           }
+          
+          console.log('전용 상품 API 호출 시작');
           response = await shopApi.getSpecializeProducts();
+          console.log('전용 상품 API 응답:', response);
+          console.log('응답 상태:', response.status);
+          console.log('응답 헤더:', [...response.headers.entries()]);
         } else {
           // 일반 상품 조회
           response = await shopApi.getProducts();
         }
         
         if (!response.ok) {
-          throw new Error('상품 데이터를 가져오는데 실패했습니다.');
+          throw new Error(`HTTP ${response.status}: 상품 데이터를 가져오는데 실패했습니다.`);
         }
-        const data = await response.json();
+
+        // 응답 본문을 텍스트로 먼저 읽어서 확인
+        const responseText = await response.text();
+        console.log('응답 본문 (텍스트):', responseText);
+        
+        // 빈 응답 체크
+        if (!responseText || responseText.trim() === '') {
+          console.log('빈 응답 받음');
+          if (showSpecialProducts) {
+            // 전용 상품이 없는 경우 빈 배열로 처리
+            setProducts([]);
+            setError(null);
+            return;
+          } else {
+            throw new Error('서버에서 빈 응답을 받았습니다.');
+          }
+        }
+
+        // JSON 파싱 시도
+        let data;
+        try {
+          data = JSON.parse(responseText);
+          console.log('파싱된 데이터:', data);
+        } catch (jsonError) {
+          console.error('JSON 파싱 실패:', jsonError);
+          console.error('원본 응답:', responseText);
+          throw new Error('서버 응답 형식이 올바르지 않습니다.');
+        }
+
+        // 데이터가 배열이 아닌 경우 처리
+        if (!Array.isArray(data)) {
+          console.log('응답이 배열이 아님:', typeof data, data);
+          if (showSpecialProducts && (data === null || data === undefined)) {
+            // 전용 상품이 없는 경우
+            setProducts([]);
+            setError(null);
+            return;
+          }
+          // Queue나 다른 형태일 수 있으니 배열로 변환 시도
+          if (data && typeof data === 'object' && data.length !== undefined) {
+            data = Array.from(data);
+          } else {
+            data = [];
+          }
+        }
+
         setProducts(data);
         setError(null);
       } catch (error) {
