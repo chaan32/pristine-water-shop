@@ -411,7 +411,7 @@ export const productInjectApi = {
     return response.json();
   },
   injectProductToMember: async (data: { memberId: number; productId: number }) => {
-    const response = await apiFetch('/api/admin/product/inject', { method: 'POST', body: JSON.stringify(data) });
+    const response = await apiFetch('/api/admin/products/inject', { method: 'POST', body: JSON.stringify(data) });
     return response.json();
   },
   deleteInjectedProduct: async (specializeProductId: number) => {
