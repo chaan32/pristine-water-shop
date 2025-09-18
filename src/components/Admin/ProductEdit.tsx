@@ -738,7 +738,7 @@ const ProductEdit = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product, index) => (
+                {filteredProducts.map((product, index) => (
                   <TableRow key={product.id || `product-${index}`}>
                     <TableCell className="font-medium">
                       <div className="space-y-1">
