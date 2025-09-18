@@ -648,6 +648,37 @@ const ProductEdit = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* 숨김 필터 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[120px] justify-between">
+                  <Filter className="w-4 h-4 mr-2" />
+                  {hideFilter === 'all' ? '전체' : hideFilter === 'visible' ? '표시 중' : '숨김'}
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white dark:bg-gray-800 border">
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('all')}
+                  className={hideFilter === 'all' ? "bg-primary/10" : ""}
+                >
+                  전체 상품
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('visible')}
+                  className={hideFilter === 'visible' ? "bg-primary/10" : ""}
+                >
+                  표시 중인 상품
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('hidden')}
+                  className={hideFilter === 'hidden' ? "bg-primary/10" : ""}
+                >
+                  숨겨진 상품
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* 상태 필터 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
