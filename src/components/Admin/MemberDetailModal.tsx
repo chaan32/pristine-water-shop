@@ -141,6 +141,9 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
     const productToAdd = searchResults.find(p => p.id === productId);
     if (!productToAdd) return;
 
+    // 원래 상태 저장
+    const originalData = localMemberData;
+
     // 낙관적 업데이트 - 즉시 UI에 반영
     const updatedMemberData = {
       ...localMemberData,
@@ -166,11 +169,11 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
         description: "특별 상품이 성공적으로 추가되었습니다.",
       });
 
-      // Call update callback to refresh parent data
+      // Call update callback to refresh parent data (but don't wait for it)
       if (onUpdate) onUpdate();
     } catch (error) {
       // 실패 시 원래 상태로 되돌리기
-      setLocalMemberData(localMemberData);
+      setLocalMemberData(originalData);
       
       toast({
         title: "상품 추가 실패",
@@ -182,6 +185,9 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
 
   const handleRemoveProduct = async (specializeProductId: number) => {
     if (!localMemberData) return;
+
+    // 원래 상태 저장
+    const originalData = localMemberData;
 
     // 삭제할 상품 찾기 및 낙관적 업데이트
     const originalProducts = localMemberData.specializeProduct || [];
@@ -201,11 +207,11 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
         description: "특별 상품이 성공적으로 삭제되었습니다.",
       });
 
-      // Call update callback to refresh parent data
+      // Call update callback to refresh parent data (but don't wait for it)
       if (onUpdate) onUpdate();
     } catch (error) {
       // 실패 시 원래 상태로 되돌리기
-      setLocalMemberData(localMemberData);
+      setLocalMemberData(originalData);
       
       toast({
         title: "상품 삭제 실패",
