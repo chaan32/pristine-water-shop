@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -300,25 +301,46 @@ const ProductEdit = () => {
     fetchMainPageProducts();
   }, []);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.mainCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.subCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+  // 필터링 함수 - 가장 간단한 형태로 작성
+  const getFilteredProducts = () => {
+    let result = [...products];
     
-    const matchesCategory = !categoryFilter || 
-      (product.mainCategory || '').toLowerCase().includes(categoryFilter.toLowerCase()) ||
-      (product.subCategory || '').toLowerCase().includes(categoryFilter.toLowerCase());
+    // 검색어 필터
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      result = result.filter(p => 
+        (p.name && p.name.toLowerCase().includes(search)) ||
+        (p.mainCategory && p.mainCategory.toLowerCase().includes(search)) ||
+        (p.subCategory && p.subCategory.toLowerCase().includes(search)) ||
+        (p.category && p.category.toLowerCase().includes(search))
+      );
+    }
     
-    const matchesStatus = !statusFilter || product.status === statusFilter;
+    // 카테고리 필터
+    if (categoryFilter) {
+      const category = categoryFilter.toLowerCase();
+      result = result.filter(p => 
+        (p.mainCategory && p.mainCategory.toLowerCase().includes(category)) ||
+        (p.subCategory && p.subCategory.toLowerCase().includes(category))
+      );
+    }
     
-    // isHide 값을 안전하게 처리
-    const isHidden = Boolean(product.isHide);
-    const matchesHide = hideFilter === 'all' || 
-      (hideFilter === 'visible' && !isHidden) ||
-      (hideFilter === 'hidden' && isHidden);
-    return matchesSearch && matchesCategory && matchesStatus && matchesHide;
-  });
+    // 상태 필터
+    if (statusFilter) {
+      result = result.filter(p => p.status === statusFilter);
+    }
+    
+    // 숨김 필터
+    if (hideFilter === 'visible') {
+      result = result.filter(p => !p.isHide);
+    } else if (hideFilter === 'hidden') {
+      result = result.filter(p => p.isHide);
+    }
+    
+    return result;
+  };
+
+  const filteredProducts = getFilteredProducts();
 
   // 카테고리 목록 생성 (필터용)
   const availableCategories = [...new Set(products.map(p => p.mainCategory).filter(Boolean))];
