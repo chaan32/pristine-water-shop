@@ -83,10 +83,12 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
   const [isSearching, setIsSearching] = useState(false);
   const [localMemberData, setLocalMemberData] = useState<MemberDetail | null>(memberData);
 
-  // memberData가 변경될 때 로컬 상태도 업데이트
+  // memberData가 변경될 때 로컬 상태도 업데이트 (모달이 처음 열릴 때만)
   useEffect(() => {
-    setLocalMemberData(memberData);
-  }, [memberData]);
+    if (memberData && isOpen) {
+      setLocalMemberData(memberData);
+    }
+  }, [memberData, isOpen]);
 
   const getBusinessTypeText = (businessType: string) => {
     const typeMap: { [key: string]: string } = {
@@ -169,8 +171,7 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
         description: "특별 상품이 성공적으로 추가되었습니다.",
       });
 
-      // Call update callback to refresh parent data (but don't wait for it)
-      if (onUpdate) onUpdate();
+      // 성공 시에는 onUpdate 호출하지 않음 (이미 UI가 업데이트됨)
     } catch (error) {
       // 실패 시 원래 상태로 되돌리기
       setLocalMemberData(originalData);
@@ -207,8 +208,7 @@ const MemberDetailModal = ({ isOpen, onClose, memberData, memberType, onUpdate }
         description: "특별 상품이 성공적으로 삭제되었습니다.",
       });
 
-      // Call update callback to refresh parent data (but don't wait for it)
-      if (onUpdate) onUpdate();
+      // 성공 시에는 onUpdate 호출하지 않음 (이미 UI가 업데이트됨)
     } catch (error) {
       // 실패 시 원래 상태로 되돌리기
       setLocalMemberData(originalData);
