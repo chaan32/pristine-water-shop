@@ -70,11 +70,15 @@ const Shop = () => {
         
         // 빈 응답 체크
         if (!responseText || responseText.trim() === '') {
-          console.log('빈 응답 받음');
+          console.log('빈 응답 받음 - 전용 상품이 없음');
           if (showSpecialProducts) {
             // 전용 상품이 없는 경우 빈 배열로 처리
             setProducts([]);
             setError(null);
+            toast({
+              title: "전용 상품 없음",
+              description: "현재 회원님을 위한 전용 상품이 준비되지 않았습니다.",
+            });
             return;
           } else {
             throw new Error('서버에서 빈 응답을 받았습니다.');
