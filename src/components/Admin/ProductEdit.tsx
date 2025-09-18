@@ -301,11 +301,8 @@ const ProductEdit = () => {
     fetchMainPageProducts();
   }, []);
 
-  // 필터링 함수 - 디버깅이 가능하도록 로그 추가
+  // 필터링 함수
   const getFilteredProducts = () => {
-    console.log('현재 필터 상태:', { hideFilter, searchTerm, categoryFilter, statusFilter });
-    console.log('전체 상품 수:', products.length);
-    
     let result = [...products];
     
     // 검색어 필터
@@ -317,7 +314,6 @@ const ProductEdit = () => {
         (p.subCategory && p.subCategory.toLowerCase().includes(search)) ||
         (p.category && p.category.toLowerCase().includes(search))
       );
-      console.log('검색어 필터 후:', result.length);
     }
     
     // 카테고리 필터
@@ -327,23 +323,20 @@ const ProductEdit = () => {
         (p.mainCategory && p.mainCategory.toLowerCase().includes(category)) ||
         (p.subCategory && p.subCategory.toLowerCase().includes(category))
       );
-      console.log('카테고리 필터 후:', result.length);
     }
     
     // 상태 필터
     if (statusFilter) {
       result = result.filter(p => p.status === statusFilter);
-      console.log('상태 필터 후:', result.length);
     }
     
     // 숨김 필터
-    console.log('숨김 필터 적용 전 상품들의 isHide 값:', result.map(p => ({name: p.name, isHide: p.isHide})));
     if (hideFilter === 'visible') {
       result = result.filter(p => p.isHide !== true);
     } else if (hideFilter === 'hidden') {
       result = result.filter(p => p.isHide === true);
     }
-    console.log('숨김 필터 후:', result.length);
+    // hideFilter === 'all'인 경우는 모든 상품 표시
     
     return result;
   };
