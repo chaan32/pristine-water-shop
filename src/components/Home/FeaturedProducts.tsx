@@ -113,13 +113,14 @@ const FeaturedProducts = () => {
 
 
                 {/* Product Image */}
-                <div className="aspect-square bg-secondary overflow-hidden">
-                  <Link to={`/product/${product.productId}`}>
+                <div className="aspect-square bg-white overflow-hidden flex items-center justify-center">
+                  <Link to={`/product/${product.productId}`} className="w-full h-full flex items-center justify-center">
                     <img
                       src={product.thumbnailImageUrl}
                       alt={product.productName}
-                      className="w-full h-full object-contain transition-smooth cursor-pointer hover:opacity-80"
+                      className="max-w-full max-h-full object-contain transition-smooth cursor-pointer hover:opacity-80"
                       loading="lazy"
+                      style={{ width: 'auto', height: 'auto', maxWidth: '80%', maxHeight: '80%' }}
                     />
                   </Link>
                 </div>
