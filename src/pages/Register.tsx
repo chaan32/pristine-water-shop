@@ -553,13 +553,20 @@ const Register = () => {
                     </div>
                   </div>
                   
-                  <Input 
-                    placeholder="이메일" 
-                    type="email"
-                    value={individualForm.email}
-                    onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
-                    disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                  />
+                  <div className="space-y-2">
+                    <div className="bg-blue-50 dark:bg-blue-950/20 px-3 py-2 rounded-md border-l-4 border-blue-500">
+                      <Label className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        이메일 (필수) - ID/PW를 찾을 때 사용될 수 있습니다.
+                      </Label>
+                    </div>
+                    <Input 
+                      placeholder="example@email.com" 
+                      type="email"
+                      value={individualForm.email}
+                      onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                    />
+                  </div>
                   
                   {/* 핸드폰 인증 */}
                   <div className="space-y-2">
@@ -1036,7 +1043,11 @@ const Register = () => {
                   </div>
                   {/* 이메일 */}
                   <div className="space-y-2">
-                    <Label>이메일 (필수) - ID/PW를 찾을 때 사용될 수 있습니다.</Label>
+                    <div className="bg-blue-50 dark:bg-blue-950/20 px-3 py-2 rounded-md border-l-4 border-blue-500">
+                      <Label className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        이메일 (필수) - ID/PW를 찾을 때 사용될 수 있습니다.
+                      </Label>
+                    </div>
                     <Input
                       placeholder="example@email.com" 
                       type="email"
