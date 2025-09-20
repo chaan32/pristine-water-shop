@@ -1037,7 +1037,8 @@ const Register = () => {
                   {/* 이메일 */}
                   <div className="space-y-2">
                     <Label>이메일 (필수)</Label>
-                    <Input 
+                    <Label>ID/PW를 찾을 때 사용될 수 있습니다.</Label>
+                    <Input
                       placeholder="example@email.com" 
                       type="email"
                       value={corporateForm.email}
