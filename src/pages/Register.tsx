@@ -565,7 +565,7 @@ const Register = () => {
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <Input 
-                        placeholder="010-1234-5678"
+                        placeholder="핸드폰 인증 버튼을 통해 인증을 해주세요"
                         value={individualForm.phone}
                         readOnly
                         disabled={individualForm.isPhoneVerified}
@@ -815,7 +815,7 @@ const Register = () => {
                         <Label>매니저 연락처 (필수)</Label>
                         <div className="flex gap-2">
                           <Input 
-                            placeholder="010-1234-5678"
+                            placeholder="핸드폰 인증 버튼을 통해 인증을 해주세요"
                             value={corporateForm.managerPhone}
                             readOnly
                             disabled={corporateForm.isPhoneVerified}
