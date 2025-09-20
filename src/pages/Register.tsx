@@ -427,7 +427,6 @@ const Register = () => {
 
 
 
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -553,41 +552,46 @@ const Register = () => {
                       )}
                     </div>
                   </div>
-                  {/* 이메일 */}
+                  
+                  <Input 
+                    placeholder="이메일" 
+                    type="email"
+                    value={individualForm.email}
+                    onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
+                    disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                  />
+                  
+                  {/* 핸드폰 인증 */}
                   <div className="space-y-2">
-                    <Label>이메일 (필수)</Label>
-                    <Input 
-                      placeholder="example@email.com" 
-                      type="email"
-                      value={individualForm.email}
-                      onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <Label>휴대폰 번호 (필수)</Label>
                     <div className="flex gap-2">
                       <Input 
-                        placeholder="휴대폰 인증 버튼을 통해서 인증해주세요."
+                        placeholder="010-1234-5678"
                         value={individualForm.phone}
                         readOnly
-                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                        disabled={individualForm.isPhoneVerified}
                         className="flex-1"
                       />
-                      <Button 
+                      <Button
                         type="button"
                         variant="outline"
                         onClick={() => handlePhoneVerificationClick('individual')}
-                        disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable || individualForm.isPhoneVerified}
+                        disabled={individualForm.isPhoneVerified || !individualForm.isIdChecked || !individualForm.isIdAvailable}
                         className="whitespace-nowrap"
                       >
-                        {individualForm.isPhoneVerified ? '인증완료' : '휴대폰 인증'}
+                        {individualForm.isPhoneVerified ? (
+                          <>
+                            <Check className="w-4 h-4 mr-1" />
+                            인증완료
+                          </>
+                        ) : (
+                          '핸드폰 인증'
+                        )}
                       </Button>
                     </div>
                     {individualForm.isPhoneVerified && (
                       <div className="flex items-center gap-2 text-sm">
                         <Check className="w-4 h-4 text-green-600" />
-                        <span className="text-green-600">휴대폰 인증이 완료되었습니다.</span>
+                        <span className="text-green-600">핸드폰 인증이 완료되었습니다.</span>
                       </div>
                     )}
                   </div>
@@ -700,30 +704,34 @@ const Register = () => {
                       onValueChange={(value) => setCorporateForm(prev => ({ ...prev, businessType: value }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="업종을 선택해주세요" />
+                        <SelectValue placeholder="프랜차이즈 업종" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bakery">베이커리 법인</SelectItem>
-                        <SelectItem value="cafe">카페 법인</SelectItem>
-                        <SelectItem value="franchise">프랜차이즈 법인</SelectItem>
-                        <SelectItem value="restaurant">레스토랑 법인</SelectItem>
-                        <SelectItem value="hotel">호텔/펜션 법인</SelectItem>
+                        <SelectItem value="fastFood">패스트푸드</SelectItem>
+                        <SelectItem value="restaurant">외식업</SelectItem>
+                        <SelectItem value="dessertCafe">디저트/카페</SelectItem>
+                        <SelectItem value="beauty">미용업</SelectItem>
+                        <SelectItem value="retail">소매업</SelectItem>
+                        <SelectItem value="education">교육업</SelectItem>
+                        <SelectItem value="fitness">피트니스/웰니스</SelectItem>
+                        <SelectItem value="automotive">자동차 관련</SelectItem>
+                        <SelectItem value="healthcare">의료/헬스케어</SelectItem>
                         <SelectItem value="other">기타</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* 프랜차이즈 지점 회원 전용 필드 */}
+                  {/* 프랜차이즈 지점 전용 필드 */}
                   {corporateForm.corporateType === 'franchise' && (
-                    <div className="space-y-4 border rounded-lg p-4 bg-muted/20">
-                      <h3 className="font-medium text-sm text-muted-foreground">프랜차이즈 지점 정보</h3>
+                    <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+                      <h3 className="text-lg font-semibold text-foreground">프랜차이즈 지점 정보</h3>
                       
-                      {/* 본사명 선택 */}
+                      {/* 본사 검색 및 선택 */}
                       <div className="space-y-2">
-                        <Label>본사명 (필수)</Label>
+                        <Label htmlFor="headquarters">본사명 (필수)</Label>
                         <div className="flex gap-2">
                           <Input 
-                            placeholder="본사를 선택해주세요" 
+                            placeholder="본사를 선택해주세요"
                             value={corporateForm.headquartersName}
                             readOnly
                             className="flex-1"
@@ -731,7 +739,7 @@ const Register = () => {
                           <Dialog open={isHeadquartersModalOpen} onOpenChange={setIsHeadquartersModalOpen}>
                             <DialogTrigger asChild>
                               <Button type="button" variant="outline">
-                                <Search className="w-4 h-4 mr-2" />
+                                <Search className="w-4 h-4 mr-1" />
                                 본사 선택
                               </Button>
                             </DialogTrigger>
@@ -741,31 +749,40 @@ const Register = () => {
                               </DialogHeader>
                               <div className="space-y-4">
                                 <Input
-                                    placeholder="본사명으로 검색..."
-                                    value={headquartersSearchTerm}
-                                    onChange={(e) => setHeadquartersSearchTerm(e.target.value)}
+                                  placeholder="본사명을 검색해주세요"
+                                  value={headquartersSearchTerm}
+                                  onChange={(e) => setHeadquartersSearchTerm(e.target.value)}
+                                  className="w-full"
                                 />
-                                <div className="max-h-60 overflow-y-auto space-y-2">
-                                  {isSearching ? (
-                                      <div className="text-center py-4 text-muted-foreground">검색 중...</div>
-                                  ) : searchedHeadquarters.length > 0 ? (
-                                      searchedHeadquarters.map((hq) => (
-                                          <div
-                                              key={hq.id}
-                                              className="border rounded-lg p-3 cursor-pointer hover:bg-muted/50"
-                                              onClick={() => handleHeadquartersSelect(hq)}
-                                          >
-                                            <div className="font-medium">{hq.name}</div>
-                                            <div className="text-sm text-muted-foreground">
-                                              사업자번호: {hq.businessNumber}
-                                            </div>
+                                
+                                {isSearching && (
+                                  <div className="text-center py-4">
+                                    <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="mt-2 text-sm text-muted-foreground">검색 중...</p>
+                                  </div>
+                                )}
+                                
+                                <div className="max-h-60 overflow-y-auto">
+                                  {searchedHeadquarters.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {searchedHeadquarters.map((hq) => (
+                                        <div
+                                          key={hq.id}
+                                          className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                                          onClick={() => handleHeadquartersSelect(hq)}
+                                        >
+                                          <div className="font-medium">{hq.name}</div>
+                                          <div className="text-sm text-muted-foreground">
+                                            사업자번호: {hq.businessNumber}
                                           </div>
-                                      ))
-                                  ) : (
-                                      <div className="text-center py-4 text-muted-foreground">
-                                        {headquartersSearchTerm ? '검색 결과가 없습니다.' : '검색어를 입력해주세요.'}
-                                      </div>
-                                  )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : headquartersSearchTerm.trim() && !isSearching ? (
+                                    <div className="text-center py-4 text-muted-foreground">
+                                      검색 결과가 없습니다.
+                                    </div>
+                                  ) : null}
                                 </div>
                               </div>
                             </DialogContent>
@@ -773,60 +790,120 @@ const Register = () => {
                         </div>
                       </div>
 
-                      {/* 지점명 입력 */}
+                      {/* 지점명 */}
                       <div className="space-y-2">
                         <Label>지점명 (필수)</Label>
                         <Input 
-                          placeholder="지점명을 입력해주세요" 
+                          placeholder="지점명을 입력해주세요"
                           value={corporateForm.branchName}
                           onChange={(e) => setCorporateForm(prev => ({ ...prev, branchName: e.target.value }))}
                         />
                       </div>
 
-                      {/* 매니저 정보 */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>매니저 이름 (필수)</Label>
+                      {/* 매니저 이름 */}
+                      <div className="space-y-2">
+                        <Label>매니저 이름 (필수)</Label>
+                        <Input 
+                          placeholder="매니저 이름을 입력해주세요"
+                          value={corporateForm.managerName}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, managerName: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* 매니저 연락처 */}
+                      <div className="space-y-2">
+                        <Label>매니저 연락처 (필수)</Label>
+                        <div className="flex gap-2">
                           <Input 
-                            placeholder="매니저 이름을 입력해주세요" 
-                            value={corporateForm.managerName}
-                            onChange={(e) => setCorporateForm(prev => ({ ...prev, managerName: e.target.value }))}
+                            placeholder="010-1234-5678"
+                            value={corporateForm.managerPhone}
+                            readOnly
+                            disabled={corporateForm.isPhoneVerified}
+                            className="flex-1"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handlePhoneVerificationClick('franchise')}
+                            disabled={corporateForm.isPhoneVerified}
+                            className="whitespace-nowrap"
+                          >
+                            {corporateForm.isPhoneVerified ? (
+                              <>
+                                <Check className="w-4 h-4 mr-1" />
+                                인증완료
+                              </>
+                            ) : (
+                              '핸드폰 인증'
+                            )}
+                          </Button>
+                        </div>
+                        {corporateForm.isPhoneVerified && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="w-4 h-4 text-green-600" />
+                            <span className="text-green-600">핸드폰 인증이 완료되었습니다.</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 회사 전화번호 (3개 필드, 인증 없음) */}
+                      <div className="space-y-2">
+                        <Label>회사 전화번호 (필수)</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="02"
+                            maxLength={3}
+                            value={corporateForm.companyPhone1}
+                            onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone1: e.target.value }))}
+                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                            className="flex-1"
+                          />
+                          <span className="flex items-center">-</span>
+                          <Input 
+                            placeholder="1234"
+                            maxLength={4}
+                            value={corporateForm.companyPhone2}
+                            onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone2: e.target.value }))}
+                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                            className="flex-1"
+                          />
+                          <span className="flex items-center">-</span>
+                          <Input 
+                            placeholder="5678"
+                            maxLength={4}
+                            value={corporateForm.companyPhone3}
+                            onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone3: e.target.value }))}
+                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                            className="flex-1"
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label>매니저 연락처 (필수)</Label>
-                          <div className="flex gap-2">
-                            <Input 
-                              placeholder="010-1234-5678"
-                              value={corporateForm.managerPhone}
-                              readOnly
-                              disabled={corporateForm.isPhoneVerified}
-                              className="flex-1"
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => handlePhoneVerificationClick('franchise')}
-                              disabled={corporateForm.isPhoneVerified}
-                              className="whitespace-nowrap"
-                            >
-                              {corporateForm.isPhoneVerified ? (
-                                <>
-                                  <Check className="w-4 h-4 mr-1" />
-                                  인증완료
-                                </>
-                              ) : (
-                                '핸드폰 인증'
-                              )}
-                            </Button>
-                          </div>
-                          {corporateForm.isPhoneVerified && (
-                            <div className="flex items-center gap-2 text-sm">
-                              <Check className="w-4 h-4 text-green-600" />
-                              <span className="text-green-600">핸드폰 인증이 완료되었습니다.</span>
-                            </div>
-                          )}
+                      </div>
+
+                      {/* 주소 입력 */}
+                      <div className="space-y-4">
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="주소" 
+                            value={corporateForm.address}
+                            readOnly
+                            className="flex-1"
+                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          />
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            onClick={() => handleAddressSearch('corporate')}
+                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          >
+                            주소검색
+                          </Button>
                         </div>
+                        <Input 
+                          placeholder="상세주소" 
+                          value={corporateForm.detailAddress}
+                          onChange={(e) => setCorporateForm(prev => ({ ...prev, detailAddress: e.target.value }))}
+                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable || !corporateForm.address}
+                        />
                       </div>
                     </div>
                   )}
@@ -973,8 +1050,8 @@ const Register = () => {
                     />
                   </div>
 
-                  {/* 전화번호 - 본사는 회사전화번호, 지점은 매니저 핸드폰 */}
-                  {corporateForm.corporateType === 'headquarters' ? (
+                  {/* 전화번호 - 본사는 회사전화번호 */}
+                  {corporateForm.corporateType === 'headquarters' && (
                     // 본사: 회사 전화번호 (인증 없음)
                     <div className="space-y-2">
                       <Label>회사 전화번호 (필수)</Label>
@@ -985,67 +1062,36 @@ const Register = () => {
                         disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                       />
                     </div>
-                  ) : corporateForm.corporateType === 'franchise' ? (
-                    // 지점: 회사 전화번호 (3개 필드, 인증 없음)
-                    <div className="space-y-2">
-                      <Label>회사 전화번호 (필수)</Label>
+                  )}
+                  
+                  {/* 주소 입력 - 본사만 */}
+                  {corporateForm.corporateType === 'headquarters' && (
+                    <div className="space-y-4">
                       <div className="flex gap-2">
                         <Input 
-                          placeholder="02"
-                          maxLength={3}
-                          value={corporateForm.companyPhone1}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone1: e.target.value }))}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                          placeholder="주소" 
+                          value={corporateForm.address}
+                          readOnly
                           className="flex-1"
-                        />
-                        <span className="flex items-center">-</span>
-                        <Input 
-                          placeholder="1234"
-                          maxLength={4}
-                          value={corporateForm.companyPhone2}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone2: e.target.value }))}
                           disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                          className="flex-1"
                         />
-                        <span className="flex items-center">-</span>
-                        <Input 
-                          placeholder="5678"
-                          maxLength={4}
-                          value={corporateForm.companyPhone3}
-                          onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone3: e.target.value }))}
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          onClick={() => handleAddressSearch('corporate')}
                           disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                          className="flex-1"
-                        />
+                        >
+                          주소검색
+                        </Button>
                       </div>
-                    </div>
-                  ) : null}
-                  
-                  {/* 주소 입력 */}
-                  <div className="space-y-4">
-                    <div className="flex gap-2">
                       <Input 
-                        placeholder="주소" 
-                        value={corporateForm.address}
-                        readOnly
-                        className="flex-1"
-                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
+                        placeholder="상세주소" 
+                        value={corporateForm.detailAddress}
+                        onChange={(e) => setCorporateForm(prev => ({ ...prev, detailAddress: e.target.value }))}
+                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable || !corporateForm.address}
                       />
-                      <Button 
-                        type="button"
-                        variant="outline" 
-                        onClick={() => handleAddressSearch('corporate')}
-                        disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
-                      >
-                        주소검색
-                      </Button>
                     </div>
-                    <Input 
-                      placeholder="상세주소" 
-                      value={corporateForm.detailAddress}
-                      onChange={(e) => setCorporateForm(prev => ({ ...prev, detailAddress: e.target.value }))}
-                      disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable || !corporateForm.address}
-                    />
-                  </div>
+                  )}
                   
                   {/* 사업자등록증 업로드 */}
                   <div className="space-y-2">
