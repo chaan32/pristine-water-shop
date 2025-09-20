@@ -855,7 +855,6 @@ const Register = () => {
                             maxLength={3}
                             value={corporateForm.companyPhone1}
                             onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone1: e.target.value }))}
-                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                             className="flex-1"
                           />
                           <span className="flex items-center">-</span>
@@ -864,7 +863,6 @@ const Register = () => {
                             maxLength={4}
                             value={corporateForm.companyPhone2}
                             onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone2: e.target.value }))}
-                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                             className="flex-1"
                           />
                           <span className="flex items-center">-</span>
@@ -873,7 +871,6 @@ const Register = () => {
                             maxLength={4}
                             value={corporateForm.companyPhone3}
                             onChange={(e) => setCorporateForm(prev => ({ ...prev, companyPhone3: e.target.value }))}
-                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                             className="flex-1"
                           />
                         </div>
@@ -881,19 +878,18 @@ const Register = () => {
 
                       {/* 주소 입력 */}
                       <div className="space-y-4">
+                        <Label>주소 (필수)</Label>
                         <div className="flex gap-2">
                           <Input 
                             placeholder="주소" 
                             value={corporateForm.address}
                             readOnly
                             className="flex-1"
-                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                           />
                           <Button 
                             type="button"
                             variant="outline" 
                             onClick={() => handleAddressSearch('corporate')}
-                            disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable}
                           >
                             주소검색
                           </Button>
@@ -902,7 +898,7 @@ const Register = () => {
                           placeholder="상세주소" 
                           value={corporateForm.detailAddress}
                           onChange={(e) => setCorporateForm(prev => ({ ...prev, detailAddress: e.target.value }))}
-                          disabled={!corporateForm.isIdChecked || !corporateForm.isIdAvailable || !corporateForm.address}
+                          disabled={!corporateForm.address}
                         />
                       </div>
                     </div>
