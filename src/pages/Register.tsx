@@ -554,10 +554,9 @@ const Register = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <div className="bg-blue-50 dark:bg-blue-950/20 px-3 py-2 rounded-md border-l-4 border-blue-500">
-                      <Label className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                        이메일 (필수) - ID/PW를 찾을 때 사용될 수 있습니다.
-                      </Label>
+                    <div className="space-y-1">
+                      <Label>이메일 (필수)</Label>
+                      <p className="text-xs text-muted-foreground">ID/PW를 찾을 때 사용될 수 있습니다.</p>
                     </div>
                     <Input 
                       placeholder="example@email.com" 
@@ -1043,10 +1042,9 @@ const Register = () => {
                   </div>
                   {/* 이메일 */}
                   <div className="space-y-2">
-                    <div className="bg-blue-50 dark:bg-blue-950/20 px-3 py-2 rounded-md border-l-4 border-blue-500">
-                      <Label className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                        이메일 (필수) - ID/PW를 찾을 때 사용될 수 있습니다.
-                      </Label>
+                    <div className="space-y-1">
+                      <Label>이메일 (필수)</Label>
+                      <p className="text-xs text-muted-foreground">ID/PW를 찾을 때 사용될 수 있습니다.</p>
                     </div>
                     <Input
                       placeholder="example@email.com" 
