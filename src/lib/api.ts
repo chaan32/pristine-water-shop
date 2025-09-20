@@ -232,6 +232,7 @@ export const shopApi = {
     apiFetch('/api/shop/inquiry', { method: 'POST', body: JSON.stringify(data) }),
   getAllCategories: () => apiFetch('/api/shop/all/categories'),
   getDisplayProducts: () => apiFetch('/api/shop/display'),
+  getSpecializeProducts: () => apiFetch('/api/shop/products/specialize'),
 };
 
 // Cart APIs
@@ -264,6 +265,8 @@ export const adminApi = {
   editProduct: (data: any) => apiFetch('/api/admin/products/edit', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (id: string, data: any) => apiFetch(`/api/admin/products/edit/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProduct: (id: string) => apiFetch(`/api/admin/products/${id}`, { method: 'DELETE' }),
+  hideProduct: (id: string) => apiFetch(`/api/admin/products/${id}/hide`, { method: 'PUT' }),
+  showProduct: (id: string) => apiFetch(`/api/admin/products/${id}/show`, { method: 'PUT' }),
   
   // Product Content
   getProductContent: (productId: string) => apiFetch(`/api/admin/products/${productId}/content`),
@@ -400,4 +403,25 @@ export const reviewApi = {
 // Headquarters API
 export const headquartersApi = {
   getActiveBranches: () => apiFetch('/api/users/headquarters/active/branches'),
+};
+
+// Product inject APIs for members
+export const productInjectApi = {
+  searchProductsByName: async (term: string) => {
+    const response = await apiFetch(`/api/admin/products/name?term=${encodeURIComponent(term)}`);
+    return response.json();
+  },
+  injectProductToMember: async (data: { memberId: number; productId: number }) => {
+    const response = await apiFetch('/api/admin/products/inject', { method: 'POST', body: JSON.stringify(data) });
+    return response.ok;
+  },
+  deleteInjectedProduct: async (specializeProductId: number) => {
+    console.log('Deleting product with ID:', specializeProductId);
+    const url = `/api/admin/products/injected/delete?specializeProductId=${specializeProductId}`;
+    console.log('Request URL:', url);
+    const response = await apiFetch(url, { 
+      method: 'POST'
+    });
+    return response.ok;
+  },
 };

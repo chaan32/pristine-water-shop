@@ -34,7 +34,8 @@ export const ENVIRONMENT: Environment = import.meta.env.MODE as Environment;
 
 // API 설정
 export const API_CONFIG: ApiConfig = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://localhost:8080',
+  // 기본값을 독립 API 도메인으로 지정 (prod)
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.dragonwater.co.kr',
   timeout: 10000,
 } as const;
 

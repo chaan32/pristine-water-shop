@@ -20,6 +20,7 @@ const Shop = () => {
   const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hoveredCategory, setHoveredCategory] = useState<number | null>(null);
 
   // 사용자 type 정보 가져오기
   useEffect(() => {
@@ -33,23 +34,88 @@ const Shop = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await shopApi.getProducts();
-        if (!response.ok) {
-          throw new Error('상품 데이터를 가져오는데 실패했습니다.');
+        let response;
+        
+        if (filterCategory === 'special') {
+          // 전용 상품 조회
+          const token = getAccessToken();
+          if (!token) {
+            toast({
+              title: "로그인 필요",
+              description: "전용 상품을 보려면 로그인해주세요.",
+              variant: "destructive",
+            });
+            setFilterCategory('all');
+            return;
+          }
+          
+          response = await shopApi.getSpecializeProducts();
+        } else {
+          // 일반 상품 조회
+          response = await shopApi.getProducts();
         }
-        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: 상품 데이터를 가져오는데 실패했습니다.`);
+        }
+
+        // 응답 본문을 텍스트로 먼저 읽어서 확인
+        const responseText = await response.text();
+        
+        // 빈 응답 체크
+        if (!responseText || responseText.trim() === '') {
+          if (filterCategory === 'special') {
+            // 전용 상품이 없는 경우 빈 배열로 처리
+            setProducts([]);
+            setError(null);
+            toast({
+              title: "전용 상품 없음",
+              description: "현재 회원님을 위한 전용 상품이 준비되지 않았습니다.",
+            });
+            return;
+          } else {
+            throw new Error('서버에서 빈 응답을 받았습니다.');
+          }
+        }
+
+        // JSON 파싱 시도
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (jsonError) {
+          throw new Error('서버 응답 형식이 올바르지 않습니다.');
+        }
+
+        // 데이터가 배열이 아닌 경우 처리
+        if (!Array.isArray(data)) {
+          if (filterCategory === 'special' && (data === null || data === undefined)) {
+            // 전용 상품이 없는 경우
+            setProducts([]);
+            setError(null);
+            return;
+          }
+          // Queue나 다른 형태일 수 있으니 배열로 변환 시도
+          if (data && typeof data === 'object' && data.length !== undefined) {
+            data = Array.from(data);
+          } else {
+            data = [];
+          }
+        }
+
         setProducts(data);
         setError(null);
       } catch (error) {
-        console.error('상품 데이터 가져오기 오류:', error);
         setError(error.message);
+        if (filterCategory === 'special') {
+          setFilterCategory('all'); // 실패 시 일반 상품으로 돌아가기
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [filterCategory]);
 
   // 카테고리 데이터 가져오기
   useEffect(() => {
@@ -117,6 +183,13 @@ const Shop = () => {
   };
 
   const filteredProducts = products.filter(product => {
+    // 전용 상품 모드일 때는 필터링 없이 모든 상품 표시
+    if (filterCategory === 'special') {
+      const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    }
+    
+    // 일반 상품 모드의 기존 필터링 로직
     // Only show ON_SALE and SOLD_OUT products
     const matchesStatus = product.salesStatus === "ON_SALE" || product.salesStatus === "SOLD_OUT";
     const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -207,9 +280,14 @@ const Shop = () => {
 
         <main className="container mx-auto px-4 py-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-4">쇼핑몰</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              {filterCategory === 'special' ? '전용 상품' : '쇼핑몰'}
+            </h1>
             <p className="text-lg text-muted-foreground">
-              DragonCompany의 모든 제품을 한곳에서 만나보세요
+              {filterCategory === 'special'
+                ? '회원님만을 위한 특별한 상품들을 만나보세요' 
+                : 'DragonCompany의 모든 제품을 한곳에서 만나보세요'
+              }
             </p>
           </div>
 
@@ -240,39 +318,68 @@ const Shop = () => {
                 <div className="lg:w-64 flex-shrink-0">
                   <Card className="p-4">
                     <h3 className="font-semibold text-foreground mb-4">카테고리</h3>
-                    <div className="space-y-2">
-                      <Button
-                          variant={filterCategory === 'all' ? 'default' : 'ghost'}
-                          className="w-full justify-start"
-                          onClick={() => setFilterCategory('all')}
-                      >
-                        전체 제품
-                      </Button>
-                      {categories.map((category) => (
-                        <div key={category.mainCategoryId}>
-                          {/* 메인 카테고리 */}
-                          <Button
-                            variant={filterCategory === `main-${category.mainCategoryId}` ? 'default' : 'ghost'}
-                            className="w-full justify-start font-semibold text-sm"
-                            onClick={() => setFilterCategory(`main-${category.mainCategoryId}`)}
-                          >
-                            {category.mainCategory}
-                          </Button>
-                          
-                          {/* 서브 카테고리들 */}
-                          {category.subCategories.map((subCategory) => (
-                            <Button
-                              key={subCategory.categoryId}
-                              variant={filterCategory === String(subCategory.categoryId) ? 'default' : 'ghost'}
-                              className="w-full justify-start ml-4 text-xs text-muted-foreground hover:text-foreground"
-                              onClick={() => setFilterCategory(String(subCategory.categoryId))}
-                            >
-                              └ {subCategory.categoryName}
-                            </Button>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
+                     <div className="space-y-2">
+                       {/* 전체 제품 */}
+                       <Button
+                           variant={filterCategory === 'all' ? 'default' : 'ghost'}
+                           className="w-full justify-start"
+                           onClick={() => setFilterCategory('all')}
+                       >
+                         전체 제품
+                       </Button>
+                       
+                       {/* 일반 카테고리들 */}
+                       {categories.map((category) => (
+                         <div key={category.mainCategoryId}>
+                           {/* 메인 카테고리 */}
+                           <div
+                             onMouseEnter={() => setHoveredCategory(category.mainCategoryId)}
+                             onMouseLeave={() => setHoveredCategory(null)}
+                           >
+                             <Button
+                               variant={filterCategory === `main-${category.mainCategoryId}` ? 'default' : 'ghost'}
+                               className="w-full justify-start font-semibold text-sm"
+                               onClick={() => setFilterCategory(`main-${category.mainCategoryId}`)}
+                             >
+                               {category.mainCategory}
+                             </Button>
+                           
+                             {/* 서브 카테고리들 - 클릭되었거나 hover 시 또는 해당 서브카테고리가 선택된 경우 표시 */}
+                             {(filterCategory === `main-${category.mainCategoryId}` || 
+                               hoveredCategory === category.mainCategoryId ||
+                               category.subCategories.some(sub => filterCategory === String(sub.categoryId))) && (
+                               <div className="ml-4 space-y-1 animate-fade-in">
+                                 {category.subCategories.map((subCategory) => (
+                                   <Button
+                                     key={subCategory.categoryId}
+                                     variant={filterCategory === String(subCategory.categoryId) ? 'default' : 'ghost'}
+                                     className={`w-full justify-start text-xs ${
+                                       filterCategory === String(subCategory.categoryId) 
+                                         ? 'text-primary-foreground hover:text-primary-foreground' 
+                                         : 'text-muted-foreground hover:text-foreground'
+                                     }`}
+                                     onClick={() => setFilterCategory(String(subCategory.categoryId))}
+                                   >
+                                     └ {subCategory.categoryName}
+                                   </Button>
+                                 ))}
+                               </div>
+                             )}
+                           </div>
+                         </div>
+                       ))}
+                       
+                       {/* 전용 상품 - 로그인된 사용자에게만 표시, 맨 아래 위치 */}
+                       {userType && (
+                         <Button
+                           variant={filterCategory === 'special' ? 'default' : 'ghost'}
+                           className="w-full justify-start text-blue-600 font-semibold"
+                           onClick={() => setFilterCategory('special')}
+                         >
+                           ⭐ 전용 상품
+                         </Button>
+                       )}
+                     </div>
                   </Card>
                 </div>
 
@@ -304,8 +411,9 @@ const Shop = () => {
                   </div>
 
                   {/* Product Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {sortedProducts.map((product) => (
+                  {sortedProducts.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sortedProducts.map((product) => (
                         <Card key={product.productId} className="group hover:shadow-lg transition-smooth water-drop overflow-hidden">
                           <CardHeader className="p-0 relative">
                             {/* Status and Product Badges */}
@@ -323,14 +431,17 @@ const Shop = () => {
                                 <Badge variant="secondary">추천</Badge>
                               )}
                             </div>
-                            {/* Product Image */}
-                            <div className="aspect-square bg-secondary overflow-hidden">
-                              <img
-                                  src={product.thumbnailImageUrl}
-                                  alt={product.productName}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-smooth"
-                              />
-                            </div>
+                             {/* Product Image */}
+                             <div className="aspect-square bg-white overflow-hidden">
+                               <Link to={`/product/${product.productId}`}>
+                                 <img
+                                     src={product.thumbnailImageUrl}
+                                     alt={product.productName}
+                                     className="w-full h-full object-contain transition-smooth cursor-pointer hover:opacity-80"
+                                     loading="lazy"
+                                 />
+                               </Link>
+                             </div>
                           </CardHeader>
 
                           <CardContent className="p-6">
@@ -396,19 +507,38 @@ const Shop = () => {
                             </div>
                           </CardContent>
                         </Card>
-                    ))}
-                  </div>
+                        ))}
+                    </div>
+                  ) : (
+                    // 빈 상품 목록 처리
+                    <div className="text-center py-12">
+                      {filterCategory === 'special' ? (
+                        <div>
+                          <h3 className="text-xl font-semibold text-muted-foreground mb-2">전용 상품이 없습니다</h3>
+                          <p className="text-muted-foreground">
+                            현재 회원님을 위한 특별 상품이 준비되지 않았습니다.
+                          </p>
+                          <Button
+                            onClick={() => setFilterCategory('all')}
+                            className="mt-4"
+                          >
+                            일반 상품 보기
+                          </Button>
+                        </div>
+                      ) : (
+                        <div>
+                          <h3 className="text-xl font-semibold text-muted-foreground mb-2">검색 결과가 없습니다</h3>
+                          <p className="text-muted-foreground">
+                            다른 검색어나 카테고리를 시도해보세요.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
           )}
 
-          {/* No Results */}
-          {!loading && !error && sortedProducts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-lg">검색 결과가 없습니다.</p>
-                <p className="text-muted-foreground">다른 검색어나 카테고리를 시도해보세요.</p>
-              </div>
-          )}
         </main>
 
         <Footer />

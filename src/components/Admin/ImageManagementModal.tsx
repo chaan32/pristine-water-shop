@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,6 +25,7 @@ interface ProductImage {
 
 interface ImageApiResponse {
   thumbnailImageS3URL: string;
+  thumbnailImageId?: number;
   galleryImagesS3URL: Record<string, number>;
 }
 
@@ -44,7 +45,8 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
       result.push({
         url: data.thumbnailImageS3URL,
         fileName: fileName,
-        isThumbnail: true
+        isThumbnail: true,
+        id: data.thumbnailImageId
       });
     }
     
@@ -101,10 +103,9 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
 
     setUploading(true);
     const formData = new FormData();
-    
-    Array.from(files).forEach((file) => {
-      formData.append('images', file);
-    });
+
+    // 원본 이미지 그대로 업로드
+    Array.from(files).forEach((file) => formData.append('images', file));
     formData.append('productId', productId.toString());
 
     try {
@@ -135,10 +136,18 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
 
   // 이미지 삭제
   const handleImageDelete = async (image: ProductImage) => {
+    if (!image.id) {
+      toast({
+        title: "오류",
+        description: "이미지 ID가 없어 삭제할 수 없습니다.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       // API: DELETE /api/admin/products/images
-      const response = await adminApi.deleteProductImage(image.id!);
-
+      const response = await adminApi.deleteProductImage(image.id);
 
       if (response.ok) {
         toast({
@@ -203,6 +212,9 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>이미지 관리 - {productName}</DialogTitle>
+          <DialogDescription>
+            상품의 이미지를 업로드하고 관리할 수 있습니다. 썸네일과 갤러리 이미지를 설정하세요.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -252,7 +264,7 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
                         <img
                           src={thumbnailImage.url}
                           alt={thumbnailImage.fileName}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = '/placeholder.svg';
@@ -264,17 +276,8 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
                           </span>
                         </div>
                       </div>
-                      <div className="p-3 space-y-2">
+                      <div className="p-3">
                         <p className="text-sm font-medium truncate">{thumbnailImage.fileName}</p>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleImageDelete(thumbnailImage)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          삭제
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -319,7 +322,7 @@ const ImageManagementModal = ({ isOpen, onOpenChange, productId, productName }: 
                             <img
                               src={image.url}
                               alt={image.fileName}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.src = '/placeholder.svg';

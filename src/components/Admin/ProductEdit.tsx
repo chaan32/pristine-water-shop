@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,17 +17,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Search, Save, Upload, Plus, ChevronDown, Filter, Image } from 'lucide-react';
+import { Edit, Search, Save, Upload, Plus, ChevronDown, Filter, Image, Copy, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import ImageManagementModal from './ImageManagementModal';
 import { adminApi, apiFetch, getAccessToken } from '@/lib/api';
+import { API_CONFIG } from '@/lib/config';
 import { formatPriceWithComma, extractNumbers, createPriceChangeHandler } from '@/lib/price-format';
 
 const ProductEdit = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [hideFilter, setHideFilter] = useState('visible'); // 'all', 'visible', 'hidden'
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -296,20 +299,45 @@ const ProductEdit = () => {
     fetchMainPageProducts();
   }, []);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.mainCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.subCategory || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+  const filteredProducts = React.useMemo(() => {
+    let result = [...products];
     
-    const matchesCategory = !categoryFilter || 
-      (product.mainCategory || '').toLowerCase().includes(categoryFilter.toLowerCase()) ||
-      (product.subCategory || '').toLowerCase().includes(categoryFilter.toLowerCase());
+    // 검색어 필터
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      result = result.filter(p => 
+        (p.name && p.name.toLowerCase().includes(search)) ||
+        (p.mainCategory && p.mainCategory.toLowerCase().includes(search)) ||
+        (p.subCategory && p.subCategory.toLowerCase().includes(search)) ||
+        (p.category && p.category.toLowerCase().includes(search))
+      );
+    }
     
-    const matchesStatus = !statusFilter || product.status === statusFilter;
+    // 카테고리 필터
+    if (categoryFilter) {
+      const category = categoryFilter.toLowerCase();
+      result = result.filter(p => 
+        (p.mainCategory && p.mainCategory.toLowerCase().includes(category)) ||
+        (p.subCategory && p.subCategory.toLowerCase().includes(category))
+      );
+    }
     
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+    // 상태 필터
+    if (statusFilter) {
+      result = result.filter(p => p.status === statusFilter);
+    }
+    
+    // 숨김 필터
+    if (hideFilter === 'visible') {
+      result = result.filter(p => p.isHide !== true);
+    } else if (hideFilter === 'hidden') {
+      result = result.filter(p => p.isHide === true);
+    }
+    // hideFilter === 'all'인 경우는 모든 상품 표시
+    
+    return result;
+  }, [products, searchTerm, categoryFilter, statusFilter, hideFilter]);
 
   // 카테고리 목록 생성 (필터용)
   const availableCategories = [...new Set(products.map(p => p.mainCategory).filter(Boolean))];
@@ -474,7 +502,7 @@ const ProductEdit = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleToggleHide = async (id: number, isHidden: boolean) => {
     try {
       const accessToken = getAccessToken();
       if (!accessToken) {
@@ -486,27 +514,73 @@ const ProductEdit = () => {
         return;
       }
 
-      // API: DELETE /api/admin/products/:id
-      const response = await adminApi.deleteProduct(String(id));
+      // API: PUT /api/admin/products/:id/hide 또는 /api/admin/products/:id/show
+      const response = isHidden 
+        ? await adminApi.showProduct(String(id))
+        : await adminApi.hideProduct(String(id));
 
       if (!response.ok) {
-        throw new Error('상품 삭제에 실패했습니다.');
+        throw new Error(isHidden ? '상품 표시에 실패했습니다.' : '상품 숨김에 실패했습니다.');
       }
 
       toast({
-        title: "상품 삭제",
-        description: "상품이 삭제되었습니다.",
-        variant: "destructive"
+        title: isHidden ? "상품 표시" : "상품 숨김",
+        description: isHidden ? "상품이 표시되었습니다." : "상품이 숨김 처리되었습니다.",
       });
       
       fetchProducts();
     } catch (error) {
       toast({
         title: "오류",
-        description: "상품 삭제에 실패했습니다.",
+        description: isHidden ? "상품 표시에 실패했습니다." : "상품 숨김에 실패했습니다.",
         variant: "destructive"
       });
-      console.error('Error deleting product:', error);
+      console.error('Error toggling product visibility:', error);
+    }
+  };
+
+  const handleCopy = async (id: number) => {
+    try {
+      const accessToken = getAccessToken();
+      if (!accessToken) {
+        toast({
+          title: "인증 오류",
+          description: "로그인이 필요합니다.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // API: POST /api/admin/products/add/copy
+      const response = await fetch(`${API_CONFIG.baseUrl}/api/admin/products/add/copy`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId: id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '상품 복제에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      
+      toast({
+        title: "상품 복제 성공",
+        description: "상품이 성공적으로 복제되었습니다.",
+      });
+      
+      fetchProducts();
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "상품 복제에 실패했습니다.",
+        variant: "destructive"
+      });
+      console.error('Error copying product:', error);
     }
   };
 
@@ -563,6 +637,37 @@ const ProductEdit = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* 숨김 필터 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[120px] justify-between">
+                  <Filter className="w-4 h-4 mr-2" />
+                  {hideFilter === 'all' ? '전체' : hideFilter === 'visible' ? '표시 중' : '숨김'}
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-white dark:bg-gray-800 border">
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('all')}
+                  className={hideFilter === 'all' ? "bg-primary/10" : ""}
+                >
+                  전체 상품
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('visible')}
+                  className={hideFilter === 'visible' ? "bg-primary/10" : ""}
+                >
+                  표시 중인 상품
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setHideFilter('hidden')}
+                  className={hideFilter === 'hidden' ? "bg-primary/10" : ""}
+                >
+                  숨겨진 상품
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* 상태 필터 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -591,13 +696,14 @@ const ProductEdit = () => {
             </DropdownMenu>
             
             {/* 필터 초기화 버튼 */}
-            {(categoryFilter || statusFilter) && (
+            {(categoryFilter || statusFilter || hideFilter !== 'visible') && (
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => {
                   setCategoryFilter('');
                   setStatusFilter('');
+                  setHideFilter('visible');
                 }}
               >
                 필터 초기화
@@ -621,10 +727,10 @@ const ProductEdit = () => {
                   <TableHead>사업자가격</TableHead>
                   <TableHead>할인가격</TableHead>
                   <TableHead>할인율</TableHead>
-                  <TableHead>재고</TableHead>
-                  <TableHead>상태</TableHead>
-                  <TableHead>등록일</TableHead>
-                  <TableHead className="text-right">관리</TableHead>
+          <TableHead>재고</TableHead>
+          <TableHead>상태</TableHead>
+          <TableHead>등록일</TableHead>
+          <TableHead className="text-right">관리</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -663,18 +769,18 @@ const ProductEdit = () => {
                         {product.stock || 0}개
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        product.status === '판매 중' ? 'default' : 
-                        product.status === '품절' ? 'destructive' : 
-                        product.status === '판매 중단' ? 'secondary' : 'secondary'
-                      }>
-                        {product.status || '상태미정'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {product.createdAt ? product.createdAt.split('T')[0] : '-'}
-                    </TableCell>
+              <TableCell>
+                <Badge variant={
+                  product.status === '판매 중' ? 'default' : 
+                  product.status === '품절' ? 'destructive' : 
+                  product.status === '판매 중단' ? 'secondary' : 'secondary'
+                }>
+                  {product.status || '상태미정'}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {product.createdAt ? product.createdAt.split('T')[0] : '-'}
+              </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -687,10 +793,18 @@ const ProductEdit = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDelete(product.id)}
-                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleCopy(product.id)}
+                          className="text-blue-600 hover:text-blue-700"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleHide(product.id, product.isHide)}
+                          className={product.isHide ? "text-green-600 hover:text-green-700" : "text-orange-600 hover:text-orange-700"}
+                        >
+                          {product.isHide ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                         </Button>
                       </div>
                     </TableCell>

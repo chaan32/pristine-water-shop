@@ -2,20 +2,58 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Shield, Droplets, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
+import Autoplay from 'embla-carousel-autoplay';
 import heroImage from '@/assets/hero-water-filter.jpg';
+import heroKitchenImage from '@/assets/hero-kitchen-filter.jpg';
+import heroShowerImage from '@/assets/hero-shower-filter.jpg';
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const plugin = useRef(
+    Autoplay({ delay: 4000, stopOnInteraction: true })
+  );
+
+  const heroImages = [
+    {
+      src: heroImage,
+      alt: "깨끗한 물과 정수 필터"
+    },
+    {
+      src: heroKitchenImage,
+      alt: "주방용 정수 필터 시스템"
+    },
+    {
+      src: heroShowerImage,
+      alt: "샤워용 정수 필터 시스템"
+    }
+  ];
   
   return (
     <section className="relative min-h-[600px] flex items-center overflow-hidden">
-      {/* Background Image */}
+      {/* Background Carousel */}
       <div className="absolute inset-0">
-        <img
-          src={heroImage}
-          alt="깨끗한 물과 정수 필터"
-          className="w-full h-full object-cover"
-        />
+        <Carousel
+          plugins={[plugin.current]}
+          className="w-full h-full"
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+        >
+          <CarouselContent className="h-full">
+            {heroImages.map((image, index) => (
+              <CarouselItem key={index} className="h-[600px]">
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="w-full h-full object-cover"
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
         <div className="absolute inset-0 bg-gradient-to-r from-primary/80 via-primary/40 to-transparent" />
       </div>
 

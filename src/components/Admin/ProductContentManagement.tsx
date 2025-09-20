@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Upload, Save, Eye, Trash2, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
@@ -80,6 +81,7 @@ const ProductContentManagement = () => {
 
   // 에디터 이미지 업로드를 위한 상태
   const [editorImageFiles, setEditorImageFiles] = useState<File[]>([]);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
 
   // FAQ 관리를 위한 상태
   const [faqList, setFaqList] = useState<{question: string, answer: string}[]>([]);
@@ -276,7 +278,9 @@ const ProductContentManagement = () => {
 
   // 에디터용 이미지 업로드 처리 (백엔드 API 연동)
   const handleEditorImageUpload = async (file: File) => {
+    setImageUploadLoading(true);
     try {
+      // 원본 이미지 그대로 업로드
       const formData = new FormData();
       formData.append('image', file);
       formData.append('productId', selectedProduct || '');
@@ -308,10 +312,10 @@ const ProductContentManagement = () => {
         variant: "destructive",
       });
       
-      // 실패 시 로컬 프리뷰 URL 사용
-      const previewUrl = URL.createObjectURL(file);
-      editor?.chain().focus().setImage({ src: previewUrl }).run();
-      return previewUrl;
+      // 실패 시 삽입하지 않음
+      return null;
+    } finally {
+      setImageUploadLoading(false);
     }
   };
 
@@ -503,7 +507,7 @@ const ProductContentManagement = () => {
                       <img 
                         src={thumbnailPreview} 
                         alt="제품 썸네일" 
-                        className="w-48 h-48 object-cover rounded-lg border"
+                        className="w-48 h-48 object-contain rounded-lg border"
                       />
                     </CardContent>
                   </Card>
@@ -522,7 +526,7 @@ const ProductContentManagement = () => {
                             key={index}
                             src={image}
                             alt={`갤러리 이미지 ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg border"
+                            className="w-full h-32 object-contain rounded-lg border"
                           />
                         ))}
                       </div>
@@ -752,14 +756,16 @@ const ProductContentManagement = () => {
                           }}
                           className="hidden"
                           id="editor-image-upload"
+                          disabled={imageUploadLoading}
                         />
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => document.getElementById('editor-image-upload')?.click()}
+                          disabled={imageUploadLoading}
                         >
-                          📷 이미지
+                          {imageUploadLoading ? '업로드 중...' : '📷 이미지'}
                         </Button>
                         
                         <Button
@@ -776,6 +782,15 @@ const ProductContentManagement = () => {
                           🔗 URL 이미지
                         </Button>
                       </div>
+                      
+                      {/* 이미지 업로드 로딩 표시 */}
+                      {imageUploadLoading && (
+                        <div className="flex items-center gap-2 mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                          <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                          <span>이미지를 업로드하고 있습니다...</span>
+                          <Progress value={undefined} className="flex-1 h-2" />
+                        </div>
+                      )}
                       
                       {/* 에디터 사용법 */}
                       <div className="mt-2 p-2 bg-background rounded text-xs text-muted-foreground">
@@ -911,7 +926,7 @@ const ProductContentManagement = () => {
                         <img 
                           src={thumbnailPreview} 
                           alt="썸네일 미리보기" 
-                          className="w-16 h-16 object-cover rounded border"
+                          className="w-16 h-16 object-contain rounded border"
                         />
                         <Button
                           variant="destructive"
@@ -959,7 +974,7 @@ const ProductContentManagement = () => {
                             <img
                               src={image}
                               alt={`갤러리 이미지 ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-md border"
+                              className="w-full h-24 object-contain rounded-md border"
                             />
                             <Button
                               variant="destructive"

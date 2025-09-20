@@ -388,17 +388,18 @@ const ProductDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
             {/* Product Images - 기존 레이아웃 */}
             <div className="space-y-4">
-              <div className="aspect-square bg-secondary rounded-lg overflow-hidden">
-                <img src={images[selectedImage]} alt={product.productName} className="w-full h-full object-cover" />
+              <div className="rounded-lg overflow-hidden flex items-center justify-center min-h-[280px] md:min-h-[420px]" style={{backgroundColor: '#ffffff'}}>
+                <img src={images[selectedImage]} alt={product.productName} className="max-w-full max-h-[70vh] w-auto h-auto object-contain" />
               </div>
               <div className="flex gap-2">
                 {images.map((image, index) => (
                     <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
-                        className={`aspect-square w-20 bg-secondary rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}
+                        className={`aspect-square w-20 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-primary' : 'border-transparent'}`}
+                        style={{backgroundColor: '#ffffff'}}
                     >
-                      <img src={image} alt={`${product.productName} ${index + 1}`} className="w-full h-full object-cover" />
+                      <img src={image} alt={`${product.productName} ${index + 1}`} className="w-full h-full object-contain" />
                     </button>
                 ))}
               </div>
