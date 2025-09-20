@@ -79,7 +79,6 @@ const ProductEdit = () => {
   // 메인페이지 구성 불러오기 API
   const fetchMainPageProducts = async () => {
     try {
-      // API: GET /api/admin/main-page-products
       const response = await adminApi.getMainPageProducts();
 
       if (response.ok) {
@@ -110,7 +109,6 @@ const ProductEdit = () => {
         ? Number(mainPageProducts.recommendedProducts[0]) 
         : null;
 
-      // API: POST /api/admin/main-page-products
       const response = await adminApi.updateMainPageProducts({
         bestProducts: selectedBestProduct,
         newProducts: selectedNewProduct,
