@@ -215,9 +215,8 @@ const Order = () => {
     { id: 'free-shipping', name: '무료배송 쿠폰', discount: 3000, minOrder: 0 }
   ];
 
-  const baseShippingFee = 0;
   const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-  const shippingFee = subtotal > 0 ? baseShippingFee : 0;
+  const shippingFee = subtotal >= 50000 ? 0 : 3000;
 
   // 쿠폰 할인 계산
   const selectedCouponInfo = userCoupons.find(c => c.id === selectedCoupon);
@@ -592,76 +591,78 @@ const Order = () => {
                 </CardContent>
               </Card>
 
-              {/* 할인 혜택 */}
-              <Card className="water-drop">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Gift className="w-5 h-5" />
-                    할인 혜택
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* 포인트 사용 */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <Coins className="w-4 h-4" />
-                        포인트 사용
-                      </label>
-                      <span className="text-sm text-muted-foreground">
-                      보유: {userPoints.toLocaleString()}P
-                    </span>
+              {/* 할인 혜택 - 개인 회원과 본사 회원에게만 표시 */}
+              {userType !== 'BRANCH' && (
+                <Card className="water-drop">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gift className="w-5 h-5" />
+                      할인 혜택
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* 포인트 사용 */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="text-sm font-medium flex items-center gap-2">
+                          <Coins className="w-4 h-4" />
+                          포인트 사용
+                        </label>
+                        <span className="text-sm text-muted-foreground">
+                        보유: {userPoints.toLocaleString()}P
+                      </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                            type="number"
+                            placeholder="사용할 포인트"
+                            value={pointUsage}
+                            onChange={(e) => {
+                              const value = Math.min(parseInt(e.target.value) || 0, userPoints, totalAfterCoupon);
+                              setPointUsage(value);
+                            }}
+                            max={Math.min(userPoints, totalAfterCoupon)}
+                        />
+                        <Button
+                            variant="outline"
+                            onClick={() => setPointUsage(Math.min(userPoints, totalAfterCoupon))}
+                        >
+                          전액사용
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Input
-                          type="number"
-                          placeholder="사용할 포인트"
-                          value={pointUsage}
-                          onChange={(e) => {
-                            const value = Math.min(parseInt(e.target.value) || 0, userPoints, totalAfterCoupon);
-                            setPointUsage(value);
-                          }}
-                          max={Math.min(userPoints, totalAfterCoupon)}
-                      />
-                      <Button
-                          variant="outline"
-                          onClick={() => setPointUsage(Math.min(userPoints, totalAfterCoupon))}
-                      >
-                        전액사용
-                      </Button>
-                    </div>
-                  </div>
 
-                  {/* 쿠폰 선택 */}
-                  <div>
-                    <label className="text-sm font-medium mb-3 block">쿠폰 선택</label>
-                    <Select value={selectedCoupon || "none"} onValueChange={(value) => setSelectedCoupon(value === "none" ? "" : value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="쿠폰을 선택하세요" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">쿠폰 사용 안함</SelectItem>
-                        {userCoupons.map((coupon) => (
-                            <SelectItem
-                                key={coupon.id}
-                                value={coupon.id}
-                                disabled={subtotal < coupon.minOrder}
-                            >
-                              <div className="flex items-center gap-2">
-                                {coupon.name}
-                                {subtotal < coupon.minOrder && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      {coupon.minOrder.toLocaleString()}원 이상
-                                    </Badge>
-                                )}
-                              </div>
-                            </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
+                    {/* 쿠폰 선택 */}
+                    <div>
+                      <label className="text-sm font-medium mb-3 block">쿠폰 선택</label>
+                      <Select value={selectedCoupon || "none"} onValueChange={(value) => setSelectedCoupon(value === "none" ? "" : value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="쿠폰을 선택하세요" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">쿠폰 사용 안함</SelectItem>
+                          {userCoupons.map((coupon) => (
+                              <SelectItem
+                                  key={coupon.id}
+                                  value={coupon.id}
+                                  disabled={subtotal < coupon.minOrder}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {coupon.name}
+                                  {subtotal < coupon.minOrder && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {coupon.minOrder.toLocaleString()}원 이상
+                                      </Badge>
+                                  )}
+                                </div>
+                              </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* 주문 요약 */}
@@ -696,13 +697,13 @@ const Order = () => {
                       <span>배송비</span>
                       <span>{shippingFee.toLocaleString()}원</span>
                     </div>
-                    {couponDiscount > 0 && (
+                    {userType !== 'BRANCH' && couponDiscount > 0 && (
                         <div className="flex justify-between text-red-600">
                           <span>쿠폰 할인</span>
                           <span>-{couponDiscount.toLocaleString()}원</span>
                         </div>
                     )}
-                    {pointUsage > 0 && (
+                    {userType !== 'BRANCH' && pointUsage > 0 && (
                         <div className="flex justify-between text-blue-600">
                           <span>포인트 사용</span>
                           <span>-{pointUsage.toLocaleString()}P</span>
