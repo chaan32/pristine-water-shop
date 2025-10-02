@@ -73,6 +73,7 @@ const Order = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false); // 스크립트 로딩 상태 추가
+  const [userPoints, setUserPoints] = useState(0); // 사용자 포인트
 
 
 
@@ -100,6 +101,11 @@ const Order = () => {
         }
 
         await fetchUserShippingInfo(userInfo.id);
+        
+        // 개인 회원인 경우 포인트 조회
+        if (userInfo.role === 'INDIVIDUAL') {
+          await fetchUserPoints();
+        }
 
       } catch (error) {
         console.error("초기 데이터 로딩 중 에러 발생:", error);
@@ -207,8 +213,22 @@ const Order = () => {
     }
   };
 
-  // 사용자 정보 (실제로는 로그인된 사용자 정보에서 가져올 것)
-  const userPoints = 15000;
+  // 사용자 포인트 조회 함수
+  const fetchUserPoints = async () => {
+    try {
+      const response = await apiFetch('/api/order/point');
+      
+      if (!response.ok) {
+        throw new Error(`API 요청 실패: ${response.status}`);
+      }
+
+      const points = await response.json();
+      setUserPoints(points ?? 0);
+    } catch (error) {
+      console.error('포인트 조회 실패:', error);
+      setUserPoints(0);
+    }
+  };
   const userCoupons = [
     { id: 'welcome10', name: '신규가입 10% 할인', discount: 0.1, minOrder: 50000 },
     { id: 'winter20', name: '겨울맞이 20% 할인', discount: 0.2, minOrder: 100000 },
