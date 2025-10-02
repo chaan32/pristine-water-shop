@@ -611,24 +611,30 @@ const Order = () => {
                         보유: {userPoints.toLocaleString()}P
                       </span>
                       </div>
-                      <div className="flex gap-2">
-                        <Input
-                            type="number"
-                            placeholder="사용할 포인트"
-                            value={pointUsage}
-                            onChange={(e) => {
-                              const value = Math.min(parseInt(e.target.value) || 0, userPoints, totalBeforeDiscounts);
-                              setPointUsage(value);
-                            }}
-                            max={Math.min(userPoints, totalBeforeDiscounts)}
-                        />
-                        <Button
-                            variant="outline"
-                            onClick={() => setPointUsage(Math.min(userPoints, totalBeforeDiscounts))}
-                        >
-                          전액사용
-                        </Button>
-                      </div>
+                      {userPoints < 10000 ? (
+                        <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground text-center">
+                          포인트는 10,000P 이상부터 사용 가능합니다.
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Input
+                              type="number"
+                              placeholder="사용할 포인트"
+                              value={pointUsage}
+                              onChange={(e) => {
+                                const value = Math.min(parseInt(e.target.value) || 0, userPoints, totalBeforeDiscounts);
+                                setPointUsage(value);
+                              }}
+                              max={Math.min(userPoints, totalBeforeDiscounts)}
+                          />
+                          <Button
+                              variant="outline"
+                              onClick={() => setPointUsage(Math.min(userPoints, totalBeforeDiscounts))}
+                          >
+                            전액사용
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {/* 쿠폰 선택 - 주석처리됨 */}
