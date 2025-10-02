@@ -630,6 +630,19 @@ const Order = () => {
                         </Button>
                       </div>
                     </div>
+
+                    {/* 쿠폰 선택 - 주석처리됨 */}
+                    {/* <div>
+                      <label className="text-sm font-medium mb-3 block">쿠폰 선택</label>
+                      <Select value={selectedCoupon || "none"} onValueChange={(value) => setSelectedCoupon(value === "none" ? "" : value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="쿠폰을 선택하세요" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">쿠폰 사용 안함</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div> */}
                   </CardContent>
                 </Card>
               )}
