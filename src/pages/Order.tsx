@@ -236,7 +236,7 @@ const Order = () => {
   ];
 
   const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-  const shippingFee = subtotal >= 50000 ? 0 : 3000;
+  const shippingFee = 0; // 테스트용: 무조건 배송비 0원
 
   // 쿠폰 할인 계산
   const selectedCouponInfo = userCoupons.find(c => c.id === selectedCoupon);
