@@ -55,7 +55,6 @@ const Order = () => {
   const isDirectPurchase = location.state?.isDirectPurchase || false;
   const [items, setItems] = useState(initialItems);
   const [pointUsage, setPointUsage] = useState(0);
-  const [selectedCoupon, setSelectedCoupon] = useState('');
   const [loggedInUser, setLoggedInUser] = useState<UserInfo | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'bank', 'mobile'
   const [userType, setUserType] = useState<string | null>(null);
@@ -229,31 +228,11 @@ const Order = () => {
       setUserPoints(0);
     }
   };
-  const userCoupons = [
-    { id: 'welcome10', name: '신규가입 10% 할인', discount: 0.1, minOrder: 50000 },
-    { id: 'winter20', name: '겨울맞이 20% 할인', discount: 0.2, minOrder: 100000 },
-    { id: 'free-shipping', name: '무료배송 쿠폰', discount: 3000, minOrder: 0 }
-  ];
-
   const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
   const shippingFee = 0; // 테스트용: 무조건 배송비 0원
 
-  // 쿠폰 할인 계산
-  const selectedCouponInfo = userCoupons.find(c => c.id === selectedCoupon);
-  let couponDiscount = 0;
-  if (selectedCouponInfo) {
-    if (selectedCouponInfo.discount < 1) {
-      // 퍼센트 할인
-      couponDiscount = Math.floor(subtotal * selectedCouponInfo.discount);
-    } else {
-      // 고정 금액 할인
-      couponDiscount = selectedCouponInfo.discount;
-    }
-  }
-
   const totalBeforeDiscounts = subtotal + shippingFee;
-  const totalAfterCoupon = totalBeforeDiscounts - couponDiscount;
-  const finalTotal = Math.max(0, totalAfterCoupon - pointUsage);
+  const finalTotal = Math.max(0, totalBeforeDiscounts - pointUsage);
 
   const fillOrdererInfo = () => {
     setUserType(currentUser.role);
@@ -376,7 +355,7 @@ const Order = () => {
       },
       totalPrice: finalTotal,
       productPrice: subtotal,
-      couponDiscountPrice: couponDiscount,
+      couponDiscountPrice: 0,
       pointDiscountPrice: pointUsage,
       shipmentFee: shippingFee,
       paymentMethod: paymentMethod,
@@ -638,47 +617,18 @@ const Order = () => {
                             placeholder="사용할 포인트"
                             value={pointUsage}
                             onChange={(e) => {
-                              const value = Math.min(parseInt(e.target.value) || 0, userPoints, totalAfterCoupon);
+                              const value = Math.min(parseInt(e.target.value) || 0, userPoints, totalBeforeDiscounts);
                               setPointUsage(value);
                             }}
-                            max={Math.min(userPoints, totalAfterCoupon)}
+                            max={Math.min(userPoints, totalBeforeDiscounts)}
                         />
                         <Button
                             variant="outline"
-                            onClick={() => setPointUsage(Math.min(userPoints, totalAfterCoupon))}
+                            onClick={() => setPointUsage(Math.min(userPoints, totalBeforeDiscounts))}
                         >
                           전액사용
                         </Button>
                       </div>
-                    </div>
-
-                    {/* 쿠폰 선택 */}
-                    <div>
-                      <label className="text-sm font-medium mb-3 block">쿠폰 선택</label>
-                      <Select value={selectedCoupon || "none"} onValueChange={(value) => setSelectedCoupon(value === "none" ? "" : value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="쿠폰을 선택하세요" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">쿠폰 사용 안함</SelectItem>
-                          {userCoupons.map((coupon) => (
-                              <SelectItem
-                                  key={coupon.id}
-                                  value={coupon.id}
-                                  disabled={subtotal < coupon.minOrder}
-                              >
-                                <div className="flex items-center gap-2">
-                                  {coupon.name}
-                                  {subtotal < coupon.minOrder && (
-                                      <Badge variant="secondary" className="text-xs">
-                                        {coupon.minOrder.toLocaleString()}원 이상
-                                      </Badge>
-                                  )}
-                                </div>
-                              </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </div>
                   </CardContent>
                 </Card>
@@ -717,12 +667,6 @@ const Order = () => {
                       <span>배송비</span>
                       <span>{shippingFee.toLocaleString()}원</span>
                     </div>
-                    {userType !== 'BRANCH' && couponDiscount > 0 && (
-                        <div className="flex justify-between text-red-600">
-                          <span>쿠폰 할인</span>
-                          <span>-{couponDiscount.toLocaleString()}원</span>
-                        </div>
-                    )}
                     {userType !== 'BRANCH' && pointUsage > 0 && (
                         <div className="flex justify-between text-blue-600">
                           <span>포인트 사용</span>
