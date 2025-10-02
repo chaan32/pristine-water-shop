@@ -553,13 +553,19 @@ const Register = () => {
                     </div>
                   </div>
                   
-                  <Input 
-                    placeholder="이메일" 
-                    type="email"
-                    value={individualForm.email}
-                    onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
-                    disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
-                  />
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <Label>이메일 (필수)</Label>
+                      <p className="text-xs text-muted-foreground">ID/PW를 찾을 때 사용될 수 있습니다.</p>
+                    </div>
+                    <Input 
+                      placeholder="example@email.com" 
+                      type="email"
+                      value={individualForm.email}
+                      onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
+                      disabled={!individualForm.isIdChecked || !individualForm.isIdAvailable}
+                    />
+                  </div>
                   
                   {/* 핸드폰 인증 */}
                   <div className="space-y-2">
@@ -1036,7 +1042,10 @@ const Register = () => {
                   </div>
                   {/* 이메일 */}
                   <div className="space-y-2">
-                    <Label>이메일 (필수) - ID/PW를 찾을 때 사용될 수 있습니다.</Label>
+                    <div className="space-y-1">
+                      <Label>이메일 (필수)</Label>
+                      <p className="text-xs text-muted-foreground">ID/PW를 찾을 때 사용될 수 있습니다.</p>
+                    </div>
                     <Input
                       placeholder="example@email.com" 
                       type="email"
