@@ -232,7 +232,9 @@ const Order = () => {
   const shippingFee = 0; // 테스트용: 무조건 배송비 0원
 
   const totalBeforeDiscounts = subtotal + shippingFee;
-  const finalTotal = Math.max(0, totalBeforeDiscounts - pointUsage);
+  // 포인트는 10000P 이상일 때만 사용 가능
+  const validPointUsage = userPoints >= 10000 ? pointUsage : 0;
+  const finalTotal = Math.max(0, totalBeforeDiscounts - validPointUsage);
 
   const fillOrdererInfo = () => {
     setUserType(currentUser.role);
@@ -356,7 +358,7 @@ const Order = () => {
       totalPrice: finalTotal,
       productPrice: subtotal,
       couponDiscountPrice: 0,
-      pointDiscountPrice: pointUsage,
+      pointDiscountPrice: validPointUsage,
       shipmentFee: shippingFee,
       paymentMethod: paymentMethod,
     };
@@ -612,8 +614,9 @@ const Order = () => {
                       </span>
                       </div>
                       {userPoints < 10000 ? (
-                        <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground text-center">
-                          포인트는 10,000P 이상부터 사용 가능합니다.
+                        <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground">
+                          <p className="font-medium mb-1">포인트 사용 불가</p>
+                          <p className="text-xs">포인트는 10,000P 이상 보유 시에만 사용할 수 있습니다.</p>
                         </div>
                       ) : (
                         <div className="flex gap-2">
@@ -686,10 +689,10 @@ const Order = () => {
                       <span>배송비</span>
                       <span>{shippingFee.toLocaleString()}원</span>
                     </div>
-                    {userType !== 'BRANCH' && pointUsage > 0 && (
+                    {userType !== 'BRANCH' && validPointUsage > 0 && (
                         <div className="flex justify-between text-blue-600">
                           <span>포인트 사용</span>
-                          <span>-{pointUsage.toLocaleString()}P</span>
+                          <span>-{validPointUsage.toLocaleString()}P</span>
                         </div>
                     )}
                     <Separator />
