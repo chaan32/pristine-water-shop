@@ -36,6 +36,7 @@ const Footer = () => {
               </p>
               <p><span className="font-medium text-foreground">사업자등록번호:</span> 289-02-03583</p>
               <p><span className="font-medium text-foreground">개인정보책임자:</span> 문용현 (ttgy61@naver.com)</p>
+              <p><span className="font-medium text-foreground">통신판매번호:</span> 2025-안양동안-1389</p>
               <p>
                 <span className="font-medium text-foreground">제휴문의:</span> 
                 <a href="mailto:partner@aquapure.co.kr" className="text-primary hover:underline ml-1">
