@@ -87,6 +87,10 @@ const Register = () => {
   // 핸드폰 인증 모달 상태
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [currentPhoneType, setCurrentPhoneType] = useState<'individual' | 'franchise'>('individual');
+  
+  // 약관 모달 상태
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   // 검색어가 변경될 때마다 API를 호출 (디바운싱 적용)
   useEffect(() => {
     // 검색어가 비어있으면 목록을 비움
@@ -636,7 +640,18 @@ const Register = () => {
                         checked={individualForm.termsAccepted}
                         onCheckedChange={(checked) => setIndividualForm(prev => ({ ...prev, termsAccepted: !!checked }))}
                       />
-                      <label htmlFor="terms1" className="text-sm">이용약관에 동의합니다 (필수)</label>
+                      <label htmlFor="terms1" className="text-sm flex items-center gap-2">
+                        이용약관에 동의합니다 (필수)
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-primary underline"
+                          onClick={() => setIsTermsModalOpen(true)}
+                        >
+                          보기
+                        </Button>
+                      </label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox 
@@ -644,7 +659,18 @@ const Register = () => {
                         checked={individualForm.privacyAccepted}
                         onCheckedChange={(checked) => setIndividualForm(prev => ({ ...prev, privacyAccepted: !!checked }))}
                       />
-                      <label htmlFor="privacy1" className="text-sm">개인정보 처리방침에 동의합니다 (필수)</label>
+                      <label htmlFor="privacy1" className="text-sm flex items-center gap-2">
+                        개인정보 처리방침에 동의합니다 (필수)
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-primary underline"
+                          onClick={() => setIsPrivacyModalOpen(true)}
+                        >
+                          보기
+                        </Button>
+                      </label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox id="marketing1" />
@@ -1153,7 +1179,18 @@ const Register = () => {
                         checked={corporateForm.termsAccepted}
                         onCheckedChange={(checked) => setCorporateForm(prev => ({ ...prev, termsAccepted: !!checked }))}
                       />
-                      <label htmlFor="terms2" className="text-sm">이용약관에 동의합니다 (필수)</label>
+                      <label htmlFor="terms2" className="text-sm flex items-center gap-2">
+                        이용약관에 동의합니다 (필수)
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-primary underline"
+                          onClick={() => setIsTermsModalOpen(true)}
+                        >
+                          보기
+                        </Button>
+                      </label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox 
@@ -1161,7 +1198,18 @@ const Register = () => {
                         checked={corporateForm.privacyAccepted}
                         onCheckedChange={(checked) => setCorporateForm(prev => ({ ...prev, privacyAccepted: !!checked }))}
                       />
-                      <label htmlFor="privacy2" className="text-sm">개인정보 처리방침에 동의합니다 (필수)</label>
+                      <label htmlFor="privacy2" className="text-sm flex items-center gap-2">
+                        개인정보 처리방침에 동의합니다 (필수)
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-primary underline"
+                          onClick={() => setIsPrivacyModalOpen(true)}
+                        >
+                          보기
+                        </Button>
+                      </label>
                     </div>
                   </div>
 
@@ -1189,6 +1237,178 @@ const Register = () => {
         onClose={() => setIsPhoneModalOpen(false)}
         onVerificationSuccess={handlePhoneVerificationSuccess}
       />
+
+      {/* 이용약관 모달 */}
+      <Dialog open={isTermsModalOpen} onOpenChange={setIsTermsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>이용약관</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <section>
+              <h3 className="font-semibold text-base mb-2">제1조 (목적)</h3>
+              <p className="text-muted-foreground">
+                본 약관은 회사가 제공하는 정수기 및 관련 서비스의 이용과 관련하여 회사와 이용자 간의 권리, 의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">제2조 (용어의 정의)</h3>
+              <p className="text-muted-foreground mb-2">
+                본 약관에서 사용하는 용어의 정의는 다음과 같습니다:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                <li>"서비스"라 함은 회사가 제공하는 정수기 판매, 렌탈, 유지보수 등 모든 서비스를 의미합니다.</li>
+                <li>"회원"이라 함은 본 약관에 동의하고 회사와 이용계약을 체결한 개인 또는 법인을 말합니다.</li>
+                <li>"아이디(ID)"라 함은 회원의 식별과 서비스 이용을 위하여 회원이 설정하고 회사가 승인한 문자와 숫자의 조합을 말합니다.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">제3조 (약관의 효력 및 변경)</h3>
+              <p className="text-muted-foreground">
+                본 약관은 서비스를 이용하고자 하는 모든 회원에 대하여 그 효력을 발생합니다. 회사는 필요한 경우 관련 법령을 위배하지 않는 범위 내에서 본 약관을 변경할 수 있으며, 변경된 약관은 서비스 화면에 공지함으로써 효력이 발생합니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">제4조 (회원가입)</h3>
+              <p className="text-muted-foreground mb-2">
+                회원가입은 다음과 같이 진행됩니다:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                <li>이용자가 본 약관에 동의하고 회원가입 신청을 합니다.</li>
+                <li>회사가 이용자의 신청에 대해 승인함으로써 회원가입이 완료됩니다.</li>
+                <li>회사는 필요한 경우 회원에게 추가 정보를 요청할 수 있습니다.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">제5조 (서비스 제공)</h3>
+              <p className="text-muted-foreground">
+                회사는 회원에게 정수기 제품 판매, 렌탈, 정기 필터 교체, A/S 등의 서비스를 제공합니다. 서비스의 구체적인 내용은 개별 계약서에 명시됩니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">제6조 (회원의 의무)</h3>
+              <p className="text-muted-foreground mb-2">
+                회원은 다음 사항을 준수해야 합니다:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                <li>회원가입 시 허위 정보를 제공하지 않을 것</li>
+                <li>타인의 정보를 도용하지 않을 것</li>
+                <li>서비스 이용 시 관련 법령 및 본 약관을 준수할 것</li>
+                <li>계약 조건에 따라 정해진 요금을 납부할 것</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">제7조 (면책사항)</h3>
+              <p className="text-muted-foreground">
+                회사는 천재지변, 전쟁, 기타 불가항력적인 사유로 인해 서비스를 제공할 수 없는 경우 책임이 면제됩니다. 또한 회원의 귀책사유로 인한 서비스 이용 장애에 대해서는 책임을 지지 않습니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">제8조 (분쟁 해결)</h3>
+              <p className="text-muted-foreground">
+                서비스 이용과 관련하여 회사와 회원 간에 분쟁이 발생한 경우, 양 당사자는 성실히 협의하여 해결하도록 노력합니다. 협의가 이루어지지 않을 경우 관할 법원은 회사의 본사 소재지를 관할하는 법원으로 합니다.
+              </p>
+            </section>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 개인정보 처리방침 모달 */}
+      <Dialog open={isPrivacyModalOpen} onOpenChange={setIsPrivacyModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>개인정보 처리방침</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <section>
+              <h3 className="font-semibold text-base mb-2">1. 개인정보의 수집 및 이용 목적</h3>
+              <p className="text-muted-foreground mb-2">
+                회사는 다음의 목적을 위해 개인정보를 처리합니다:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                <li>회원 가입 및 관리: 회원 가입의사 확인, 회원제 서비스 제공, 본인인증</li>
+                <li>서비스 제공: 정수기 판매/렌탈, 콘텐츠 제공, 맞춤 서비스 제공</li>
+                <li>고객 상담: 민원 처리, 공지사항 전달</li>
+                <li>마케팅 및 광고: 이벤트 및 광고성 정보 제공 (선택사항)</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">2. 수집하는 개인정보 항목</h3>
+              <p className="text-muted-foreground mb-2">
+                회사는 회원가입, 상담, 서비스 신청 등을 위해 아래와 같은 개인정보를 수집하고 있습니다:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                <li>필수항목: 이름, 아이디, 비밀번호, 이메일, 전화번호, 주소</li>
+                <li>법인회원 추가항목: 회사명, 사업자등록번호, 대표자명</li>
+                <li>자동 수집 항목: IP주소, 쿠키, 서비스 이용 기록</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">3. 개인정보의 보유 및 이용기간</h3>
+              <p className="text-muted-foreground">
+                회사는 법령에 따른 개인정보 보유·이용기간 또는 정보주체로부터 개인정보 수집 시 동의받은 개인정보 보유·이용기간 내에서 개인정보를 처리·보유합니다. 회원 탈퇴 시 지체없이 파기하나, 관련 법령에 따라 일정 기간 보관이 필요한 경우 해당 기간 동안 보관합니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">4. 개인정보의 제3자 제공</h3>
+              <p className="text-muted-foreground">
+                회사는 원칙적으로 이용자의 개인정보를 제1조에서 명시한 범위 내에서만 처리하며, 이용자의 동의, 법률의 특별한 규정 등 개인정보 보호법 제17조에 해당하는 경우에만 개인정보를 제3자에게 제공합니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">5. 개인정보 처리의 위탁</h3>
+              <p className="text-muted-foreground">
+                회사는 서비스 제공을 위해 필요한 경우 개인정보 처리 업무를 외부 전문업체에 위탁할 수 있습니다. 이 경우 위탁계약 체결 시 개인정보 보호법 제26조에 따라 위탁업무 수행목적 외 개인정보 처리금지, 안전성 확보조치 등을 명확히 규정합니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">6. 정보주체의 권리</h3>
+              <p className="text-muted-foreground mb-2">
+                이용자는 언제든지 다음과 같은 권리를 행사할 수 있습니다:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                <li>개인정보 열람 요구</li>
+                <li>개인정보 정정·삭제 요구</li>
+                <li>개인정보 처리정지 요구</li>
+                <li>개인정보 제공 동의 철회</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">7. 개인정보의 안전성 확보 조치</h3>
+              <p className="text-muted-foreground">
+                회사는 개인정보의 안전성 확보를 위해 관리적, 기술적, 물리적 조치를 취하고 있습니다. 개인정보의 암호화, 해킹 등에 대비한 기술적 대책, 개인정보 취급 직원의 최소화 및 교육 등을 실시하고 있습니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">8. 개인정보 보호책임자</h3>
+              <p className="text-muted-foreground">
+                회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위하여 개인정보 보호책임자를 지정하고 있습니다. 개인정보 관련 문의사항은 고객센터를 통해 접수하실 수 있습니다.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="font-semibold text-base mb-2">9. 개인정보 처리방침의 변경</h3>
+              <p className="text-muted-foreground">
+                본 개인정보 처리방침은 법령, 정책 또는 보안기술의 변경에 따라 내용의 추가, 삭제 및 수정이 있을 시에는 변경사항의 시행 7일 전부터 홈페이지의 공지사항을 통하여 고지할 것입니다.
+              </p>
+            </section>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
