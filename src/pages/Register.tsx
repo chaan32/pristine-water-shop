@@ -91,6 +91,26 @@ const Register = () => {
   // 약관 모달 상태
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [currentTermsType, setCurrentTermsType] = useState<'individual' | 'corporate'>('individual');
+
+  // 약관 동의 처리
+  const handleTermsAgree = () => {
+    if (currentTermsType === 'individual') {
+      setIndividualForm(prev => ({ ...prev, termsAccepted: true }));
+    } else {
+      setCorporateForm(prev => ({ ...prev, termsAccepted: true }));
+    }
+    setIsTermsModalOpen(false);
+  };
+
+  const handlePrivacyAgree = () => {
+    if (currentTermsType === 'individual') {
+      setIndividualForm(prev => ({ ...prev, privacyAccepted: true }));
+    } else {
+      setCorporateForm(prev => ({ ...prev, privacyAccepted: true }));
+    }
+    setIsPrivacyModalOpen(false);
+  };
   // 검색어가 변경될 때마다 API를 호출 (디바운싱 적용)
   useEffect(() => {
     // 검색어가 비어있으면 목록을 비움
@@ -634,44 +654,54 @@ const Register = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="terms1" 
-                        checked={individualForm.termsAccepted}
-                        onCheckedChange={(checked) => setIndividualForm(prev => ({ ...prev, termsAccepted: !!checked }))}
-                      />
-                      <label htmlFor="terms1" className="text-sm flex items-center gap-2">
-                        이용약관에 동의합니다 (필수)
-                        <Button
-                          type="button"
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-primary underline"
-                          onClick={() => setIsTermsModalOpen(true)}
-                        >
-                          보기
-                        </Button>
-                      </label>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="terms1" 
+                          checked={individualForm.termsAccepted}
+                          disabled
+                        />
+                        <label htmlFor="terms1" className="text-sm">
+                          이용약관에 동의합니다 (필수)
+                        </label>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCurrentTermsType('individual');
+                          setIsTermsModalOpen(true);
+                        }}
+                      >
+                        {individualForm.termsAccepted ? '확인' : '보기'}
+                      </Button>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="privacy1" 
-                        checked={individualForm.privacyAccepted}
-                        onCheckedChange={(checked) => setIndividualForm(prev => ({ ...prev, privacyAccepted: !!checked }))}
-                      />
-                      <label htmlFor="privacy1" className="text-sm flex items-center gap-2">
-                        개인정보 처리방침에 동의합니다 (필수)
-                        <Button
-                          type="button"
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-primary underline"
-                          onClick={() => setIsPrivacyModalOpen(true)}
-                        >
-                          보기
-                        </Button>
-                      </label>
+                    
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="privacy1" 
+                          checked={individualForm.privacyAccepted}
+                          disabled
+                        />
+                        <label htmlFor="privacy1" className="text-sm">
+                          개인정보 처리방침에 동의합니다 (필수)
+                        </label>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCurrentTermsType('individual');
+                          setIsPrivacyModalOpen(true);
+                        }}
+                      >
+                        {individualForm.privacyAccepted ? '확인' : '보기'}
+                      </Button>
                     </div>
+                    
                     <div className="flex items-center space-x-2">
                       <Checkbox id="marketing1" />
                       <label htmlFor="marketing1" className="text-sm">마케팅 정보 수신에 동의합니다 (선택)</label>
@@ -1173,43 +1203,52 @@ const Register = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="terms2" 
-                        checked={corporateForm.termsAccepted}
-                        onCheckedChange={(checked) => setCorporateForm(prev => ({ ...prev, termsAccepted: !!checked }))}
-                      />
-                      <label htmlFor="terms2" className="text-sm flex items-center gap-2">
-                        이용약관에 동의합니다 (필수)
-                        <Button
-                          type="button"
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-primary underline"
-                          onClick={() => setIsTermsModalOpen(true)}
-                        >
-                          보기
-                        </Button>
-                      </label>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="terms2" 
+                          checked={corporateForm.termsAccepted}
+                          disabled
+                        />
+                        <label htmlFor="terms2" className="text-sm">
+                          이용약관에 동의합니다 (필수)
+                        </label>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCurrentTermsType('corporate');
+                          setIsTermsModalOpen(true);
+                        }}
+                      >
+                        {corporateForm.termsAccepted ? '확인' : '보기'}
+                      </Button>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="privacy2" 
-                        checked={corporateForm.privacyAccepted}
-                        onCheckedChange={(checked) => setCorporateForm(prev => ({ ...prev, privacyAccepted: !!checked }))}
-                      />
-                      <label htmlFor="privacy2" className="text-sm flex items-center gap-2">
-                        개인정보 처리방침에 동의합니다 (필수)
-                        <Button
-                          type="button"
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-primary underline"
-                          onClick={() => setIsPrivacyModalOpen(true)}
-                        >
-                          보기
-                        </Button>
-                      </label>
+                    
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="privacy2" 
+                          checked={corporateForm.privacyAccepted}
+                          disabled
+                        />
+                        <label htmlFor="privacy2" className="text-sm">
+                          개인정보 처리방침에 동의합니다 (필수)
+                        </label>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setCurrentTermsType('corporate');
+                          setIsPrivacyModalOpen(true);
+                        }}
+                      >
+                        {corporateForm.privacyAccepted ? '확인' : '보기'}
+                      </Button>
                     </div>
                   </div>
 
@@ -1240,11 +1279,11 @@ const Register = () => {
 
       {/* 이용약관 모달 */}
       <Dialog open={isTermsModalOpen} onOpenChange={setIsTermsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>이용약관</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 text-sm">
+          <div className="space-y-4 text-sm overflow-y-auto flex-1 pr-2">
             <section>
               <h3 className="font-semibold text-base mb-2">제1조 (목적)</h3>
               <p className="text-muted-foreground">
@@ -1317,16 +1356,31 @@ const Register = () => {
               </p>
             </section>
           </div>
+          <div className="flex gap-2 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setIsTermsModalOpen(false)}
+              className="flex-1"
+            >
+              취소
+            </Button>
+            <Button
+              onClick={handleTermsAgree}
+              className="flex-1"
+            >
+              동의합니다
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* 개인정보 처리방침 모달 */}
       <Dialog open={isPrivacyModalOpen} onOpenChange={setIsPrivacyModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>개인정보 처리방침</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 text-sm">
+          <div className="space-y-4 text-sm overflow-y-auto flex-1 pr-2">
             <section>
               <h3 className="font-semibold text-base mb-2">1. 개인정보의 수집 및 이용 목적</h3>
               <p className="text-muted-foreground mb-2">
@@ -1406,6 +1460,21 @@ const Register = () => {
                 본 개인정보 처리방침은 법령, 정책 또는 보안기술의 변경에 따라 내용의 추가, 삭제 및 수정이 있을 시에는 변경사항의 시행 7일 전부터 홈페이지의 공지사항을 통하여 고지할 것입니다.
               </p>
             </section>
+          </div>
+          <div className="flex gap-2 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setIsPrivacyModalOpen(false)}
+              className="flex-1"
+            >
+              취소
+            </Button>
+            <Button
+              onClick={handlePrivacyAgree}
+              className="flex-1"
+            >
+              동의합니다
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
