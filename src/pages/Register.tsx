@@ -1252,6 +1252,122 @@ const Register = () => {
                     </div>
                   </div>
 
+                  {/* 미완료 필드 안내 */}
+                  {!isCorporateFormValid && (
+                    <div className="p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
+                      <div className="flex items-start gap-2 mb-3">
+                        <X className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm text-destructive mb-2">다음 항목을 완료해주세요:</h4>
+                          <ul className="space-y-1.5 text-sm">
+                            {!corporateForm.corporateType && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>법인 회원 유형을 선택해주세요</span>
+                              </li>
+                            )}
+                            {!corporateForm.businessType && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>법인 업종을 선택해주세요</span>
+                              </li>
+                            )}
+                            {corporateForm.corporateType === 'franchise' && !corporateForm.headquartersName && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>본사를 선택해주세요</span>
+                              </li>
+                            )}
+                            {corporateForm.corporateType === 'franchise' && !corporateForm.branchName && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>지점명을 입력해주세요</span>
+                              </li>
+                            )}
+                            {corporateForm.corporateType === 'franchise' && !corporateForm.managerName && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>매니저 이름을 입력해주세요</span>
+                              </li>
+                            )}
+                            {corporateForm.corporateType === 'franchise' && !corporateForm.isPhoneVerified && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>매니저 핸드폰 인증을 완료해주세요</span>
+                              </li>
+                            )}
+                            {corporateForm.corporateType === 'franchise' && (!corporateForm.companyPhone1 || !corporateForm.companyPhone2 || !corporateForm.companyPhone3) && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>회사 전화번호를 입력해주세요</span>
+                              </li>
+                            )}
+                            {corporateForm.corporateType === 'franchise' && !corporateForm.address && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>주소를 검색해주세요</span>
+                              </li>
+                            )}
+                            {!corporateForm.companyName && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>회사명을 입력해주세요</span>
+                              </li>
+                            )}
+                            {(!corporateForm.businessNumber1 || !corporateForm.businessNumber2 || !corporateForm.businessNumber3) && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>사업자등록번호를 입력해주세요</span>
+                              </li>
+                            )}
+                            {!corporateForm.isIdAvailable && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>아이디 중복확인을 완료해주세요</span>
+                              </li>
+                            )}
+                            {!isCorporatePasswordMatch && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>비밀번호를 확인해주세요</span>
+                              </li>
+                            )}
+                            {!corporateForm.email && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>이메일을 입력해주세요</span>
+                              </li>
+                            )}
+                            {corporateForm.corporateType === 'headquarters' && !corporateForm.phone && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>회사 전화번호를 입력해주세요</span>
+                              </li>
+                            )}
+                            {corporateForm.corporateType === 'headquarters' && !corporateForm.address && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>주소를 검색해주세요</span>
+                              </li>
+                            )}
+                            {!corporateForm.termsAccepted && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>이용약관에 동의해주세요</span>
+                              </li>
+                            )}
+                            {!corporateForm.privacyAccepted && (
+                              <li className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-destructive"></span>
+                                <span>개인정보 처리방침에 동의해주세요</span>
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <Button 
                     className="w-full water-drop" 
                     size="lg"
