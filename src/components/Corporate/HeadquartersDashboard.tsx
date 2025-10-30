@@ -18,6 +18,7 @@ import PaymentModal from './PaymentModal';
 import { toast } from 'sonner';
 import { apiFetch, getAccessToken, headquartersApi } from '@/lib/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { PAYMENT_CONFIG } from '@/lib/config';
 import { useToast } from '@/hooks/use-toast';
 
@@ -648,33 +649,35 @@ const HeadquartersDashboard = () => {
 
         {/* 활성 지점 모달 */}
         <Dialog open={activeBranchesModal} onOpenChange={setActiveBranchesModal}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[80vh]">
             <DialogHeader>
               <DialogTitle>활성 지점 목록</DialogTitle>
             </DialogHeader>
-            <div className="mt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>지점명</TableHead>
-                    <TableHead className="text-right">총 결제 금액</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activeBranches.map((branch, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">{branch.branchName}</TableCell>
-                      <TableCell className="text-right">{branch.totalPaymentPrice.toLocaleString()}원</TableCell>
+            <ScrollArea className="mt-4 max-h-[60vh]">
+              <div className="pr-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>지점명</TableHead>
+                      <TableHead className="text-right">총 결제 금액</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {activeBranches.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  활성 지점이 없습니다.
-                </div>
-              )}
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {activeBranches.map((branch, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{branch.branchName}</TableCell>
+                        <TableCell className="text-right">{branch.totalPaymentPrice.toLocaleString()}원</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {activeBranches.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    활성 지점이 없습니다.
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
